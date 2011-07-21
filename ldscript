@@ -1,0 +1,15 @@
+ENTRY(entry)
+SECTIONS
+{
+	.text 0x10000 :
+	{
+		*(.entry)
+		*(.text)
+		*(.rodata)
+	}
+	
+	.data : 
+	{
+		*(.data)
+	}
+}
