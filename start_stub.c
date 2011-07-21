@@ -7,10 +7,24 @@ char stack1[256];
 char stack2[256];
 char initStack[256];
 
+static void task1Start()
+{
+	while(1) {
+		schedule();
+	}
+}
+
+static void task2Start()
+{
+	while(1) {
+		schedule();
+	}
+}
+
 void start_stub()
 {
-	taskInit(&task1, stack1 + sizeof(stack1));
-	taskInit(&task2, stack2 + sizeof(stack2));
+	taskInit(&task1, task1Start, stack1 + sizeof(stack1));
+	taskInit(&task2, task2Start, stack2 + sizeof(stack2));
 
 	taskAdd(&task1);
 	taskAdd(&task2);

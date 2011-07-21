@@ -1,7 +1,12 @@
 .section .entry
 .globl entry
 
+.extern initStack
+
 entry:
-	mov sp, #100
+	ldr sp, initStackAddr
+	add sp, #256
 	b start_stub
+initStackAddr:
+	.word initStack
 	

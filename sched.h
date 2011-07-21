@@ -25,6 +25,6 @@ void schedule();
 struct Task *taskRemoveHead();
 void taskAdd(struct Task *task);
 
-void taskInit(struct Task *task, void *stack);
+void taskInit(struct Task *task, void (*start)(), void *stack);
 
 #endif

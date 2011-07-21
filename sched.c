@@ -36,7 +36,7 @@ static void startRoutine()
 	}
 }
 
-void taskInit(struct Task *task, void *stack)
+void taskInit(struct Task *task, void (*start)(), void *stack)
 {
 	int i;
 	
@@ -44,8 +44,8 @@ void taskInit(struct Task *task, void *stack)
 		task->regs[i] = 0;
 	}
 	
-	task->regs[R_IP] = startRoutine;
-	task->regs[R_SP] = stack;
+	task->regs[R_IP] = (unsigned int)start;
+	task->regs[R_SP] = (unsigned int)stack;
 }
 
 void schedule()
