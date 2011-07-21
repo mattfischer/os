@@ -22,6 +22,9 @@ struct Task *taskRemoveHead()
 	
 	task = runList.head;
 	runList.head = runList.head->next;
+	if(runList.head == NULL) {
+		runList.tail = NULL;
+	}
 	
 	return task;
 }
@@ -50,9 +53,12 @@ void schedule()
 	struct Task *newTask;
 	struct Task *oldCurrent;
 	
-	taskAdd(currentTask);
+	if(currentTask != NULL) {
+		taskAdd(currentTask);
+	}
+
 	newTask = taskRemoveHead();
-	
+
 	if(newTask != currentTask) {
 		oldCurrent = currentTask;
 		currentTask = newTask;

@@ -8,26 +8,24 @@ CROSS_COMPILE := arm-none-eabi
 GCC := $(CROSS_COMPILE)-gcc
 AS := $(CROSS_COMPILE)-as
 LD := $(CROSS_COMPILE)-ld
-OBJCOPY := $(CROSS_COMPILE)-objcopy
 GDB := $(CROSS_COMPILE)-gdb
 
 CFLAGS := -g
 AFLAGS := -g
 
-all: kernel.bin
+all: kernel
 
 clean:
 	rm $(OBJS)
-	rm kernel.elf
-	rm kernel.bin
+	rm kernel
 
-qemu: kernel.bin
-	qemu-system-arm -kernel kernel.bin -s
+qemu: kernel
+	qemu-system-arm -kernel kernel -s -S
 
-gdb: kernel.elf
+gdb: kernel
 	$(GDB) $< 
 
-kernel.elf: $(OBJS)
+kernel: $(OBJS)
 	$(LD) $(OBJS) -o $@ -T ldscript
 
 .c.o: 
@@ -35,6 +33,3 @@ kernel.elf: $(OBJS)
 	
 .s.o:
 	$(AS) $(AFLAGS) -o $@ $<
-	
-%.bin: %.elf
-	$(OBJCOPY) -O binary $< $@
