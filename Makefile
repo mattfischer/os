@@ -1,5 +1,7 @@
 OBJS := \
 	entry.o \
+	entry_c.o \
+	memory.o \
 	sched.o \
 	switch_to.o \
 	start_stub.o
@@ -23,6 +25,7 @@ qemu: kernel
 	qemu-system-arm -kernel kernel -s -S
 
 gdb: kernel
+	echo "target remote :1234" > .gdbinit
 	$(GDB) $< 
 
 kernel: $(OBJS)
