@@ -8,9 +8,8 @@ entry:
 	ldr sp, initStackAddr
 	sub sp, sp, r1
 	add sp, #256
-	
+
 	ldr r4, initMapAddr
-	sub r4, r4, r1
 	mov r0, r4
 	bl entry_setupInitMap
 

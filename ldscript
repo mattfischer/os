@@ -1,12 +1,17 @@
 ENTRY(entry)
 SECTIONS
 {
-	.entry 0x10000 : 
+	.initMap 0 (NOLOAD) :
+	{
+		*(.initMap)
+	}
+
+	.entry :
 	{
 		*(.entry)
 	}
-	
-	.text 0xC0000000 : AT(LOADADDR(.entry) + SIZEOF(.entry))
+
+	.text 0xC0000000 + . : AT(LOADADDR(.entry) + SIZEOF(.entry))
 	{
 		*(.text)
 		*(.rodata)
@@ -20,10 +25,5 @@ SECTIONS
 	.bss (NOLOAD) :
 	{
 		*(.bss)
-	}
-	
-	.initMap 0xC0004000 (NOLOAD) :
-	{
-		*(.initMap)
 	}
 }
