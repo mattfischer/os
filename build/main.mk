@@ -21,33 +21,33 @@ $(BINDIR)$(1): $$($(1)_objs)
 	@$(LD) $$($(1)_objs) -o $$@ $$($(1)_LDFLAGS)
 	@echo "LD    $$@"
 
-$$($(1)_objdir)%.o: $(cwd)%.c
+$$($(1)_objdir)%.o: $(CWD)%.c
 	@mkdir -p $$(dir $$@)
 	@mkdir -p $$($(1)_depdir)
-	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(cwd)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
+	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(CWD)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
 	@echo "CC    $$<"
 	
-$$($(1)_objdir)%.o: $(cwd)%.s
+$$($(1)_objdir)%.o: $(CWD)%.s
 	@mkdir -p $$(dir $$@)
 	@$(AS) $(AFLAGS) -o $$@ $$<
 	@echo "AS    $$<"
 
 ALL_TARGETS += $(BINDIR)$(1)
-ALL_DEPS += $$($(1)_c_sources:$(cwd)%.c=$$($(1)_depdir)%.d)
+ALL_DEPS += $$($(1)_c_sources:$(CWD)%.c=$$($(1)_depdir)%.d)
 endef
 
 all: all_internal
 
 define do_include
-cwd := $$(dir $(1))
-ifeq ($$(cwd),./)
-  cwd :=
+CWD := $$(dir $(1))
+ifeq ($$(CWD),./)
+  CWD :=
 endif
 SUBDIRS :=
 TARGETS :=
 include $(1)
 $$(foreach target,$$(TARGETS),$$(eval $$(call build,$$(target))))
-$$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(cwd)$$(subdir)/make.mk)))
+$$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(CWD)$$(subdir)/make.mk)))
 endef
 
 $(eval $(call do_include,make.mk))
