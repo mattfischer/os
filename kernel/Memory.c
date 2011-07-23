@@ -2,6 +2,7 @@
 #include "Defs.h"
 
 SECTION(".initMap") unsigned InitMap[PAGE_TABLE_SIZE];
+char InitStack[256];
 
 struct Page Pages[N_PAGES];
 
@@ -87,6 +88,10 @@ void PageFreeAll(struct Page *page)
 		page = next;
 	}
 }
+
+struct SlabHead {
+	unsigned int bitfield[1];
+};
 
 void SlabInit(struct SlabAllocator *slab, int size)
 {

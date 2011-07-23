@@ -1,18 +1,18 @@
 ENTRY(Entry)
 SECTIONS
 {
-	.initMap 0 (NOLOAD) :
-	{
-		*(.initMap)
-	}
-
-	.entry :
+	.entry 0x4000 :
 	{
 		*(.entry)
 	}
 	__KernelStart = 0xC0000000;
 
-	.text __KernelStart + . : AT(LOADADDR(.entry) + SIZEOF(.entry))
+	.initMap __KernelStart (NOLOAD) :
+	{
+		*(.initMap)
+	}
+
+	.text __KernelStart + ADDR(.entry) + SIZEOF(.entry) : AT(LOADADDR(.entry) + SIZEOF(.entry))
 	{
 		*(.text)
 		*(.rodata)

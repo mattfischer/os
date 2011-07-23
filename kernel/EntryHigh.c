@@ -1,4 +1,5 @@
 #include "Memory.h"
+#include "Sched.h"
 #include "Defs.h"
 
 SECTION(".entry") void EntrySetupInitMap(unsigned *map)
@@ -17,5 +18,7 @@ SECTION(".entry") void EntrySetupInitMap(unsigned *map)
 void EntryHigh()
 {
 	MemoryInit();
+	SchedInit();
+
 	StartStub();
 }

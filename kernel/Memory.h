@@ -50,13 +50,13 @@ struct SlabAllocator {
 	struct Page *pages;
 };
 
-struct SlabHead {
-	unsigned int bitfield[1];
-};
-
 void SlabInit(struct SlabAllocator *slab, int size);
 void *SlabAllocate(struct SlabAllocator *slab);
 void SlabFree(struct SlabAllocator *slab, void *p);
+
+struct AddressSpace {
+	struct Page *pageTable;
+};
 
 void MemoryInit();
 

@@ -8,6 +8,7 @@ Entry:
 	add sp, #256
 
 	ldr r4, InitMapAddr
+	sub r4, r4, r1
 	mov r0, r4
 	bl EntrySetupInitMap
 

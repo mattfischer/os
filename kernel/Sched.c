@@ -1,9 +1,14 @@
-#include "sched.h"
+#include "Sched.h"
 
-#define NULL (void*)0
+struct RunList {
+	struct Task *head;
+	struct Task *tail;
+};
 
 struct RunList runList = {NULL, NULL};
 struct Task *currentTask = NULL;
+
+struct SlabAllocator taskSlab;
 
 void TaskAdd(struct Task *task)
 {
@@ -29,16 +34,23 @@ struct Task *TaskRemoveHead()
 	return task;
 }
 
-void TaskInit(struct Task *task, void (*start)(), void *stack)
+struct Task *TaskCreate(void (*start)())
 {
 	int i;
-	
+	struct Task *task;
+
+	task = SlabAllocate(&taskSlab);
+
+	task->addressSpace = NULL;
+	task->stack = PageAlloc(1);
+
 	for(i=0; i<16; i++) {
 		task->regs[i] = 0;
 	}
-	
 	task->regs[R_IP] = (unsigned int)start;
-	task->regs[R_SP] = (unsigned int)stack;
+	task->regs[R_SP] = (unsigned int)PAGE_TO_VADDR(task->stack) + PAGE_SIZE;
+
+	return task;
 }
 
 void Schedule()
@@ -57,4 +69,9 @@ void Schedule()
 		currentTask = newTask;
 		SwitchTo(oldCurrent, currentTask);
 	}
+}
+
+void SchedInit()
+{
+	SlabInit(&taskSlab, sizeof(struct Task));
 }
