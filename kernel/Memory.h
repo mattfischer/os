@@ -19,8 +19,10 @@ struct Page {
 extern char __KernelStart[];
 extern char __KernelEnd[];
 
-#define PADDR_TO_VADDR(paddr) ((char*)paddr + (unsigned int)__KernelStart)
-#define VADDR_TO_PADDR(vaddr) ((char*)vaddr - (unsigned int)__KernelStart)
+#define KERNEL_START (unsigned int)__KernelStart
+
+#define PADDR_TO_VADDR(paddr) ((char*)paddr + KERNEL_START)
+#define VADDR_TO_PADDR(vaddr) ((char*)vaddr - KERNEL_START)
 
 #define PADDR_TO_PAGE_NR(paddr) ((unsigned int)paddr >> PAGE_SHIFT)
 #define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
@@ -61,6 +63,6 @@ struct AddressSpace {
 void MemoryInit();
 
 extern struct Page Pages[N_PAGES];
-extern unsigned InitMap[PAGE_TABLE_SIZE];
+extern unsigned KernelMap[PAGE_TABLE_SIZE];
 
 #endif

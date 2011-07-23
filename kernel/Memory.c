@@ -1,7 +1,7 @@
 #include "Memory.h"
 #include "Defs.h"
 
-SECTION(".initMap") unsigned InitMap[PAGE_TABLE_SIZE];
+SECTION(".kernelMap") unsigned KernelMap[PAGE_TABLE_SIZE];
 char InitStack[256];
 
 struct Page Pages[N_PAGES];

@@ -18,19 +18,19 @@ $(1)_objs := $$($(1)_c_sources:%.c=$$($(1)_objdir)%.o) $$($(1)_s_sources:%.s=$$(
 
 $(BINDIR)$(1): $$($(1)_objs) $$($(1)_EXTRA_DEPS) $$(makefile)
 	@mkdir -p $$(dir $$@)
-	@$(LD) $$($(1)_objs) -o $$@ $$($(1)_LDFLAGS)
 	@echo "LD    $$@"
+	@$(LD) $$($(1)_objs) -o $$@ $$($(1)_LDFLAGS)
 
 $$($(1)_objdir)%.o: $(CWD)%.c $$(makefile)
 	@mkdir -p $$(dir $$@)
 	@mkdir -p $$($(1)_depdir)
-	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(CWD)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
 	@echo "CC    $$<"
+	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(CWD)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
 	
 $$($(1)_objdir)%.o: $(CWD)%.s $$(makefile)
 	@mkdir -p $$(dir $$@)
-	@$(AS) $$($(1)_AFLAGS) -o $$@ $$<
 	@echo "AS    $$<"
+	@$(AS) $$($(1)_AFLAGS) -o $$@ $$<
 
 ALL_TARGETS += $(BINDIR)$(1)
 ALL_DEPS += $$($(1)_c_sources:%.c=$$($(1)_depdir)%.d)

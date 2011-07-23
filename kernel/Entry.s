@@ -7,7 +7,7 @@ Entry:
 	sub sp, sp, r1
 	add sp, #256
 
-	ldr r4, InitMapAddr
+	ldr r4, KernelMapAddr
 	sub r4, r4, r1
 	mov r0, r4
 	bl EntrySetupInitMap
@@ -29,8 +29,8 @@ Entry:
 	bx r0
 InitStackAddr:
 	.word InitStack
-InitMapAddr:
-	.word InitMap
+KernelMapAddr:
+	.word KernelMap
 EntryHighAddr:
 	.word EntryHigh
 memOffset:
