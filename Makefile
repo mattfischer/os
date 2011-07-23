@@ -1,10 +1,10 @@
 OBJS := \
-	entry.o \
-	entry_c.o \
-	memory.o \
-	sched.o \
-	switch_to.o \
-	start_stub.o
+	Entry.o \
+	EntryHigh.o \
+	Memory.o \
+	Sched.o \
+	SwitchTo.o \
+	StartStub.o
 	
 CROSS_COMPILE := arm-none-eabi
 GCC := $(CROSS_COMPILE)-gcc
