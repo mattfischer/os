@@ -40,11 +40,14 @@ all: all_internal
 
 define do_include
 cwd := $$(dir $(1))
+ifeq ($$(cwd),./)
+  cwd :=
+endif
 SUBDIRS :=
 TARGETS :=
 include $(1)
 $$(foreach target,$$(TARGETS),$$(eval $$(call build,$$(target))))
-$$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(cwd)/$$(subdir)/make.mk)))
+$$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(cwd)$$(subdir)/make.mk)))
 endef
 
 $(eval $(call do_include,make.mk))
