@@ -1,4 +1,4 @@
-#include "memory.h"
+#include "Memory.h"
 
 __attribute__((section (".entry"))) void entry_setupInitMap(unsigned *map)
 {
@@ -15,5 +15,5 @@ __attribute__((section (".entry"))) void entry_setupInitMap(unsigned *map)
 
 void entry_mmu()
 {
-	start_stub();
+	StartStub();
 }

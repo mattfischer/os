@@ -19,12 +19,12 @@ struct RunList
 extern struct RunList runList;
 extern struct Task *currentTask;
 
-void switchTo(struct Task *current, struct Task *next);
-void schedule();
+void SwitchTo(struct Task *current, struct Task *next);
+void Schedule();
 
-struct Task *taskRemoveHead();
-void taskAdd(struct Task *task);
+struct Task *TaskRemoveHead();
+void TaskAdd(struct Task *task);
 
-void taskInit(struct Task *task, void (*start)(), void *stack);
+void TaskInit(struct Task *task, void (*start)(), void *stack);
 
 #endif

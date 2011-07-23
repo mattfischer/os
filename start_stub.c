@@ -1,4 +1,4 @@
-#include "sched.h"
+#include "Sched.h"
 
 struct Task task1;
 struct Task task2;
@@ -10,24 +10,24 @@ char initStack[256];
 static void task1Start()
 {
 	while(1) {
-		schedule();
+		Schedule();
 	}
 }
 
 static void task2Start()
 {
 	while(1) {
-		schedule();
+		Schedule();
 	}
 }
 
-void start_stub()
+void StartStub()
 {
-	taskInit(&task1, task1Start, stack1 + sizeof(stack1));
-	taskInit(&task2, task2Start, stack2 + sizeof(stack2));
+	TaskInit(&task1, task1Start, stack1 + sizeof(stack1));
+	TaskInit(&task2, task2Start, stack2 + sizeof(stack2));
 
-	taskAdd(&task1);
-	taskAdd(&task2);
+	TaskAdd(&task1);
+	TaskAdd(&task2);
 
-	schedule();
+	Schedule();
 }

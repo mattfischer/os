@@ -5,7 +5,7 @@
 struct RunList runList = {NULL, NULL};
 struct Task *currentTask = NULL;
 
-void taskAdd(struct Task *task)
+void TaskAdd(struct Task *task)
 {
 	if(runList.tail == NULL) {
 		runList.head = task;
@@ -16,7 +16,7 @@ void taskAdd(struct Task *task)
 	runList.tail = task;
 }
 
-struct Task *taskRemoveHead()
+struct Task *TaskRemoveHead()
 {
 	struct Task *task;
 	
@@ -29,14 +29,7 @@ struct Task *taskRemoveHead()
 	return task;
 }
 
-static void startRoutine()
-{
-	while(1) {
-		schedule();
-	}
-}
-
-void taskInit(struct Task *task, void (*start)(), void *stack)
+void TaskInit(struct Task *task, void (*start)(), void *stack)
 {
 	int i;
 	
@@ -48,20 +41,20 @@ void taskInit(struct Task *task, void (*start)(), void *stack)
 	task->regs[R_SP] = (unsigned int)stack;
 }
 
-void schedule()
+void Schedule()
 {
 	struct Task *newTask;
 	struct Task *oldCurrent;
 	
 	if(currentTask != NULL) {
-		taskAdd(currentTask);
+		TaskAdd(currentTask);
 	}
 
-	newTask = taskRemoveHead();
+	newTask = TaskRemoveHead();
 
 	if(newTask != currentTask) {
 		oldCurrent = currentTask;
 		currentTask = newTask;
-		switchTo(oldCurrent, currentTask);
+		SwitchTo(oldCurrent, currentTask);
 	}
 }
