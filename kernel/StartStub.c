@@ -5,7 +5,7 @@ struct Task task2;
 
 char stack1[256];
 char stack2[256];
-char initStack[256];
+char InitStack[256];
 
 static void task1Start()
 {

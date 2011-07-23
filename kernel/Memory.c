@@ -1,3 +1,4 @@
-#include "memory.h"
+#include "Memory.h"
+#include "Defs.h"
 
-__attribute__((section (".initMap"))) unsigned initMap[PAGE_TABLE_SIZE];
+SECTION(".initMap") unsigned InitMap[PAGE_TABLE_SIZE];

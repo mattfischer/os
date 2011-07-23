@@ -1,4 +1,4 @@
-ENTRY(entry)
+ENTRY(Entry)
 SECTIONS
 {
 	.initMap 0 (NOLOAD) :

@@ -1,6 +1,7 @@
 #include "Memory.h"
+#include "Defs.h"
 
-__attribute__((section (".entry"))) void entry_setupInitMap(unsigned *map)
+SECTION(".entry") void EntrySetupInitMap(unsigned *map)
 {
 	unsigned int i;
 	
@@ -13,7 +14,7 @@ __attribute__((section (".entry"))) void entry_setupInitMap(unsigned *map)
 	}
 }
 
-void entry_mmu()
+void EntryHigh()
 {
 	StartStub();
 }
