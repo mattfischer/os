@@ -19,17 +19,17 @@ struct Page {
 extern char __KernelStart[];
 extern char __KernelEnd[];
 
-#define PADDR_TO_VADDR(paddr) (__KernelStart + (char*)paddr)
-#define VADDR_TO_PADDR(vaddr) ((char*)vaddr - __KernelStart)
+#define PADDR_TO_VADDR(paddr) ((char*)paddr + (unsigned int)__KernelStart)
+#define VADDR_TO_PADDR(vaddr) ((char*)vaddr - (unsigned int)__KernelStart)
 
-#define PADDR_TO_PAGE_NR(paddr) (paddr >> PAGE_SHIFT)
-#define VADDR_TO_PAGE_NR(vaddr) (VADDR_TO_PADDR(vaddr) >> PAGE_SHIFT)
+#define PADDR_TO_PAGE_NR(paddr) ((unsigned int)paddr >> PAGE_SHIFT)
+#define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
 
 #define PAGE(nr) (Pages + nr)
 #define PAGE_NR(page) (page - Pages)
 
 #define PADDR_TO_PAGE(paddr) PAGE(PADDR_TO_PAGE_NR(paddr))
-#define VADDR_TO_PAGE(paddr) PAGE(VADDR_TO_PAGE_NR(vaddr))
+#define VADDR_TO_PAGE(vaddr) PAGE(VADDR_TO_PAGE_NR(vaddr))
 
 #define PAGE_NR_TO_PADDR(nr) ((char*)(nr << PAGE_SHIFT))
 #define PAGE_NR_TO_VADDR(nr) PADDR_TO_VADDR(PAGE_NR_TO_PADDR(nr))
@@ -39,6 +39,24 @@ extern char __KernelEnd[];
 
 struct Page *PageAllocContig(int align, int num);
 struct Page *PageAlloc(int num);
+void PageFree(struct Page *page);
+void PageFreeAll(struct Page *page);
+
+struct SlabAllocator {
+	int order;
+	int numPerPage;
+	int bitfieldLen;
+	int dataStart;
+	struct Page *pages;
+};
+
+struct SlabHead {
+	unsigned int bitfield[1];
+};
+
+void SlabInit(struct SlabAllocator *slab, int size);
+void *SlabAllocate(struct SlabAllocator *slab);
+void SlabFree(struct SlabAllocator *slab, void *p);
 
 void MemoryInit();
 
