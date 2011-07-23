@@ -16,20 +16,20 @@ $(1)_objdir := $(OBJDIR)$(1)/
 $(1)_depdir := $(DEPDIR)$(1)/
 $(1)_objs := $$($(1)_c_sources:%.c=$$($(1)_objdir)%.o) $$($(1)_s_sources:%.s=$$($(1)_objdir)%.o)
 
-$(BINDIR)$(1): $$($(1)_objs)
+$(BINDIR)$(1): $$($(1)_objs) $$($(1)_EXTRA_DEPS) $$(makefile)
 	@mkdir -p $$(dir $$@)
 	@$(LD) $$($(1)_objs) -o $$@ $$($(1)_LDFLAGS)
 	@echo "LD    $$@"
 
-$$($(1)_objdir)%.o: $(CWD)%.c
+$$($(1)_objdir)%.o: $(CWD)%.c $$(makefile)
 	@mkdir -p $$(dir $$@)
 	@mkdir -p $$($(1)_depdir)
 	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(CWD)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
 	@echo "CC    $$<"
 	
-$$($(1)_objdir)%.o: $(CWD)%.s
+$$($(1)_objdir)%.o: $(CWD)%.s $$(makefile)
 	@mkdir -p $$(dir $$@)
-	@$(AS) $(AFLAGS) -o $$@ $$<
+	@$(AS) $$($(1)_AFLAGS) -o $$@ $$<
 	@echo "AS    $$<"
 
 ALL_TARGETS += $(BINDIR)$(1)
@@ -39,7 +39,8 @@ endef
 all: all_internal
 
 define do_include
-CWD := $$(dir $(1))
+makefile := $(1)
+CWD := $$(dir $$(makefile))
 ifeq ($$(CWD),./)
   CWD :=
 endif

@@ -10,6 +10,7 @@ kernel_SOURCES := \
 kernel_LDFLAGS := -T $(CWD)ldscript
 kernel_CFLAGS := -g
 kernel_AFLAGS := -g
+kernel_EXTRA_DEPS := $(CWD)ldscript
 	
 qemu: $(BINDIR)kernel
 	qemu-system-arm -kernel $< -s -S
