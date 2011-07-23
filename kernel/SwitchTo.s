@@ -15,3 +15,9 @@ finish:
 	bx lr
 .size switchToAsm, . - switchToAsm
 
+.globl setMMUBase
+.type setMMUBase,%function
+setMMUBase:
+	mcr p15, 0, r0, c2, c0, 0
+	bx lr
+.size setMMUBase, . - setMMUBase

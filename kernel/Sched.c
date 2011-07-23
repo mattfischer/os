@@ -75,10 +75,12 @@ struct Task *TaskCreate(void (*start)())
 	return task;
 }
 
+void setMMUBase(void *pageTable);
 void switchToAsm(struct Task *current, struct Task *next);
 
 void switchTo(struct Task *current, struct Task *next)
 {
+	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
 	switchToAsm(current, next);
 }
 
