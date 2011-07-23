@@ -1,11 +1,11 @@
-OBJS := \
-	Entry.o \
-	EntryHigh.o \
-	Memory.o \
-	Sched.o \
-	SwitchTo.o \
-	StartStub.o
-	
+SOURCES := \
+	Entry.s \
+	EntryHigh.c \
+	Memory.c \
+	Sched.c \
+	SwitchTo.s \
+	StartStub.c
+
 CROSS_COMPILE := arm-none-eabi
 GCC := $(CROSS_COMPILE)-gcc
 AS := $(CROSS_COMPILE)-as
@@ -15,24 +15,46 @@ GDB := $(CROSS_COMPILE)-gdb
 CFLAGS := -g
 AFLAGS := -g
 
-all: kernel
+C_SOURCES := $(filter %.c,$(SOURCES))
+S_SOURCES := $(filter %.s,$(SOURCES))
+
+OUTDIR := out
+OBJDIR := $(OUTDIR)/obj
+BINDIR := $(OUTDIR)/bin
+DEPDIR := $(OUTDIR)/deps
+
+OBJS := $(C_SOURCES:%.c=$(OBJDIR)/%.o) $(S_SOURCES:%.s=$(OBJDIR)/%.o)
+DEPS := $(C_SOURCES:%.c=$(DEPDIR)/%.d)
+
+KERNEL := $(BINDIR)/kernel
+
+all: $(KERNEL)
 
 clean:
-	rm $(OBJS)
-	rm kernel
+	@rm -rf $(OUTDIR)
+	@echo "Build directory removed"
+	
+qemu: $(KERNEL)
+	qemu-system-arm -kernel $< -s -S
 
-qemu: kernel
-	qemu-system-arm -kernel kernel -s -S
-
-gdb: kernel
+gdb: $(KERNEL)
 	echo "target remote :1234" > .gdbinit
 	$(GDB) $< 
 
-kernel: $(OBJS)
-	$(LD) $(OBJS) -o $@ -T ldscript
+$(KERNEL): $(OBJS)
+	@mkdir -p $(dir $@)
+	@$(LD) $(OBJS) -o $@ -T ldscript
+	@echo "LD    $@"
 
-.c.o: 
-	$(GCC) $(CFLAGS) -c -o $@ $<
+$(OBJDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	@mkdir -p $(DEPDIR)
+	@$(GCC) $(CFLAGS) -MP -MD -MF $(<:%.c=$(DEPDIR)/%.d) -c -o $@ $<
+	@echo "CC    $<"
 	
-.s.o:
-	$(AS) $(AFLAGS) -o $@ $<
+$(OBJDIR)/%.o: %.s
+	@mkdir -p $(dir $@)
+	@$(AS) $(AFLAGS) -o $@ $<
+	@echo "AS    $<"
+	
+-include $(DEPS)
