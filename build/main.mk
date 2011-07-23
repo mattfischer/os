@@ -33,7 +33,7 @@ $$($(1)_objdir)%.o: $(CWD)%.s
 	@echo "AS    $$<"
 
 ALL_TARGETS += $(BINDIR)$(1)
-ALL_DEPS += $$($(1)_c_sources:$(CWD)%.c=$$($(1)_depdir)%.d)
+ALL_DEPS += $$($(1)_c_sources:%.c=$$($(1)_depdir)%.d)
 endef
 
 all: all_internal
@@ -58,4 +58,6 @@ clean:
 	@rm -rf $(OUTDIR)
 	@echo "Build directory removed"
 	
+rebuild: clean all
+
 -include $(ALL_DEPS)

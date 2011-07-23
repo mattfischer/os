@@ -16,5 +16,6 @@ SECTION(".entry") void EntrySetupInitMap(unsigned *map)
 
 void EntryHigh()
 {
+	MemoryInit();
 	StartStub();
 }

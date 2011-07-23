@@ -10,8 +10,9 @@ SECTIONS
 	{
 		*(.entry)
 	}
+	__KernelStart = 0xC0000000;
 
-	.text 0xC0000000 + . : AT(LOADADDR(.entry) + SIZEOF(.entry))
+	.text __KernelStart + . : AT(LOADADDR(.entry) + SIZEOF(.entry))
 	{
 		*(.text)
 		*(.rodata)
@@ -25,5 +26,7 @@ SECTIONS
 	.bss (NOLOAD) :
 	{
 		*(.bss)
+		*(COMMON)
+		__KernelEnd = ABSOLUTE(.);
 	}
 }
