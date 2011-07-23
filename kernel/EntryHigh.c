@@ -2,7 +2,7 @@
 #include "Sched.h"
 #include "Defs.h"
 
-SECTION(".entry") void EntrySetupInitMap(unsigned *map)
+SECTION(".entry") void EntryInitKernelMap(unsigned *map)
 {
 	unsigned int i;
 	

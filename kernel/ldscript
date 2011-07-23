@@ -7,9 +7,9 @@ SECTIONS
 	}
 	__KernelStart = 0xC0000000;
 
-	.initMap __KernelStart (NOLOAD) :
+	.kernelMap __KernelStart (NOLOAD) :
 	{
-		*(.initMap)
+		*(.kernelMap)
 	}
 
 	.text __KernelStart + ADDR(.entry) + SIZEOF(.entry) : AT(LOADADDR(.entry) + SIZEOF(.entry))

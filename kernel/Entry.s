@@ -10,7 +10,7 @@ Entry:
 	ldr r4, KernelMapAddr
 	sub r4, r4, r1
 	mov r0, r4
-	bl EntrySetupInitMap
+	bl EntryInitKernelMap
 
 	mcr p15, 0, r4, c2, c0, 0
 

@@ -6,7 +6,7 @@ struct RunList {
 };
 
 struct RunList runList = {NULL, NULL};
-struct Task *currentTask = NULL;
+struct Task *Current = NULL;
 
 struct SlabAllocator taskSlab;
 struct SlabAllocator addressSpaceSlab;
@@ -18,20 +18,20 @@ void TaskAdd(struct Task *task)
 	} else {
 		runList.tail->next = task;
 	}
-	
+
 	runList.tail = task;
 }
 
-struct Task *TaskRemoveHead()
+struct Task *removeHead()
 {
 	struct Task *task;
-	
+
 	task = runList.head;
 	runList.head = runList.head->next;
 	if(runList.head == NULL) {
 		runList.tail = NULL;
 	}
-	
+
 	return task;
 }
 
@@ -75,21 +75,28 @@ struct Task *TaskCreate(void (*start)())
 	return task;
 }
 
+void switchToAsm(struct Task *current, struct Task *next);
+
+void switchTo(struct Task *current, struct Task *next)
+{
+	switchToAsm(current, next);
+}
+
 void Schedule()
 {
-	struct Task *newTask;
-	struct Task *oldCurrent;
+	struct Task *next;
+	struct Task *old;
 	
-	if(currentTask != NULL) {
-		TaskAdd(currentTask);
+	if(Current != NULL) {
+		TaskAdd(Current);
 	}
 
-	newTask = TaskRemoveHead();
+	next = removeHead();
 
-	if(newTask != currentTask) {
-		oldCurrent = currentTask;
-		currentTask = newTask;
-		SwitchTo(oldCurrent, currentTask);
+	if(next != Current) {
+		old = Current;
+		Current = next;
+		switchTo(old, Current);
 	}
 }
 

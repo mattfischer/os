@@ -1,7 +1,7 @@
 .section .text
-.globl SwitchTo
-.type SwitchTo,%function
-SwitchTo:
+.globl switchToAsm
+.type switchToAsm,%function
+switchToAsm:
 	cmp r0, #0
 	beq switch
 	stm r0, {r0-r15}
@@ -13,5 +13,5 @@ switch:
 	
 finish:
 	bx lr
-.size SwitchTo, .-SwitchTo
+.size switchToAsm, . - switchToAsm
 

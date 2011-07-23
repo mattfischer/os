@@ -14,16 +14,14 @@ struct Task {
 	struct Task *next;
 };
 
-extern struct Task *currentTask;
-
-void SwitchTo(struct Task *current, struct Task *next);
 void Schedule();
 
-struct Task *TaskRemoveHead();
 void TaskAdd(struct Task *task);
 
 struct Task *TaskCreate(void (*start)());
 
 void SchedInit();
+
+extern struct Task *Current;
 
 #endif
