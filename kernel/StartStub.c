@@ -1,16 +1,18 @@
 #include "Sched.h"
 
+void swi();
+
 static void task1Start()
 {
 	while(1) {
-		Schedule();
+		swi();
 	}
 }
 
 static void task2Start()
 {
 	while(1) {
-		Schedule();
+		swi();
 	}
 }
 
@@ -24,5 +26,5 @@ void StartStub()
 	task = TaskCreate(task2Start);
 	TaskAdd(task);
 
-	Schedule();
+	ScheduleFirst();
 }

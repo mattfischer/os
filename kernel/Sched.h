@@ -12,9 +12,12 @@ struct Task {
 	struct AddressSpace *addressSpace;
 	struct Page *stack;
 	struct Task *next;
+	void (*userStart)();
+	struct Page *userStack;
 };
 
 void Schedule();
+void ScheduleFirst();
 
 void TaskAdd(struct Task *task);
 

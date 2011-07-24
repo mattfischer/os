@@ -19,7 +19,9 @@ Entry:
 	
 	mrc p15, 0, r0, c1, c0, 0
 	mov r1, #1
+	lsl r1, r1, #13
 	orr r0, r1
+	orr r0, #1
 	mcr p15, 0, r0, c1, c0, 0
 
 	ldr sp, InitStackAddr
@@ -47,13 +49,26 @@ vectorStart:
 	.word 0
 	b vecIRQ
 	b vecFIQ
-.globl vectorEnd
-vectorEnd:
 
 vecReset:
 vecUndef:
 vecSWI:
+	stmfd sp!,{lr}
+	stmfd sp,{r0-r14}^
+	sub sp, #60
+
+	ldr ip, SysEntryAddr
+	blx ip
+
+	ldmfd sp,{r0-r14}^
+	add sp, #60
+	ldmfd sp!,{pc}^
+
 vecPrefetchAbort:
 vecDataAbort:
 vecIRQ:
 vecFIQ:
+SysEntryAddr:
+	.word SysEntry
+.globl vectorEnd
+vectorEnd:

@@ -22,3 +22,8 @@ void EntryHigh()
 
 	StartStub();
 }
+
+void SysEntry(int code)
+{
+	Schedule();
+}

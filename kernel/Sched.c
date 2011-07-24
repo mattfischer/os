@@ -54,6 +54,13 @@ static void initAddressSpace(struct AddressSpace *space)
 	}
 }
 
+void EnterUser(void (*userStart)(), void* userStack);
+static void kickstart()
+{
+	void* userStack = PAGE_TO_VADDR(Current->userStack) + PAGE_SIZE;
+	EnterUser(Current->userStart, userStack);
+}
+
 struct Task *TaskCreate(void (*start)())
 {
 	int i;
@@ -62,11 +69,12 @@ struct Task *TaskCreate(void (*start)())
 	task = SlabAllocate(&taskSlab);
 
 	task->stack = PageAlloc(1);
-
+	task->userStack = PageAlloc(1);
+	task->userStart = start;
 	for(i=0; i<16; i++) {
 		task->regs[i] = 0;
 	}
-	task->regs[R_IP] = (unsigned int)start;
+	task->regs[R_IP] = (unsigned int)kickstart;
 	task->regs[R_SP] = (unsigned int)PAGE_TO_VADDR(task->stack) + PAGE_SIZE;
 
 	task->addressSpace = SlabAllocate(&addressSpaceSlab);
@@ -78,10 +86,16 @@ struct Task *TaskCreate(void (*start)())
 void setMMUBase(void *pageTable);
 void switchToAsm(struct Task *current, struct Task *next);
 
-void switchTo(struct Task *current, struct Task *next)
+static void switchTo(struct Task *current, struct Task *next)
 {
 	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
 	switchToAsm(current, next);
+}
+
+static void switchToFirst(struct Task *next)
+{
+	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
+	switchToFirstAsm(next);
 }
 
 void Schedule()
@@ -100,6 +114,12 @@ void Schedule()
 		Current = next;
 		switchTo(old, Current);
 	}
+}
+
+void ScheduleFirst()
+{
+	Current = removeHead();
+	switchToFirst(Current);
 }
 
 void SchedInit()
