@@ -39,25 +39,27 @@ EnterUser:
 	bic r2, #0xf
 	msr spsr, r2
 
-	mov lr, r0
-	mov r0, #0
-	stmfd sp!, {r0}
-	stmfd sp!, {r1}
-	ldmfd sp, {sp,lr}^
-	add sp, #8
-
-	mov r1, #0
-	mov r2, #0
+	sub r2, sp, #60
 	mov r3, #0
-	mov r4, #0
-	mov r5, #0
-	mov r6, #0
-	mov r7, #0
-	mov r8, #0
-	mov r9, #0
-	mov r10, #0
-	mov r11, #0
-	mov r12, #0
+	str r3, [r2, #0]
+	str r3, [r2, #4]
+	str r3, [r2, #8]
+	str r3, [r2, #12]
+	str r3, [r2, #16]
+	str r3, [r2, #20]
+	str r3, [r2, #24]
+	str r3, [r2, #28]
+	str r3, [r2, #32]
+	str r3, [r2, #36]
+	str r3, [r2, #40]
+	str r3, [r2, #44]
+	str r3, [r2, #48]
+	str r1, [r2, #52]
+	str r3, [r2, #56]
+
+	mov lr, r0
+	ldmfd r2, {r0-r14}^
+	nop
 	movs pc, lr
 
 .size EnterUser, . - EnterUser
