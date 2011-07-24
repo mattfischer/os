@@ -8,7 +8,6 @@ struct RunList {
 struct RunList runList = {NULL, NULL};
 struct Task *Current = NULL;
 
-struct SlabAllocator taskSlab;
 struct SlabAllocator addressSpaceSlab;
 
 void TaskAdd(struct Task *task)
@@ -55,27 +54,29 @@ static void initAddressSpace(struct AddressSpace *space)
 }
 
 void EnterUser(void (*userStart)(), void* userStack);
-static void kickstart()
+static void kickstart(void (*start)())
 {
-	void* userStack = PAGE_TO_VADDR(Current->userStack) + PAGE_SIZE;
-	EnterUser(Current->userStart, userStack);
+	struct Page *stackPage = PageAlloc(1);
+	void* stack = PAGE_TO_VADDR(stackPage) + PAGE_SIZE;
+	EnterUser(start, stack);
 }
 
 struct Task *TaskCreate(void (*start)())
 {
 	int i;
 	struct Task *task;
+	struct Page *stack;
 
-	task = SlabAllocate(&taskSlab);
+	stack = PageAlloc(1);
+	task = (struct Task*)(PAGE_TO_VADDR(stack) + PAGE_SIZE - sizeof(struct Task));
 
-	task->stack = PageAlloc(1);
-	task->userStack = PageAlloc(1);
-	task->userStart = start;
+	task->stack = stack;
 	for(i=0; i<16; i++) {
 		task->regs[i] = 0;
 	}
-	task->regs[R_IP] = (unsigned int)kickstart;
-	task->regs[R_SP] = (unsigned int)PAGE_TO_VADDR(task->stack) + PAGE_SIZE;
+	task->regs[0]    = (unsigned int)start;
+	task->regs[R_PC] = (unsigned int)kickstart;
+	task->regs[R_SP] = (unsigned int)task;
 
 	task->addressSpace = SlabAllocate(&addressSpaceSlab);
 	initAddressSpace(task->addressSpace);
@@ -123,6 +124,5 @@ void ScheduleFirst()
 
 void SchedInit()
 {
-	SlabInit(&taskSlab, sizeof(struct Task));
 	SlabInit(&addressSpaceSlab, sizeof(struct AddressSpace));
 }

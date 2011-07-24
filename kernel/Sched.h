@@ -5,15 +5,13 @@
 #include "Memory.h"
 
 #define R_SP 13
-#define R_IP 15
+#define R_PC 15
 
 struct Task {
 	unsigned int regs[16];
 	struct AddressSpace *addressSpace;
 	struct Page *stack;
 	struct Task *next;
-	void (*userStart)();
-	struct Page *userStack;
 };
 
 void Schedule();
