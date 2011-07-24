@@ -53,16 +53,17 @@ vectorStart:
 vecReset:
 vecUndef:
 vecSWI:
-	stmfd sp!,{lr}
-	stmfd sp,{r0-r14}^
+	stmfd sp, {r0-r14}^
 	sub sp, #60
+	stmfd sp!, {lr}
 
 	ldr ip, SysEntryAddr
 	blx ip
 
-	ldmfd sp,{r0-r14}^
+	ldmfd sp!, {lr}
+	ldmfd sp, {r0-r14}^
 	add sp, #60
-	ldmfd sp!,{pc}^
+	movs pc, lr
 
 vecPrefetchAbort:
 vecDataAbort:

@@ -85,6 +85,7 @@ struct Task *TaskCreate(void (*start)())
 
 void setMMUBase(void *pageTable);
 void switchToAsm(struct Task *current, struct Task *next);
+void runFirstAsm(struct Task *next);
 
 static void switchTo(struct Task *current, struct Task *next)
 {
@@ -92,10 +93,10 @@ static void switchTo(struct Task *current, struct Task *next)
 	switchToAsm(current, next);
 }
 
-static void switchToFirst(struct Task *next)
+static void runFirst(struct Task *next)
 {
 	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
-	switchToFirstAsm(next);
+	runFirstAsm(next);
 }
 
 void Schedule()
@@ -103,9 +104,7 @@ void Schedule()
 	struct Task *next;
 	struct Task *old;
 	
-	if(Current != NULL) {
-		TaskAdd(Current);
-	}
+	TaskAdd(Current);
 
 	next = removeHead();
 
@@ -119,7 +118,7 @@ void Schedule()
 void ScheduleFirst()
 {
 	Current = removeHead();
-	switchToFirst(Current);
+	runFirst(Current);
 }
 
 void SchedInit()
