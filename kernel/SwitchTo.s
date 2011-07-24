@@ -21,3 +21,10 @@ setMMUBase:
 	mcr p15, 0, r0, c2, c0, 0
 	bx lr
 .size setMMUBase, . - setMMUBase
+
+.globl swi
+.type swi,%function
+swi:
+	swi 0
+	bx lr
+.size swi, . - swi

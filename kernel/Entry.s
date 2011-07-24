@@ -35,4 +35,25 @@ EntryHighAddr:
 	.word EntryHigh
 memOffset:
 	.word 0xC0000000
-	
+
+.section .text
+.globl vectorStart
+vectorStart:
+	b vecReset
+	b vecUndef
+	b vecSWI
+	b vecPrefetchAbort
+	b vecDataAbort
+	.word 0
+	b vecIRQ
+	b vecFIQ
+.globl vectorEnd
+vectorEnd:
+
+vecReset:
+vecUndef:
+vecSWI:
+vecPrefetchAbort:
+vecDataAbort:
+vecIRQ:
+vecFIQ:

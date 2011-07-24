@@ -44,7 +44,7 @@ static void initAddressSpace(struct AddressSpace *space)
 	space->pageTable = PageAllocContig(4, 4);
 	base = (unsigned*)PAGE_TO_VADDR(space->pageTable);
 
-	kernel_nr = KERNEL_START >> PTE_BASE_SHIFT;
+	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
 	for(i=0; i<kernel_nr; i++) {
 		base[i] = 0;
 	}

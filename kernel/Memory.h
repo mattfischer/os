@@ -21,10 +21,10 @@ extern char __KernelEnd[];
 
 #define KERNEL_START (unsigned int)__KernelStart
 
-#define PADDR_TO_VADDR(paddr) ((char*)paddr + KERNEL_START)
-#define VADDR_TO_PADDR(vaddr) ((char*)vaddr - KERNEL_START)
+#define PADDR_TO_VADDR(paddr) ((char*)(paddr) + KERNEL_START)
+#define VADDR_TO_PADDR(vaddr) ((char*)(vaddr) - KERNEL_START)
 
-#define PADDR_TO_PAGE_NR(paddr) ((unsigned int)paddr >> PAGE_SHIFT)
+#define PADDR_TO_PAGE_NR(paddr) ((unsigned int)(paddr) >> PAGE_SHIFT)
 #define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
 
 #define PAGE(nr) (Pages + nr)
@@ -58,7 +58,10 @@ void SlabFree(struct SlabAllocator *slab, void *p);
 
 struct AddressSpace {
 	struct Page *pageTable;
+	struct Page *L2Tables;
 };
+
+void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page);
 
 void MemoryInit();
 
