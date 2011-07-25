@@ -11,7 +11,7 @@ define build_host
 target := $(1)
 bindir := $$(HOST_BINDIR)
 objdir := $$(HOST_OBJDIR)$$(target)
-depdir := $$(HOST_OBJDIR)$$(target)
+depdir := $$(HOST_DEPDIR)$$(target)
 sources := $$($$(target)_SOURCES)
 cflags := $$($$(target)_CFLAGS)
 aflags := $$($$(target)_AFLAGS)
@@ -22,6 +22,19 @@ c_sources := $$(filter %.c,$$(sources))
 s_sources := $$(filter %.s,$$(sources))
 objects := $$(c_sources:%.c=$$(objdir)/%.o) $$(s_sources:%.s=$$(objdir)/%.o)
 binary := $$(bindir)$$(target)
+
+$$(binary): objects := $$(objects)
+$$(binary): extra_deps := $$(extra_deps)
+$$(binary): makefile := $$(makefile)
+$$(binary): bindir := $$(bindir)
+$$(binary): ldflags := $$(ldflags)
+
+$$(objdir)/%.o: CWD := $$(CWD)
+$$(objdir)/%.o: makefile := $$(makefile)
+$$(objdir)/%.o: objdir := $$(objdir)
+$$(objdir)/%.o: depdir := $$(depdir)
+$$(objdir)/%.o: cflags := $$(cflags)
+$$(objdir)/%.o: aflags := $$(aflags)
 
 $$(binary): $$(objects) $$(extra_deps) $$(makefile)
 	@echo "HOST_LD $$@"

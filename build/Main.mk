@@ -7,18 +7,29 @@ all: build_all
 
 define do_include
 makefile := $(1)
+cwdstack := $$(CWD) $$(cwdstack)
 CWD := $$(dir $$(makefile))
 ifeq ($$(CWD),./)
   CWD :=
 endif
+
 SUBDIRS :=
 TARGETS :=
 HOST_TARGETS :=
-include $(1)
+
+include $$(makefile)
 $$(foreach target,$$(TARGETS),$$(eval $$(call build_target,$$(target))))
 $$(foreach target,$$(HOST_TARGETS),$$(eval $$(call build_host,$$(target))))
 $$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(CWD)$$(subdir)/Build.mk)))
+CWD := $$(firstword $$(cwdstack))
+ifeq ($$(CWD),./)
+  CWD :=
+endif
+
+cwdstack := $$(wordlist 2,$$(words $$(cwdstack)),$$(cwdstack))
 endef
+
+ALL_TARGETS :=
 
 $(eval $(call do_include,Build.mk))
 
