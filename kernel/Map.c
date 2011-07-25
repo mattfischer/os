@@ -1,4 +1,5 @@
 #include "Map.h"
+#include "Slab.h"
 #include "Defs.h"
 
 struct AddressSpace kernelSpace;
@@ -6,6 +7,8 @@ struct Page *vectorPage;
 
 extern char vectorStart[];
 extern char vectorEnd[];
+
+struct SlabAllocator mapSlab;
 
 static void allocL2Table(struct AddressSpace *space, void *vaddr)
 {
@@ -18,7 +21,7 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 	unsigned l2pte;
 	int i, j;
 
-	table = (unsigned*)PAGE_TO_VADDR(space->pageTable);
+	table = (unsigned*)PAGE_TO_VADDR(space->table);
 	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 
 	L2Page = space->L2Tables;
@@ -71,7 +74,7 @@ void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page)
 	unsigned *L2Table;
 	int l2idx;
 
-	table = (unsigned*)PAGE_TO_VADDR(space->pageTable);
+	table = (unsigned*)PAGE_TO_VADDR(space->table);
 	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 	pte = table[idx];
 
@@ -89,17 +92,63 @@ void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page)
 	}
 }
 
+void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
+{
+	struct Page *page;
+	struct Map *map;
+	struct Map *mapCursor;
+	struct Map *mapPrev;
+	int size;
+	void *vaddr;
+
+	vaddr = start;
+	size = 0;
+	page = pages;
+	while(page != NULL) {
+		MapPage(space, vaddr, page);
+		page = page->next;
+		vaddr = (char*)vaddr + PAGE_SIZE;
+		size += PAGE_SIZE;
+	}
+
+	map = (struct Map*)SlabAllocate(&mapSlab);
+	map->start = start;
+	map->size = size;
+	map->pages = pages;
+
+	mapCursor = space->maps;
+	mapPrev = NULL;
+	while(mapCursor != NULL) {
+		if((unsigned)mapCursor->start > (unsigned)map->start) {
+			break;
+		}
+
+		mapPrev = mapCursor;
+		mapCursor = mapCursor->next;
+	}
+
+	if(mapPrev == NULL) {
+		space->maps = map;
+	} else {
+		mapPrev->next = map;
+	}
+
+	map->next = mapCursor;
+}
+
 void MapInit()
 {
 	int i;
 	unsigned int n;
 	char *vector;
 
+	SlabInit(&mapSlab, sizeof(struct Map));
+
 	for(i=0; i<VADDR_TO_PAGE_NR(__KernelEnd); i++) {
 		Pages[i].flags = PAGE_INUSE;
 	}
 
-	kernelSpace.pageTable = VADDR_TO_PAGE(KernelMap);
+	kernelSpace.table = VADDR_TO_PAGE(KernelMap);
 	kernelSpace.L2Tables = NULL;
 
 	vectorPage = PageAlloc(1);

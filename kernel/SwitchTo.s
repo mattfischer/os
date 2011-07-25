@@ -22,6 +22,10 @@ finish:
 .type setMMUBase,%function
 setMMUBase:
 	mcr p15, 0, r0, c2, c0, 0
+
+	mov r0, #0
+	mcr p15, 0, r0, c8, c5, 0
+
 	bx lr
 .size setMMUBase, . - setMMUBase
 

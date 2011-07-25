@@ -41,8 +41,8 @@ static void initAddressSpace(struct AddressSpace *space)
 	unsigned *base;
 	int kernel_nr;
 
-	space->pageTable = PageAllocContig(4, 4);
-	base = (unsigned*)PAGE_TO_VADDR(space->pageTable);
+	space->table = PageAllocContig(4, 4);
+	base = (unsigned*)PAGE_TO_VADDR(space->table);
 
 	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
 	for(i=0; i<kernel_nr; i++) {
@@ -57,9 +57,12 @@ static void initAddressSpace(struct AddressSpace *space)
 void EnterUser(void (*userStart)(), void* userStack);
 static void kickstart(void (*start)())
 {
-	struct Page *stackPage = PageAlloc(1);
-	void* stack = PAGE_TO_VADDR(stackPage) + PAGE_SIZE;
-	EnterUser(start, stack);
+	int stackSize = PAGE_SIZE;
+	struct Page *stackPages = PageAlloc(stackSize >> PAGE_SHIFT);
+	void *stack = (void*)(KERNEL_START - stackSize);
+	MapPages(Current->addressSpace, stack, stackPages);
+
+	EnterUser(start, (char*)stack + stackSize);
 }
 
 struct Task *TaskCreate(void (*start)())
@@ -85,19 +88,19 @@ struct Task *TaskCreate(void (*start)())
 	return task;
 }
 
-void setMMUBase(void *pageTable);
+void setMMUBase(void *table);
 void switchToAsm(struct Task *current, struct Task *next);
 void runFirstAsm(struct Task *next);
 
 static void switchTo(struct Task *current, struct Task *next)
 {
-	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
+	setMMUBase(PAGE_TO_PADDR(next->addressSpace->table));
 	switchToAsm(current, next);
 }
 
 static void runFirst(struct Task *next)
 {
-	setMMUBase(PAGE_TO_PADDR(next->addressSpace->pageTable));
+	setMMUBase(PAGE_TO_PADDR(next->addressSpace->table));
 	runFirstAsm(next);
 }
 
