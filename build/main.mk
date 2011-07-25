@@ -10,30 +10,38 @@ BINDIR := $(OUTDIR)bin/
 DEPDIR := $(OUTDIR)deps/
 
 define build
-$(1)_c_sources := $$(filter %.c,$$($(1)_SOURCES))
-$(1)_s_sources := $$(filter %.s,$$($(1)_SOURCES))
-$(1)_objdir := $(OBJDIR)$(1)/
-$(1)_depdir := $(DEPDIR)$(1)/
-$(1)_objs := $$($(1)_c_sources:%.c=$$($(1)_objdir)%.o) $$($(1)_s_sources:%.s=$$($(1)_objdir)%.o)
+target := $(1)
+objdir := $$(OBJDIR)$$(target)
+depdir := $$(OBJDIR)$$(target)
+sources := $$($$(target)_SOURCES)
+cflags := $$($$(target)_CFLAGS)
+aflags := $$($$(target)_AFLAGS)
+ldflags := $$($$(target)_LDFLAGS)
+extra_deps := $$($$(target)_EXTRA_DEPS)
 
-$(BINDIR)$(1): $$($(1)_objs) $$($(1)_EXTRA_DEPS) $$(makefile)
-	@mkdir -p $$(dir $$@)
+c_sources := $$(filter %.c,$$(sources))
+s_sources := $$(filter %.s,$$(sources))
+objects := $$(c_sources:%.c=$$(objdir)/%.o) $$(s_sources:%.s=$$(objdir)/%.o)
+binary := $$(BINDIR)$$(target)
+
+$$(binary): $$(objects) $$(extra_deps) $$(makefile)
 	@echo "LD    $$@"
-	@$(LD) $$($(1)_objs) -o $$@ $$($(1)_LDFLAGS)
+	@mkdir -p $$(BINDIR)
+	@$$(LD) $$(objects) -o $$@ $$(ldflags)
 
-$$($(1)_objdir)%.o: $(CWD)%.c $$(makefile)
-	@mkdir -p $$(dir $$@)
-	@mkdir -p $$($(1)_depdir)
+$$(objdir)/%.o: $$(CWD)%.c $$(makefile)
 	@echo "CC    $$<"
-	@$(GCC) $$($(1)_CFLAGS) -MP -MD -MF $$(<:$(CWD)%.c=$$($(1)_depdir)%.d) -c -o $$@ $$<
+	@mkdir -p $$(objdir)
+	@mkdir -p $$(depdir)
+	@$$(GCC) $$(cflags) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 	
-$$($(1)_objdir)%.o: $(CWD)%.s $$(makefile)
-	@mkdir -p $$(dir $$@)
+$$(objdir)/%.o: $$(CWD)%.s $$(makefile)
 	@echo "AS    $$<"
-	@$(AS) $$($(1)_AFLAGS) -o $$@ $$<
+	@mkdir -p $$(objdir)
+	@$$(AS) $$(aflags) -o $$@ $$<
 
-ALL_TARGETS += $(BINDIR)$(1)
-ALL_DEPS += $$($(1)_c_sources:%.c=$$($(1)_depdir)%.d)
+ALL_TARGETS += $$(binary)
+ALL_DEPS += $$(c_sources:%.c=$$(depdir)/%.d)
 endef
 
 all: all_internal
