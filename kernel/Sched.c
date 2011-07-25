@@ -1,4 +1,5 @@
 #include "Sched.h"
+#include "Slab.h"
 
 struct RunList {
 	struct Task *head;

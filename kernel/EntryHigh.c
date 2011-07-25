@@ -1,6 +1,7 @@
-#include "Memory.h"
 #include "Sched.h"
 #include "Defs.h"
+
+char InitStack[256];
 
 SECTION(".entry") void EntryInitKernelMap(unsigned *map)
 {
@@ -17,7 +18,8 @@ SECTION(".entry") void EntryInitKernelMap(unsigned *map)
 
 void EntryHigh()
 {
-	MemoryInit();
+	PageInit();
+	MapInit();
 	SchedInit();
 
 	StartStub();

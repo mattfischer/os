@@ -1,5 +1,5 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef PAGE_H
+#define PAGE_H
 
 #include "PageTable.h"
 
@@ -15,14 +15,6 @@ struct Page {
 
 #define PAGE_SIZE 4096
 #define PAGE_SHIFT 12
-
-extern char __KernelStart[];
-extern char __KernelEnd[];
-
-#define KERNEL_START (unsigned int)__KernelStart
-
-#define PADDR_TO_VADDR(paddr) ((char*)(paddr) + KERNEL_START)
-#define VADDR_TO_PADDR(vaddr) ((char*)(vaddr) - KERNEL_START)
 
 #define PADDR_TO_PAGE_NR(paddr) ((unsigned int)(paddr) >> PAGE_SHIFT)
 #define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
@@ -44,28 +36,8 @@ struct Page *PageAlloc(int num);
 void PageFree(struct Page *page);
 void PageFreeAll(struct Page *page);
 
-struct SlabAllocator {
-	int order;
-	int numPerPage;
-	int bitfieldLen;
-	int dataStart;
-	struct Page *pages;
-};
-
-void SlabInit(struct SlabAllocator *slab, int size);
-void *SlabAllocate(struct SlabAllocator *slab);
-void SlabFree(struct SlabAllocator *slab, void *p);
-
-struct AddressSpace {
-	struct Page *pageTable;
-	struct Page *L2Tables;
-};
-
-void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page);
-
-void MemoryInit();
+void PageInit();
 
 extern struct Page Pages[N_PAGES];
-extern unsigned KernelMap[PAGE_TABLE_SIZE];
 
 #endif

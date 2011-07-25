@@ -3,8 +3,10 @@ TARGETS := kernel
 kernel_SOURCES := \
 	Entry.s \
 	EntryHigh.c \
-	Memory.c \
+	Map.c \
+	Page.c \
 	Sched.c \
+	Slab.c \
 	SwitchTo.s \
 	StartStub.c
 kernel_LDFLAGS := -T $(CWD)ldscript

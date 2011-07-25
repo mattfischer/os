@@ -2,7 +2,8 @@
 #define SCHED_H
 
 #include "Defs.h"
-#include "Memory.h"
+#include "Page.h"
+#include "Map.h"
 
 #define R_SP 13
 #define R_PC 15

@@ -58,7 +58,7 @@ EnterUser:
 	str r3, [r2, #56]
 
 	mov lr, r0
-	ldmfd r2, {r0-r14}^
+	ldm r2, {r0-r14}^
 	nop
 	movs pc, lr
 
