@@ -39,7 +39,7 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 			for(j=0; j<PAGE_L2_TABLE_SIZE; j++) {
 				L2Table[l2idx + j] = 0;
 			}
-			table[idx] = (unsigned)VADDR_TO_PADDR(L2Table + l2idx) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_COARSE;
+			table[idx] = VADDR_TO_PADDR(L2Table + l2idx) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_COARSE;
 			return;
 		}
 
@@ -63,10 +63,10 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 		L2Table[i] = 0;
 	}
 
-	table[idx] = (unsigned)VADDR_TO_PADDR(L2Table) | PTE_TYPE_COARSE;
+	table[idx] = VADDR_TO_PADDR(L2Table) | PTE_TYPE_COARSE;
 }
 
-void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page)
+void MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr)
 {
 	unsigned *table;
 	int idx;
@@ -88,7 +88,7 @@ void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page)
 	if((pte & PTE_TYPE_MASK) == PTE_TYPE_COARSE) {
 		L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
 		l2idx = ((unsigned)vaddr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
-		L2Table[l2idx] = ((unsigned)PAGE_TO_PADDR(page) & PTE_COARSE_BASE_MASK) | PTE_L2_AP_ALL_READ_WRITE | PTE_L2_TYPE_SMALL;
+		L2Table[l2idx] = (paddr & PTE_COARSE_BASE_MASK) | PTE_L2_AP_ALL_READ_WRITE | PTE_L2_TYPE_SMALL;
 	}
 }
 
@@ -99,15 +99,15 @@ void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 	struct Map *mapCursor;
 	struct Map *mapPrev;
 	int size;
-	void *vaddr;
+	char *vaddr;
 
 	vaddr = start;
 	size = 0;
 	page = pages;
 	while(page != NULL) {
-		MapPage(space, vaddr, page);
+		MapPage(space, vaddr, PAGE_TO_PADDR(page));
 		page = page->next;
-		vaddr = (char*)vaddr + PAGE_SIZE;
+		vaddr += PAGE_SIZE;
 		size += PAGE_SIZE;
 	}
 
@@ -119,7 +119,7 @@ void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 	mapCursor = space->maps;
 	mapPrev = NULL;
 	while(mapCursor != NULL) {
-		if((unsigned)mapCursor->start > (unsigned)map->start) {
+		if(mapCursor->start > map->start) {
 			break;
 		}
 
@@ -153,7 +153,7 @@ void MapInit()
 
 	vectorPage = PageAlloc(1);
 	vector = PAGE_TO_VADDR(vectorPage);
-	MapPage(&kernelSpace, (void*)0xffff0000, vectorPage);
+	MapPage(&kernelSpace, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
 	for(i=0; i<((unsigned)vectorEnd - (unsigned)vectorStart); i++) {
 		vector[i] = vectorStart[i];
 	}

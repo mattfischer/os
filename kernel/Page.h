@@ -16,7 +16,7 @@ struct Page {
 #define PAGE_SIZE 4096
 #define PAGE_SHIFT 12
 
-#define PADDR_TO_PAGE_NR(paddr) ((unsigned int)(paddr) >> PAGE_SHIFT)
+#define PADDR_TO_PAGE_NR(paddr) ((paddr) >> PAGE_SHIFT)
 #define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
 
 #define PAGE(nr) (Pages + nr)
@@ -25,7 +25,7 @@ struct Page {
 #define PADDR_TO_PAGE(paddr) PAGE(PADDR_TO_PAGE_NR(paddr))
 #define VADDR_TO_PAGE(vaddr) PAGE(VADDR_TO_PAGE_NR(vaddr))
 
-#define PAGE_NR_TO_PADDR(nr) ((char*)(nr << PAGE_SHIFT))
+#define PAGE_NR_TO_PADDR(nr) ((PAddr)(nr << PAGE_SHIFT))
 #define PAGE_NR_TO_VADDR(nr) PADDR_TO_VADDR(PAGE_NR_TO_PADDR(nr))
 
 #define PAGE_TO_PADDR(page) PAGE_NR_TO_PADDR(PAGE_NR(page))

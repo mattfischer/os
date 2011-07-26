@@ -59,10 +59,10 @@ static void kickstart(void (*start)())
 {
 	int stackSize = PAGE_SIZE;
 	struct Page *stackPages = PageAlloc(stackSize >> PAGE_SHIFT);
-	void *stack = (void*)(KERNEL_START - stackSize);
+	char *stack = (char*)(KERNEL_START - stackSize);
 	MapPages(Current->addressSpace, stack, stackPages);
 
-	EnterUser(start, (char*)stack + stackSize);
+	EnterUser(start, stack + stackSize);
 }
 
 struct Task *TaskCreate(void (*start)())
@@ -88,7 +88,7 @@ struct Task *TaskCreate(void (*start)())
 	return task;
 }
 
-void setMMUBase(void *table);
+void setMMUBase(PAddr table);
 void switchToAsm(struct Task *current, struct Task *next);
 void runFirstAsm(struct Task *next);
 

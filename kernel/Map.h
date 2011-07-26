@@ -7,10 +7,12 @@
 extern char __KernelStart[];
 extern char __KernelEnd[];
 
+typedef unsigned int PAddr;
+
 #define KERNEL_START (unsigned int)__KernelStart
 
 #define PADDR_TO_VADDR(paddr) ((char*)(paddr) + KERNEL_START)
-#define VADDR_TO_PADDR(vaddr) ((char*)(vaddr) - KERNEL_START)
+#define VADDR_TO_PADDR(vaddr) ((PAddr)(vaddr) - KERNEL_START)
 
 struct Map {
 	void *start;
@@ -25,7 +27,7 @@ struct AddressSpace {
 	struct Map *maps;
 };
 
-void MapPage(struct AddressSpace *space, void *vaddr, struct Page *page);
+void MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
 void MapPages(struct AddressSpace *space, void *vaddr, struct Page *pages);
 
 void MapInit();
