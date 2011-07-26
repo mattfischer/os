@@ -1,8 +1,8 @@
 #include "Page.h"
+#include "Map.h"
 #include "Defs.h"
 
 struct Page Pages[N_PAGES];
-SECTION(".kernelMap") unsigned KernelMap[PAGE_TABLE_SIZE];
 
 struct Page *PageAlloc(int num)
 {
@@ -56,6 +56,32 @@ struct Page *PageAllocContig(int align, int num)
 	return NULL;
 }
 
+SECTION_LOW struct Page *PageAllocContigLow(int align, int num)
+{
+	struct Page *ret;
+	int i, j;
+
+	for(i=0; i<N_PAGES; i += align) {
+		struct Page *page = PAGE(i);
+		struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
+
+		for(j=0; j<num; j++) {
+			if(pageLow[j].flags == PAGE_INUSE) {
+				break;
+			}
+		}
+
+		if(j == num) {
+			for(j=0; j<num; j++) {
+				pageLow[j].flags = PAGE_INUSE;
+			}
+			return page;
+		}
+	}
+
+	return NULL;
+}
+
 void PageFree(struct Page *page)
 {
 	page->flags = PAGE_FREE;
@@ -72,12 +98,13 @@ void PageFreeAll(struct Page *page)
 	}
 }
 
-void PageInit()
+SECTION_LOW void PageInitLow()
 {
+	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
 	int i;
 
 	for(i=0; i<N_PAGES; i++) {
-		Pages[i].flags = PAGE_FREE;
-		Pages[i].next = NULL;
+		pages[i].flags = PAGE_FREE;
+		pages[i].next = NULL;
 	}
 }

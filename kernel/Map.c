@@ -2,7 +2,7 @@
 #include "Slab.h"
 #include "Defs.h"
 
-struct AddressSpace kernelSpace;
+struct AddressSpace KernelSpace;
 struct Page *vectorPage;
 
 extern char vectorStart[];
@@ -92,6 +92,16 @@ void MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr)
 	}
 }
 
+SECTION_LOW void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr)
+{
+	unsigned *table;
+	int idx;
+
+	table = (unsigned*)PAGE_TO_PADDR(space->table);
+	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
+}
+
 void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 {
 	struct Page *page;
@@ -144,17 +154,37 @@ void MapInit()
 
 	SlabInit(&mapSlab, sizeof(struct Map));
 
-	for(i=0; i<VADDR_TO_PAGE_NR(__KernelEnd); i++) {
-		Pages[i].flags = PAGE_INUSE;
-	}
-
-	kernelSpace.table = VADDR_TO_PAGE(KernelMap);
-	kernelSpace.L2Tables = NULL;
-
 	vectorPage = PageAlloc(1);
 	vector = PAGE_TO_VADDR(vectorPage);
-	MapPage(&kernelSpace, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
+	MapPage(&KernelSpace, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
 	for(i=0; i<((unsigned)vectorEnd - (unsigned)vectorStart); i++) {
 		vector[i] = vectorStart[i];
+	}
+}
+
+SECTION_LOW void MapInitLow()
+{
+	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
+	struct AddressSpace *kernelSpace = (struct AddressSpace*)VADDR_TO_PADDR(&KernelSpace);
+	unsigned int vaddr;
+	PAddr paddr;
+	int i;
+
+	for(i=0; i<VADDR_TO_PAGE_NR(__KernelEnd) + 1; i++) {
+		pages[i].flags = PAGE_INUSE;
+		pages[i].next = NULL;
+	}
+
+	kernelSpace->table = PageAllocContigLow(4, 4);
+	kernelSpace->tablePAddr = PAGE_TO_PADDR(kernelSpace->table);
+	kernelSpace->L2Tables = NULL;
+	kernelSpace->maps = NULL;
+
+	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
+		MapSectionLow(kernelSpace, (void*)vaddr, paddr);
+	}
+
+	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
+		MapSectionLow(kernelSpace, (void*)vaddr, paddr);
 	}
 }

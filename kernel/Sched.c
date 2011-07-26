@@ -39,9 +39,11 @@ static void initAddressSpace(struct AddressSpace *space)
 {
 	int i;
 	unsigned *base;
+	unsigned *kernelTable;
 	int kernel_nr;
 
 	space->table = PageAllocContig(4, 4);
+	space->tablePAddr = PAGE_TO_PADDR(space->table);
 	base = (unsigned*)PAGE_TO_VADDR(space->table);
 
 	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
@@ -49,8 +51,9 @@ static void initAddressSpace(struct AddressSpace *space)
 		base[i] = 0;
 	}
 
+	kernelTable = (unsigned*)PAGE_TO_VADDR(KernelSpace.table);
 	for(i=kernel_nr; i<PAGE_TABLE_SIZE; i++) {
-		base[i] = KernelMap[i];
+		base[i] = kernelTable[i];
 	}
 }
 
@@ -94,13 +97,13 @@ void runFirstAsm(struct Task *next);
 
 static void switchTo(struct Task *current, struct Task *next)
 {
-	setMMUBase(PAGE_TO_PADDR(next->addressSpace->table));
+	setMMUBase(next->addressSpace->tablePAddr);
 	switchToAsm(current, next);
 }
 
 static void runFirst(struct Task *next)
 {
-	setMMUBase(PAGE_TO_PADDR(next->addressSpace->table));
+	setMMUBase(next->addressSpace->tablePAddr);
 	runFirstAsm(next);
 }
 

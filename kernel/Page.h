@@ -36,7 +36,10 @@ struct Page *PageAlloc(int num);
 void PageFree(struct Page *page);
 void PageFreeAll(struct Page *page);
 
+struct Page *PageAllocContigLow(int align, int num);
+
 void PageInit();
+void PageInitLow();
 
 extern struct Page Pages[N_PAGES];
 

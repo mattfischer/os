@@ -1,25 +1,28 @@
 .section .low
 .globl EntryAsm
 
+.equ AddressSpace_tablePAddr, 4
+
 EntryAsm:
 	ldr r1, memOffset
 	ldr sp, InitStackAddr
-	sub sp, sp, r1
+	sub sp, r1
 	add sp, #256
 
-	ldr r4, KernelMapAddr
-	sub r4, r4, r1
-	mov r0, r4
-	bl InitKernelMapLow
+	bl EntryLow
 
-	mcr p15, 0, r4, c2, c0, 0
+	ldr r0, KernelSpaceAddr
+	ldr r1, memOffset
+	sub r0, r1
+	ldr r0, [r0, #AddressSpace_tablePAddr]
+	mcr p15, 0, r0, c2, c0, 0
 
 	mov r0, #0xffffffff
 	mcr p15, 0, r0, c3, c0, 0
 	
 	mrc p15, 0, r0, c1, c0, 0
 	mov r1, #1
-	lsl r1, r1, #13
+	lsl r1, #13
 	orr r0, r1
 	orr r0, #1
 	mcr p15, 0, r0, c1, c0, 0
@@ -31,8 +34,8 @@ EntryAsm:
 	bx r0
 InitStackAddr:
 	.word InitStack
-KernelMapAddr:
-	.word KernelMap
+KernelSpaceAddr:
+	.word KernelSpace
 EntryAddr:
 	.word Entry
 memOffset:
