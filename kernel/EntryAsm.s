@@ -1,7 +1,7 @@
-.section .entry
-.globl Entry
+.section .low
+.globl EntryAsm
 
-Entry:
+EntryAsm:
 	ldr r1, memOffset
 	ldr sp, InitStackAddr
 	sub sp, sp, r1
@@ -10,7 +10,7 @@ Entry:
 	ldr r4, KernelMapAddr
 	sub r4, r4, r1
 	mov r0, r4
-	bl EntryInitKernelMap
+	bl InitKernelMapLow
 
 	mcr p15, 0, r4, c2, c0, 0
 
@@ -27,14 +27,14 @@ Entry:
 	ldr sp, InitStackAddr
 	add sp, #256
 	
-	ldr r0, EntryHighAddr
+	ldr r0, EntryAddr
 	bx r0
 InitStackAddr:
 	.word InitStack
 KernelMapAddr:
 	.word KernelMap
-EntryHighAddr:
-	.word EntryHigh
+EntryAddr:
+	.word Entry
 memOffset:
 	.word 0xC0000000
 

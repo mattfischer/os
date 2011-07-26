@@ -1,8 +1,8 @@
 TARGETS := kernel
 
 kernel_SOURCES := \
-	Entry.s \
-	EntryHigh.c \
+	EntryAsm.s \
+	Entry.c \
 	Map.c \
 	Page.c \
 	Sched.c \

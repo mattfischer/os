@@ -3,7 +3,7 @@
 
 char InitStack[256];
 
-SECTION(".entry") void EntryInitKernelMap(unsigned *map)
+SECTION(".low") void InitKernelMapLow(unsigned *map)
 {
 	unsigned int i;
 
@@ -16,7 +16,7 @@ SECTION(".entry") void EntryInitKernelMap(unsigned *map)
 	}
 }
 
-void EntryHigh()
+void Entry()
 {
 	PageInit();
 	MapInit();

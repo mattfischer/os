@@ -1,9 +1,9 @@
-ENTRY(Entry)
+ENTRY(EntryAsm)
 SECTIONS
 {
-	.entry 0x4000 :
+	.low 0x4000 :
 	{
-		*(.entry)
+		*(.low)
 	}
 	__KernelStart = 0xC0000000;
 
@@ -12,7 +12,7 @@ SECTIONS
 		*(.kernelMap)
 	}
 
-	.text __KernelStart + ADDR(.entry) + SIZEOF(.entry) : AT(LOADADDR(.entry) + SIZEOF(.entry))
+	.text __KernelStart + ADDR(.low) + SIZEOF(.low) : AT(LOADADDR(.low) + SIZEOF(.low))
 	{
 		*(.text)
 		*(.rodata)
