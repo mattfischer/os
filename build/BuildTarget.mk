@@ -9,6 +9,8 @@ OBJDIR := $(OUTDIR)obj/
 BINDIR := $(OUTDIR)bin/
 DEPDIR := $(OUTDIR)deps/
 
+CFLAGS := -I .
+
 define build_target
 target := $(1)
 bindir := $$(BINDIR)
@@ -47,12 +49,18 @@ $$(objdir)/%.o: $$(CWD)%.c $$(makefile)
 	@echo "CC      $$<"
 	@mkdir -p $$(objdir)
 	@mkdir -p $$(depdir)
-	@$$(GCC) $$(cflags) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
+	@$$(GCC) $$(cflags) $$(CFLAGS) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 
 $$(objdir)/%.o: $$(CWD)%.s $$(makefile)
 	@echo "AS      $$<"
 	@mkdir -p $$(objdir)
 	@$$(AS) $$(aflags) -o $$@ $$<
+
+clean-$$(target):
+	@echo "Cleaning target '$$(target)'"
+	@rm $$(binary)
+	@rm -rf $$(objdir)
+	@rm -rf $$(depdir)
 
 ALL_TARGETS += $$(binary)
 ALL_DEPS += $$(c_sources:%.c=$$(depdir)/%.d)

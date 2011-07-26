@@ -1,1 +1,1 @@
-SUBDIRS := kernel
+SUBDIRS := kernel tools
