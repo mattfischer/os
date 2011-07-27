@@ -30,6 +30,7 @@ cwdstack := $$(wordlist 2,$$(words $$(cwdstack)),$$(cwdstack))
 endef
 
 ALL_TARGETS :=
+ALL_DEPS :=
 
 $(eval $(call do_include,Build.mk))
 

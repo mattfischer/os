@@ -3,7 +3,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#include <kernel/include/InitFs.h>
+#include <kernel/include/InitFsFmt.h>
 
 #define LINE_LEN 100
 

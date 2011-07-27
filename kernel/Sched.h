@@ -12,6 +12,7 @@ struct Task {
 	unsigned int regs[16];
 	struct AddressSpace *addressSpace;
 	struct Page *stack;
+	char name[16];
 	struct Task *next;
 };
 
@@ -20,7 +21,8 @@ void ScheduleFirst();
 
 void TaskAdd(struct Task *task);
 
-struct Task *TaskCreate(void (*start)());
+struct Task *TaskCreateKernel(void (*start)());
+struct Task *TaskCreate(const char *name);
 
 void SchedInit();
 

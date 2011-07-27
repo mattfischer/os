@@ -29,6 +29,14 @@ setMMUBase:
 	bx lr
 .size setMMUBase, . - setMMUBase
 
+.globl flushTLB
+.type flushTLB,%function
+flushTLB:
+	mov r0, #0
+	mcr p15, 0, r0, c8, c5, 0
+	bx lr
+.size flushTLB, . - flushTLB
+
 .globl swi
 .type swi,%function
 swi:

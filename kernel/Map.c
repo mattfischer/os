@@ -32,7 +32,7 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 		for(i=0; i<4; i++) {
 			l2idx = i*PAGE_L2_TABLE_SIZE;
 			l2pte = L2Table[l2idx];
-			if((l2pte & PTE_L2_TYPE_MASK) != PTE_L2_TYPE_DISABLED || (l2pte & 0x80000000)) {
+			if((l2pte & PTE_L2_TYPE_MASK) != PTE_L2_TYPE_DISABLED || (l2pte & 0x80000000) == 0) {
 				continue;
 			}
 
@@ -102,6 +102,7 @@ SECTION_LOW void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr pa
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
 }
 
+void flushTLB();
 void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 {
 	struct Page *page;
@@ -144,6 +145,8 @@ void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 	}
 
 	map->next = mapCursor;
+
+	flushTLB();
 }
 
 void MapInit()

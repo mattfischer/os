@@ -52,7 +52,7 @@ $$(objdir)/%.o: $$(CWD)%.c $$(makefile)
 	@echo "CC        $$<"
 	@mkdir -p $$(objdir)
 	@mkdir -p $$(depdir)
-	@$$(GCC) $$(cflags) $$(CFLAGS) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
+	@$$(GCC) $$(cflags) $$(CFLAGS) -MP -MMD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 
 $$(objdir)/%.o: $$(CWD)%.s $$(makefile)
 	@echo "AS        $$<"

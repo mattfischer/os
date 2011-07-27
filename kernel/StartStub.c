@@ -1,18 +1,12 @@
 #include "Sched.h"
+#include "InitFs.h"
 
 void swi();
 
 static void task1Start()
 {
 	while(1) {
-		swi();
-	}
-}
-
-static void task2Start()
-{
-	while(1) {
-		swi();
+		Schedule();
 	}
 }
 
@@ -20,10 +14,10 @@ void StartStub()
 {
 	struct Task *task;
 
-	task = TaskCreate(task1Start);
+	task = TaskCreateKernel(task1Start);
 	TaskAdd(task);
 
-	task = TaskCreate(task2Start);
+	task = TaskCreate("test");
 	TaskAdd(task);
 
 	ScheduleFirst();
