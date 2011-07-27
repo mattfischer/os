@@ -4,6 +4,7 @@ GCC := $(CROSS_COMPILE)-gcc
 AS := $(CROSS_COMPILE)-as
 LD := $(CROSS_COMPILE)-ld
 GDB := $(CROSS_COMPILE)-gdb
+OBJCOPY := $(CROSS_COMPILE)-objcopy
 
 OBJDIR := $(OUTDIR)obj/
 BINDIR := $(OUTDIR)bin/
@@ -21,6 +22,7 @@ cflags := $$($$(target)_CFLAGS)
 aflags := $$($$(target)_AFLAGS)
 ldflags := $$($$(target)_LDFLAGS)
 extra_deps := $$($$(target)_EXTRA_DEPS)
+extra_objs := $$($$(target)_EXTRA_OBJS)
 
 c_sources := $$(filter %.c,$$(sources))
 s_sources := $$(filter %.s,$$(sources))
@@ -32,6 +34,7 @@ $$(binary): extra_deps := $$(extra_deps)
 $$(binary): makefile := $$(makefile)
 $$(binary): bindir := $$(bindir)
 $$(binary): ldflags := $$(ldflags)
+$$(binary): extra_objs := $$(extra_objs)
 
 $$(objdir)/%.o: CWD := $$(CWD)
 $$(objdir)/%.o: makefile := $$(makefile)
@@ -40,19 +43,19 @@ $$(objdir)/%.o: depdir := $$(depdir)
 $$(objdir)/%.o: cflags := $$(cflags)
 $$(objdir)/%.o: aflags := $$(aflags)
 
-$$(binary): $$(objects) $$(extra_deps) $$(makefile)
-	@echo "LD      $$@"
+$$(binary): $$(objects) $$(extra_objs) $$(extra_deps) $$(makefile)
+	@echo "LD        $$@"
 	@mkdir -p $$(bindir)
-	@$$(LD) $$(objects) -o $$@ $$(ldflags)
+	@$$(LD) $$(objects) $$(extra_objs) -o $$@ $$(ldflags)
 
 $$(objdir)/%.o: $$(CWD)%.c $$(makefile)
-	@echo "CC      $$<"
+	@echo "CC        $$<"
 	@mkdir -p $$(objdir)
 	@mkdir -p $$(depdir)
 	@$$(GCC) $$(cflags) $$(CFLAGS) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 
 $$(objdir)/%.o: $$(CWD)%.s $$(makefile)
-	@echo "AS      $$<"
+	@echo "AS        $$<"
 	@mkdir -p $$(objdir)
 	@$$(AS) $$(aflags) -o $$@ $$<
 

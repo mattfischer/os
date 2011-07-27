@@ -17,7 +17,14 @@ SECTIONS
 	{
 		*(.data)
 	}
-	
+
+	__InitFsStart = .;
+	.initfs : AT(LOADADDR(.data) + SIZEOF(.data))
+	{
+		*(.initfs)
+	}
+	__InitFsEnd = .;
+
 	.bss (NOLOAD) :
 	{
 		*(.bss)

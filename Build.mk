@@ -1,1 +1,1 @@
-SUBDIRS := kernel tools
+SUBDIRS := kernel tools progs

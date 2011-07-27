@@ -45,18 +45,18 @@ clean-$$(target): objdir := $$(objdir)
 clean-$$(target): depdir := $$(depdir)
 
 $$(binary): $$(objects) $$(extra_deps) $$(makefile)
-	@echo "HOST_LD $$@"
+	@echo "HOST_LD   $$@"
 	@mkdir -p $$(bindir)
 	@$$(HOST_LD) $$(objects) -o $$@ $$(ldflags)
 
 $$(objdir)/%.o: $$(CWD)%.c $$(makefile)
-	@echo "HOST_CC $$<"
+	@echo "HOST_CC   $$<"
 	@mkdir -p $$(objdir)
 	@mkdir -p $$(depdir)
 	@$$(HOST_GCC) $$(cflags) $$(HOST_CFLAGS) -MP -MD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 	
 $$(objdir)/%.o: $$(CWD)%.s $$(makefile)
-	@echo "HOST_AS $$<"
+	@echo "HOST_AS   $$<"
 	@mkdir -p $$(objdir)
 	@$$(HOST_AS) $$(aflags) -o $$@ $$<
 
