@@ -3,6 +3,7 @@
 #include "InitFs.h"
 #include "Elf.h"
 #include "Util.h"
+#include "AsmFuncs.h"
 
 struct RunList {
 	struct Task *head;
@@ -60,7 +61,6 @@ static void initAddressSpace(struct AddressSpace *space)
 	}
 }
 
-void EnterUser(void (*userStart)(), void* userStack);
 static void startUser()
 {
 	int stackSize = PAGE_SIZE;
@@ -116,20 +116,16 @@ struct Task *TaskCreateKernel(void (*start)())
 	return task;
 }
 
-void setMMUBase(PAddr table);
-void switchToAsm(struct Task *current, struct Task *next);
-void runFirstAsm(struct Task *next);
-
 static void switchTo(struct Task *current, struct Task *next)
 {
-	setMMUBase(next->addressSpace->tablePAddr);
-	switchToAsm(current, next);
+	SetMMUBase(next->addressSpace->tablePAddr);
+	SwitchToAsm(current, next);
 }
 
 static void runFirst(struct Task *next)
 {
-	setMMUBase(next->addressSpace->tablePAddr);
-	runFirstAsm(next);
+	SetMMUBase(next->addressSpace->tablePAddr);
+	RunFirstAsm(next);
 }
 
 void Schedule()

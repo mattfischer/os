@@ -1,6 +1,7 @@
 TARGETS := kernel
 
 kernel_SOURCES := \
+	AsmFuncs.s \
 	Elf.c \
 	EntryAsm.s \
 	Entry.c \
@@ -9,7 +10,6 @@ kernel_SOURCES := \
 	Page.c \
 	Sched.c \
 	Slab.c \
-	SwitchTo.s \
 	StartStub.c \
 	Util.c
 kernel_LDFLAGS := -T $(CWD)ldscript

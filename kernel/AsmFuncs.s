@@ -1,14 +1,14 @@
 .section .text
 
-.globl runFirstAsm
-.type runFirstAsm,%function
-runFirstAsm:
+.globl RunFirstAsm
+.type RunFirstAsm,%function
+RunFirstAsm:
 	ldm r0, {r0-r15}
-.size runFirstAsm, . - runFirstAsm
+.size RunFirstAsm, . - RunFirstAsm
 
-.globl switchToAsm
-.type switchToAsm,%function
-switchToAsm:
+.globl SwitchToAsm
+.type SwitchToAsm,%function
+SwitchToAsm:
 	stm r0, {r0-r15}
 	adr r2, finish
 	str r2, [r0, #60]
@@ -16,33 +16,26 @@ switchToAsm:
 	
 finish:
 	bx lr
-.size switchToAsm, . - switchToAsm
+.size SwitchToAsm, . - SwitchToAsm
 
-.globl setMMUBase
-.type setMMUBase,%function
-setMMUBase:
+.globl SetMMUBase
+.type SetMMUBase,%function
+SetMMUBase:
 	mcr p15, 0, r0, c2, c0, 0
 
 	mov r0, #0
 	mcr p15, 0, r0, c8, c5, 0
 
 	bx lr
-.size setMMUBase, . - setMMUBase
+.size SetMMUBase, . - SetMMUBase
 
-.globl flushTLB
-.type flushTLB,%function
-flushTLB:
+.globl FlushTLB
+.type FlushTLB,%function
+FlushTLB:
 	mov r0, #0
 	mcr p15, 0, r0, c8, c5, 0
 	bx lr
-.size flushTLB, . - flushTLB
-
-.globl swi
-.type swi,%function
-swi:
-	swi 0
-	bx lr
-.size swi, . - swi
+.size FlushTLB, . - FlushTLB
 
 .globl EnterUser
 .type EnterUser,%function

@@ -1,6 +1,7 @@
 #include "Map.h"
 #include "Slab.h"
 #include "Defs.h"
+#include "AsmFuncs.h"
 
 struct AddressSpace KernelSpace;
 struct Page *vectorPage;
@@ -102,7 +103,6 @@ SECTION_LOW void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr pa
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
 }
 
-void flushTLB();
 void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 {
 	struct Page *page;
@@ -146,7 +146,7 @@ void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
 
 	map->next = mapCursor;
 
-	flushTLB();
+	FlushTLB();
 }
 
 void MapInit()
