@@ -8,9 +8,9 @@ kernel_SOURCES := \
 	InitFs.c \
 	Map.c \
 	Page.c \
+	ProcManager.c \
 	Sched.c \
 	Slab.c \
-	StartStub.c \
 	Util.c
 kernel_LDFLAGS := -T $(CWD)ldscript
 kernel_CFLAGS := -g

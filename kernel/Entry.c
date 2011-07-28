@@ -2,6 +2,7 @@
 #include "Page.h"
 #include "Map.h"
 #include "Defs.h"
+#include "ProcManager.h"
 
 char InitStack[256];
 
@@ -16,7 +17,7 @@ void Entry()
 	MapInit();
 	SchedInit();
 
-	StartStub();
+	ProcManagerStart();
 }
 
 void SysEntry(int code)

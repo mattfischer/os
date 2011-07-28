@@ -43,6 +43,11 @@ $$(objdir)/%.o: depdir := $$(depdir)
 $$(objdir)/%.o: cflags := $$(cflags)
 $$(objdir)/%.o: aflags := $$(aflags)
 
+clean-$$(target): target := $$(target)
+clean-$$(target): binary := $$(binary)
+clean-$$(target): objdir := $$(objdir)
+clean-$$(target): depdir := $$(depdir)
+
 $$(binary): $$(objects) $$(extra_objs) $$(extra_deps) $$(makefile)
 	@echo "LD        $$@"
 	@mkdir -p $$(bindir)

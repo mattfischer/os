@@ -21,8 +21,7 @@ void ScheduleFirst();
 
 void TaskAdd(struct Task *task);
 
-struct Task *TaskCreateKernel(void (*start)());
-struct Task *TaskCreate(const char *name);
+struct Task *TaskCreate(void (*start)());
 
 void SchedInit();
 
