@@ -21,21 +21,18 @@ MKINITFS := $(HOST_BINDIR)mkinitfs$(HOST_EXE_EXT)
 
 initfs_in := $(CWD)InitFs.ifs
 initfs_d := $(DEPDIR)kernel/InitFsData.d
-initfs_tmp := $(OBJDIR)kernel/InitFsData.tmp
 initfs_o := $(OBJDIR)kernel/InitFsData.o
 
 $(initfs_d): $(initfs_in) $(MKINITFS) $(makefile)
 	@mkdir -p $(dir $@)
-	@$(MKINITFS) -d $@ -o $(initfs_tmp) $(initfs_in)
+	@$(MKINITFS) -d $@ -o $(initfs_o) $(initfs_in)
 
-$(initfs_tmp): $(initfs_in) $(MKINITFS) $(makefile)
+$(initfs_o): $(initfs_in) $(MKINITFS) $(makefile)
 	@echo "MKINITFS  $<"
 	@mkdir -p $(dir $@)
-	@$(MKINITFS) -o $@ $(initfs_in)
-
-$(initfs_o): $(initfs_tmp) $(makefile)
-	@mkdir -p $(dir $@)
-	@$(OBJCOPY) -I binary -O elf32-littlearm -B arm --rename-section .data=.initfs $< $@
+	@$(MKINITFS) -o $@.tmp $(initfs_in)
+	@$(OBJCOPY) -I binary -O elf32-littlearm -B arm --rename-section .data=.initfs $@.tmp $@
+	@rm $@.tmp
 
 -include $(initfs_d)
 
