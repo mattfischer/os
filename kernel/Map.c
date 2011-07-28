@@ -103,7 +103,7 @@ SECTION_LOW void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr pa
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
 }
 
-void MapPages(struct AddressSpace *space, void *start, struct Page *pages)
+void MapCreate(struct AddressSpace *space, void *start, struct Page *pages)
 {
 	struct Page *page;
 	struct Map *map;

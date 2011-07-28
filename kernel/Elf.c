@@ -18,7 +18,7 @@ void *ElfLoad(struct AddressSpace *space, void *data, int size)
 
 		nPages = (phdr->p_memsz + PAGE_SIZE - 1) >> PAGE_SHIFT;
 		pages = PageAlloc(nPages);
-		MapPages(space, (void*)phdr->p_vaddr, pages);
+		MapCreate(space, (void*)phdr->p_vaddr, pages);
 		memcpy((void*)phdr->p_vaddr, (void*)((char*)data + phdr->p_offset), phdr->p_filesz);
 		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
 	}

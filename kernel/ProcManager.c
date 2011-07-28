@@ -14,7 +14,7 @@ static void startUser()
 	int stackSize = PAGE_SIZE;
 	struct Page *stackPages = PageAlloc(stackSize >> PAGE_SHIFT);
 	char *stack = (char*)(KERNEL_START - stackSize);
-	MapPages(Current->addressSpace, stack, stackPages);
+	MapCreate(Current->addressSpace, stack, stackPages);
 	struct StartupInfo *startupInfo = (struct StartupInfo*)Current - 1;
 	int size;
 	void *data = InitFsLookup(startupInfo->name, &size);

@@ -31,7 +31,7 @@ struct AddressSpace {
 void MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
 void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);
 
-void MapPages(struct AddressSpace *space, void *vaddr, struct Page *pages);
+void MapCreate(struct AddressSpace *space, void *vaddr, struct Page *pages);
 
 void MapInit();
 void MapInitLow();
