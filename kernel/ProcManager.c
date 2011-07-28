@@ -23,7 +23,7 @@ static void startUser()
 	EnterUser(entry, stack + stackSize);
 }
 
-struct Task *createUserTask(const char *name)
+static struct Task *createUserTask(const char *name)
 {
 	struct Task *task = TaskCreate(startUser);
 	struct StartupInfo *startupInfo = (struct StartupInfo*)task->regs[R_SP] - 1;
@@ -33,7 +33,7 @@ struct Task *createUserTask(const char *name)
 	return task;
 }
 
-void procManagerMain(void *param)
+static void procManagerMain(void *param)
 {
 	struct Task *task = createUserTask("test");
 	TaskAdd(task);

@@ -26,7 +26,7 @@ void TaskAdd(struct Task *task)
 	runList.tail = task;
 }
 
-struct Task *removeHead()
+static struct Task *removeHead()
 {
 	struct Task *task;
 
