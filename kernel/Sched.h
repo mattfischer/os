@@ -12,7 +12,6 @@ struct Task {
 	unsigned int regs[16];
 	struct AddressSpace *addressSpace;
 	struct Page *stack;
-	char name[16];
 	struct Task *next;
 };
 

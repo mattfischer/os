@@ -5,15 +5,19 @@
 #include "Elf.h"
 #include "Util.h"
 
+struct StartupInfo {
+	char name[16];
+};
+
 static void startUser()
 {
 	int stackSize = PAGE_SIZE;
 	struct Page *stackPages = PageAlloc(stackSize >> PAGE_SHIFT);
 	char *stack = (char*)(KERNEL_START - stackSize);
 	MapPages(Current->addressSpace, stack, stackPages);
-
+	struct StartupInfo *startupInfo = (struct StartupInfo*)Current - 1;
 	int size;
-	void *data = InitFsLookup(Current->name, &size);
+	void *data = InitFsLookup(startupInfo->name, &size);
 	void *entry = ElfLoad(Current->addressSpace, data, size);
 
 	EnterUser(entry, stack + stackSize);
@@ -22,7 +26,9 @@ static void startUser()
 struct Task *createUserTask(const char *name)
 {
 	struct Task *task = TaskCreate(startUser);
-	strcpy(task->name, name);
+	struct StartupInfo *startupInfo = (struct StartupInfo*)task->regs[R_SP] - 1;
+	task->regs[R_SP] = (unsigned int)startupInfo;
+	strcpy(startupInfo->name, name);
 
 	return task;
 }
