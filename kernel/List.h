@@ -16,6 +16,8 @@ struct List {
 
 #define CONTAINER_OF(ptr, type, member) (type*)((char*)ptr - offsetof(type, member))
 
+#define LIST(type) struct List
+
 #define LIST_INIT(list) \
 	(list).head = NULL; \
 	(list).tail = NULL; \

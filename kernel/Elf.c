@@ -9,7 +9,7 @@ void *Elf_Load(struct AddressSpace *space, void *data, int size)
 
 	for(i=0; i<hdr->e_phnum; i++) {
 		Elf32_Phdr *phdr;
-		struct List pages;
+		LIST(struct Page) pages;
 		int nPages;
 
 		phdr = (Elf32_Phdr*)((char*)data + hdr->e_phoff + hdr->e_phentsize * i);

@@ -19,7 +19,7 @@ static void startUser(void *param)
 	struct StartupInfo *startupInfo;
 	struct Task *task;
 	int stackSize;
-	struct List stackPages;
+	LIST(struct Page) stackPages;
 	char *stack;
 	int size;
 	void *data;

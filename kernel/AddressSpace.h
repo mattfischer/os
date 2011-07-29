@@ -16,20 +16,20 @@ typedef unsigned int PAddr;
 struct Area {
 	void *start;
 	int size;
-	struct List pages;
+	LIST(struct Page) pages;
 	struct ListEntry list;
 };
 
 struct AddressSpace {
-	struct List table;
+	LIST(struct Page) table;
 	PAddr tablePAddr;
-	struct List L2Tables;
-	struct List areas;
+	LIST(struct Page) L2Tables;
+	LIST(struct Area) areas;
 };
 
 struct AddressSpace *AddressSpace_Create();
 
-void AddressSpace_Map(struct AddressSpace *space, void *vaddr, struct List pages);
+void AddressSpace_Map(struct AddressSpace *space, void *vaddr, LIST(struct Page) pages);
 
 void AddressSpace_MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
 void AddressSpace_MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);

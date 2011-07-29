@@ -6,7 +6,7 @@
 
 struct Channel {
 	struct Task *task;
-	struct List waiters;
+	LIST(struct Connection) waiters;
 };
 
 struct Connection {

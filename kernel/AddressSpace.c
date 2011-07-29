@@ -89,7 +89,7 @@ SECTION_LOW void AddressSpace_MapSectionLow(struct AddressSpace *space, void *va
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
 }
 
-void AddressSpace_Map(struct AddressSpace *space, void *start, struct List pages)
+void AddressSpace_Map(struct AddressSpace *space, void *start, LIST(struct Page) pages)
 {
 	struct Page *page;
 	struct Area *area;

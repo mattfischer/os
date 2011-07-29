@@ -5,7 +5,7 @@
 #include "Util.h"
 #include "AsmFuncs.h"
 
-struct List runList;
+LIST(struct Task) runList;
 struct Task *Current = NULL;
 
 void Sched_AddTail(struct Task *task)

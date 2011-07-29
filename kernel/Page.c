@@ -20,9 +20,9 @@ struct Page *Page_Alloc()
 	return NULL;
 }
 
-struct List Page_AllocMulti(int num)
+LIST(struct Page) Page_AllocMulti(int num)
 {
-	struct List list;
+	LIST(struct Page) list;
 	int n;
 
 	LIST_INIT(list);
@@ -35,9 +35,9 @@ struct List Page_AllocMulti(int num)
 	return list;
 }
 
-struct List Page_AllocContig(int align, int num)
+LIST(struct Page) Page_AllocContig(int align, int num)
 {
-	struct List list;
+	LIST(struct Page) list;
 	int i, j;
 
 	LIST_INIT(list);
@@ -69,7 +69,7 @@ void Page_Free(struct Page *page)
 	page->flags = PAGE_FREE;
 }
 
-void Page_FreeList(struct List list)
+void Page_FreeList(LIST(struct Page) list)
 {
 	struct Page *page;
 	struct Page *extra;
@@ -91,9 +91,9 @@ SECTION_LOW void Page_InitLow()
 	}
 }
 
-SECTION_LOW struct List Page_AllocContigLow(int align, int num)
+SECTION_LOW LIST(struct Page) Page_AllocContigLow(int align, int num)
 {
-	struct List list;
+	LIST(struct Page) list;
 	int i, j;
 
 	LIST_INIT(list);
