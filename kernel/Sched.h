@@ -29,11 +29,10 @@ struct Task {
 void Schedule();
 void ScheduleFirst();
 
-void TaskAdd(struct Task *task);
+void Task_AddTail(struct Task *task);
+struct Task *Task_Create(void (*start)());
 
-struct Task *TaskCreate(void (*start)());
-
-void SchedInit();
+void Sched_Init();
 
 extern struct Task *Current;
 

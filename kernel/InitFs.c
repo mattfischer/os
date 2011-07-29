@@ -6,7 +6,7 @@
 
 extern char __InitFsStart[];
 extern char __InitFsEnd[];
-void *InitFsLookup(const char *name, int *size)
+void *InitFs_Lookup(const char *name, int *size)
 {
 	struct InitFsFileHeader *header;
 

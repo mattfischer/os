@@ -8,7 +8,7 @@
 struct List runList;
 struct Task *Current = NULL;
 
-void TaskAdd(struct Task *task)
+void Task_AddTail(struct Task *task)
 {
 	task->state = TaskStateReady;
 	LIST_ADD_TAIL(runList, task->list);
@@ -24,13 +24,13 @@ static struct Task *removeHead()
 	return task;
 }
 
-struct Task *TaskCreate(void (*start)())
+struct Task *Task_Create(void (*start)())
 {
 	int i;
 	struct Task *task;
 	struct Page *stack;
 
-	stack = PageAlloc(1);
+	stack = Page_Alloc(1);
 	task = (struct Task*)(PAGE_TO_VADDR(stack) + PAGE_SIZE - sizeof(struct Task));
 
 	task->stack = stack;
@@ -39,7 +39,7 @@ struct Task *TaskCreate(void (*start)())
 	task->regs[R_PC] = (unsigned int)start;
 	task->regs[R_SP] = (unsigned int)task;
 
-	task->addressSpace = AddressSpaceCreate();
+	task->addressSpace = AddressSpace_Create();
 
 	return task;
 }
@@ -66,7 +66,7 @@ void Schedule()
 	struct Task *old;
 	
 	if(Current->state == TaskStateRunning) {
-		TaskAdd(Current);
+		Task_AddTail(Current);
 	}
 
 	next = removeHead();
@@ -84,7 +84,7 @@ void ScheduleFirst()
 	runFirst(Current);
 }
 
-void SchedInit()
+void Sched_Init()
 {
 	LIST_INIT(runList);
 }

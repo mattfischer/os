@@ -7,7 +7,7 @@ struct SlabHead {
 	unsigned int bitfield[1];
 };
 
-void SlabInit(struct SlabAllocator *slab, int size)
+void Slab_Init(struct SlabAllocator *slab, int size)
 {
 	int i;
 	int alignedSize;
@@ -26,7 +26,7 @@ void SlabInit(struct SlabAllocator *slab, int size)
 	LIST_INIT(slab->pages);
 }
 
-void *SlabAllocate(struct SlabAllocator *slab)
+void *Slab_Allocate(struct SlabAllocator *slab)
 {
 	struct Page *page;
 	struct SlabHead *head;
@@ -50,7 +50,7 @@ void *SlabAllocate(struct SlabAllocator *slab)
 		}
 	}
 
-	page = PageAlloc();
+	page = Page_Alloc();
 	LIST_ADD_TAIL(slab->pages, page->list);
 
 	head = (struct SlabHead*)PAGE_TO_VADDR(page);
@@ -61,7 +61,7 @@ void *SlabAllocate(struct SlabAllocator *slab)
 	return PAGE_TO_VADDR(page) + (slab->dataStart << slab->order);
 }
 
-void SlabFree(struct SlabAllocator *slab, void *p)
+void Slab_Free(struct SlabAllocator *slab, void *p)
 {
 	struct Page *page = VADDR_TO_PAGE(p);
 	struct Page *cursor;
@@ -82,5 +82,5 @@ void SlabFree(struct SlabAllocator *slab, void *p)
 	}
 
 	LIST_REMOVE(slab->pages, page->list);
-	PageFree(page);
+	Page_Free(page);
 }

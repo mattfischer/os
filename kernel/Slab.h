@@ -11,8 +11,8 @@ struct SlabAllocator {
 	struct List pages;
 };
 
-void SlabInit(struct SlabAllocator *slab, int size);
-void *SlabAllocate(struct SlabAllocator *slab);
-void SlabFree(struct SlabAllocator *slab, void *p);
+void Slab_Init(struct SlabAllocator *slab, int size);
+void *Slab_Allocate(struct SlabAllocator *slab);
+void Slab_Free(struct SlabAllocator *slab, void *p);
 
 #endif

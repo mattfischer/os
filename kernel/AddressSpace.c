@@ -41,7 +41,7 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 		}
 	}
 
-	L2Page = PageAlloc();
+	L2Page = Page_Alloc();
 	L2Table = (unsigned*)PAGE_TO_VADDR(L2Page);
 	LIST_ADD_TAIL(space->L2Tables, L2Page->list);
 
@@ -53,7 +53,7 @@ static void allocL2Table(struct AddressSpace *space, void *vaddr)
 	table[idx] = VADDR_TO_PADDR(L2Table) | PTE_TYPE_COARSE;
 }
 
-void AddressSpaceMapPage(struct AddressSpace *space, void *vaddr, PAddr paddr)
+void AddressSpace_MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr)
 {
 	unsigned *table;
 	int idx;
@@ -79,7 +79,7 @@ void AddressSpaceMapPage(struct AddressSpace *space, void *vaddr, PAddr paddr)
 	}
 }
 
-SECTION_LOW void AddressSpaceMapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr)
+SECTION_LOW void AddressSpace_MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr)
 {
 	unsigned *table;
 	int idx;
@@ -89,7 +89,7 @@ SECTION_LOW void AddressSpaceMapSectionLow(struct AddressSpace *space, void *vad
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
 }
 
-void AddressSpaceMap(struct AddressSpace *space, void *start, struct List pages)
+void AddressSpace_Map(struct AddressSpace *space, void *start, struct List pages)
 {
 	struct Page *page;
 	struct Area *area;
@@ -101,12 +101,12 @@ void AddressSpaceMap(struct AddressSpace *space, void *start, struct List pages)
 	size = 0;
 
 	LIST_FOREACH(pages, page, struct Page, list) {
-		AddressSpaceMapPage(space, vaddr, PAGE_TO_PADDR(page));
+		AddressSpace_MapPage(space, vaddr, PAGE_TO_PADDR(page));
 		vaddr += PAGE_SIZE;
 		size += PAGE_SIZE;
 	}
 
-	area = (struct Area*)SlabAllocate(&areaSlab);
+	area = (struct Area*)Slab_Allocate(&areaSlab);
 	area->start = start;
 	area->size = size;
 	area->pages = pages;
@@ -121,17 +121,17 @@ void AddressSpaceMap(struct AddressSpace *space, void *start, struct List pages)
 	FlushTLB();
 }
 
-struct AddressSpace *AddressSpaceCreate()
+struct AddressSpace *AddressSpace_Create()
 {
 	struct AddressSpace *space;
 	unsigned *base;
 	unsigned *kernelTable;
 	int kernel_nr;
 
-	space = (struct AddressSpace*)SlabAllocate(&AddressSpaceSlab);
+	space = (struct AddressSpace*)Slab_Allocate(&AddressSpaceSlab);
 	LIST_INIT(space->areas);
 
-	space->table = PageAllocContig(4, 4);
+	space->table = Page_AllocContig(4, 4);
 	space->tablePAddr = PAGE_TO_PADDR(LIST_HEAD(space->table, struct Page, list));
 	base = (unsigned*)PADDR_TO_VADDR(space->tablePAddr);
 
@@ -144,23 +144,23 @@ struct AddressSpace *AddressSpaceCreate()
 	return space;
 }
 
-void AddressSpaceInit()
+void AddressSpace_Init()
 {
 	int i;
 	unsigned int n;
 	struct Page *vectorPage;
 	char *vector;
 
-	vectorPage = PageAlloc();
+	vectorPage = Page_Alloc();
 	vector = PAGE_TO_VADDR(vectorPage);
-	AddressSpaceMapPage(&KernelSpace, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
+	AddressSpace_MapPage(&KernelSpace, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
 	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
-	SlabInit(&AddressSpaceSlab, sizeof(struct AddressSpace));
-	SlabInit(&areaSlab, sizeof(struct Area));
+	Slab_Init(&AddressSpaceSlab, sizeof(struct AddressSpace));
+	Slab_Init(&areaSlab, sizeof(struct Area));
 }
 
-SECTION_LOW void AddressSpaceInitLow()
+SECTION_LOW void AddressSpace_InitLow()
 {
 	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
 	struct AddressSpace *kernelSpace = (struct AddressSpace*)VADDR_TO_PADDR(&KernelSpace);
@@ -173,16 +173,16 @@ SECTION_LOW void AddressSpaceInitLow()
 		LIST_ENTRY_CLEAR(pages[i].list);
 	}
 
-	kernelSpace->table = PageAllocContigLow(4, 4);
+	kernelSpace->table = Page_AllocContigLow(4, 4);
 	kernelSpace->tablePAddr = PAGE_TO_PADDR(LIST_HEAD(kernelSpace->table, struct Page, list));
 	LIST_INIT(kernelSpace->L2Tables);
 	LIST_INIT(kernelSpace->areas);
 
 	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		AddressSpaceMapSectionLow(kernelSpace, (void*)vaddr, paddr);
+		AddressSpace_MapSectionLow(kernelSpace, (void*)vaddr, paddr);
 	}
 
 	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		AddressSpaceMapSectionLow(kernelSpace, (void*)vaddr, paddr);
+		AddressSpace_MapSectionLow(kernelSpace, (void*)vaddr, paddr);
 	}
 }

@@ -61,6 +61,6 @@ typedef struct {
 	Elf32_Word		p_align;
 } Elf32_Phdr;
 
-void *ElfLoad(struct AddressSpace *space, void *data, int size);
+void *Elf_Load(struct AddressSpace *space, void *data, int size);
 
 #endif

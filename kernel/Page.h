@@ -36,16 +36,16 @@ struct Page {
 #define PAGE_TO_PADDR(page) PAGE_NR_TO_PADDR(PAGE_NR(page))
 #define PAGE_TO_VADDR(page) PAGE_NR_TO_VADDR(PAGE_NR(page))
 
-struct List PageAllocContig(int align, int num);
-struct List PageAllocMulti(int num);
-struct Page *PageAlloc();
-void PageFree(struct Page *page);
-void PageFreeAll(struct List list);
+struct List Page_AllocContig(int align, int num);
+struct List Page_AllocMulti(int num);
+struct Page *Page_Alloc();
+void Page_Free(struct Page *page);
+void Page_FreeList(struct List list);
 
-struct List PageAllocContigLow(int align, int num);
+void Page_Init();
 
-void PageInit();
-void PageInitLow();
+void Page_InitLow();
+struct List Page_AllocContigLow(int align, int num);
 
 extern struct Page Pages[N_PAGES];
 

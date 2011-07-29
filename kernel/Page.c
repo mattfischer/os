@@ -4,7 +4,7 @@
 
 struct Page Pages[N_PAGES];
 
-struct Page *PageAlloc()
+struct Page *Page_Alloc()
 {
 	int i;
 
@@ -20,7 +20,7 @@ struct Page *PageAlloc()
 	return NULL;
 }
 
-struct List PageAllocMulti(int num)
+struct List Page_AllocMulti(int num)
 {
 	struct List list;
 	int n;
@@ -28,14 +28,14 @@ struct List PageAllocMulti(int num)
 	LIST_INIT(list);
 
 	for(n=0; n < num; n++) {
-		struct Page *page = PageAlloc();
+		struct Page *page = Page_Alloc();
 		LIST_ADD_TAIL(list, page->list);
 	}
 
 	return list;
 }
 
-struct List PageAllocContig(int align, int num)
+struct List Page_AllocContig(int align, int num)
 {
 	struct List list;
 	int i, j;
@@ -64,7 +64,34 @@ struct List PageAllocContig(int align, int num)
 	return list;
 }
 
-SECTION_LOW struct List PageAllocContigLow(int align, int num)
+void Page_Free(struct Page *page)
+{
+	page->flags = PAGE_FREE;
+}
+
+void Page_FreeList(struct List list)
+{
+	struct Page *page;
+	struct Page *extra;
+
+	LIST_FOREACH_CAN_REMOVE(list, page, extra, struct Page, list) {
+		LIST_REMOVE(list, page->list);
+		Page_Free(page);
+	}
+}
+
+SECTION_LOW void Page_InitLow()
+{
+	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
+	int i;
+
+	for(i=0; i<N_PAGES; i++) {
+		pages[i].flags = PAGE_FREE;
+		LIST_ENTRY_CLEAR(pages[i].list);
+	}
+}
+
+SECTION_LOW struct List Page_AllocContigLow(int align, int num)
 {
 	struct List list;
 	int i, j;
@@ -93,31 +120,4 @@ SECTION_LOW struct List PageAllocContigLow(int align, int num)
 	}
 
 	return list;
-}
-
-void PageFree(struct Page *page)
-{
-	page->flags = PAGE_FREE;
-}
-
-void PageFreeAll(struct List list)
-{
-	struct Page *page;
-	struct Page *extra;
-
-	LIST_FOREACH_CAN_REMOVE(list, page, extra, struct Page, list) {
-		LIST_REMOVE(list, page->list);
-		PageFree(page);
-	}
-}
-
-SECTION_LOW void PageInitLow()
-{
-	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
-	int i;
-
-	for(i=0; i<N_PAGES; i++) {
-		pages[i].flags = PAGE_FREE;
-		LIST_ENTRY_CLEAR(pages[i].list);
-	}
 }

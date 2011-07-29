@@ -27,15 +27,15 @@ struct AddressSpace {
 	struct List areas;
 };
 
-struct AddressSpace *AddressSpaceCreate();
+struct AddressSpace *AddressSpace_Create();
 
-void AddressSpaceMap(struct AddressSpace *space, void *vaddr, struct List pages);
+void AddressSpace_Map(struct AddressSpace *space, void *vaddr, struct List pages);
 
-void AddressSpaceMapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
-void AddressSpaceMapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);
+void AddressSpace_MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
+void AddressSpace_MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);
 
-void AddressSpaceInit();
-void AddressSpaceInitLow();
+void AddressSpace_Init();
+void AddressSpace_InitLow();
 
 extern struct AddressSpace KernelSpace;
 

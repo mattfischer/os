@@ -14,20 +14,20 @@ struct StartupInfo {
 static void startUser()
 {
 	int stackSize = PAGE_SIZE;
-	struct List stackPages = PageAllocMulti(stackSize >> PAGE_SHIFT);
+	struct List stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
 	char *stack = (char*)(KERNEL_START - stackSize);
-	AddressSpaceMap(Current->addressSpace, stack, stackPages);
+	AddressSpace_Map(Current->addressSpace, stack, stackPages);
 	struct StartupInfo *startupInfo = (struct StartupInfo*)Current - 1;
 	int size;
-	void *data = InitFsLookup(startupInfo->name, &size);
-	void *entry = ElfLoad(Current->addressSpace, data, size);
+	void *data = InitFs_Lookup(startupInfo->name, &size);
+	void *entry = Elf_Load(Current->addressSpace, data, size);
 
 	EnterUser(entry, stack + stackSize);
 }
 
 static struct Task *createUserTask(const char *name)
 {
-	struct Task *task = TaskCreate(startUser);
+	struct Task *task = Task_Create(startUser);
 	struct StartupInfo *startupInfo = (struct StartupInfo*)task->regs[R_SP] - 1;
 	task->regs[R_SP] = (unsigned int)startupInfo;
 	strcpy(startupInfo->name, name);
@@ -39,32 +39,32 @@ static struct Channel *procManagerChannel;
 
 static void testStart()
 {
-	struct Connection *connection = ConnectionCreate(Current, procManagerChannel);
+	struct Connection *connection = Connection_Create(Current, procManagerChannel);
 
 	while(1) {
-		MessageSend(connection);
+		Message_Send(connection);
 	}
 }
 
 static void procManagerMain(void *param)
 {
-	struct Task *task = TaskCreate(testStart);
+	struct Task *task = Task_Create(testStart);
 	struct Connection *connection;
 
-	TaskAdd(task);
+	Task_AddTail(task);
 
-	procManagerChannel = ChannelCreate(Current);
+	procManagerChannel = Channel_Create(Current);
 
 	while(1) {
-		connection = MessageReceive(procManagerChannel);
-		MessageReply(connection);
+		connection = Message_Receive(procManagerChannel);
+		Message_Reply(connection);
 	}
 }
 
-void ProcManagerStart()
+void ProcManager_Start()
 {
-	struct Task *task = TaskCreate(procManagerMain);
-	TaskAdd(task);
+	struct Task *task = Task_Create(procManagerMain);
+	Task_AddTail(task);
 
 	ScheduleFirst();
 }

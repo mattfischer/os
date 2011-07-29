@@ -15,13 +15,13 @@ struct Connection {
 	struct ListEntry list;
 };
 
-struct Channel *ChannelCreate(struct Task *task);
-struct Connection *ConnectionCreate(struct Task *task, struct Channel *channel);
+struct Channel *Channel_Create(struct Task *task);
+struct Connection *Connection_Create(struct Task *task, struct Channel *channel);
 
-void MessageSend(struct Connection *connection);
-struct Connection *MessageReceive(struct Channel *channel);
-void MessageReply(struct Connection *connection);
+void Message_Send(struct Connection *connection);
+struct Connection *Message_Receive(struct Channel *channel);
+void Message_Reply(struct Connection *connection);
 
-void MessageInit();
+void Message_Init();
 
 #endif

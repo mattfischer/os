@@ -9,17 +9,17 @@ char InitStack[256];
 
 SECTION_LOW void EntryLow()
 {
-	PageInitLow();
-	AddressSpaceInitLow();
+	Page_InitLow();
+	AddressSpace_InitLow();
 }
 
 void Entry()
 {
-	AddressSpaceInit();
-	SchedInit();
-	MessageInit();
+	AddressSpace_Init();
+	Sched_Init();
+	Message_Init();
 
-	ProcManagerStart();
+	ProcManager_Start();
 }
 
 void SysEntry(int code)
