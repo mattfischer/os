@@ -8,68 +8,37 @@
 struct List runList;
 struct Task *Current = NULL;
 
-void Task_AddTail(struct Task *task)
+void Sched_AddTail(struct Task *task)
 {
-	task->state = TaskStateReady;
-	LIST_ADD_TAIL(runList, task->list);
-}
-
-static struct Task *removeHead()
-{
-	struct Task *task;
-
-	task = LIST_HEAD(runList, struct Task, list);
-	LIST_REMOVE(runList, task->list);
-
-	return task;
-}
-
-struct Task *Task_Create(void (*start)())
-{
-	int i;
-	struct Task *task;
-	struct Page *stack;
-
-	stack = Page_Alloc(1);
-	task = (struct Task*)(PAGE_TO_VADDR(stack) + PAGE_SIZE - sizeof(struct Task));
-
-	task->stack = stack;
-	task->state = TaskStateInit;
-	memset(task->regs, 0, 16 * sizeof(unsigned int));
-	task->regs[R_PC] = (unsigned int)start;
-	task->regs[R_SP] = (unsigned int)task;
-
-	task->addressSpace = AddressSpace_Create();
-
-	return task;
+       task->state = TaskStateReady;
+       LIST_ADD_TAIL(runList, task->list);
 }
 
 static void switchTo(struct Task *current, struct Task *next)
 {
 	next->state = TaskStateRunning;
 
-	SetMMUBase(next->addressSpace->tablePAddr);
+	if(next->addressSpace != NULL) {
+		next->effectiveAddressSpace = next->addressSpace;
+		SetMMUBase(next->addressSpace->tablePAddr);
+	} else {
+		next->effectiveAddressSpace = Current->effectiveAddressSpace;
+	}
+
 	SwitchToAsm(current, next);
 }
 
-static void runFirst(struct Task *next)
-{
-	next->state = TaskStateRunning;
-
-	SetMMUBase(next->addressSpace->tablePAddr);
-	RunFirstAsm(next);
-}
-
-void Schedule()
+void Sched_RunNext()
 {
 	struct Task *next;
 	struct Task *old;
 	
 	if(Current->state == TaskStateRunning) {
-		Task_AddTail(Current);
+		Sched_AddTail(Current);
 	}
 
-	next = removeHead();
+	next = LIST_HEAD(runList, struct Task, list);
+    LIST_REMOVE(runList, next->list);
 
 	if(next != Current) {
 		old = Current;
@@ -78,9 +47,25 @@ void Schedule()
 	}
 }
 
-void ScheduleFirst()
+static void runFirst(struct Task *next)
 {
-	Current = removeHead();
+	next->state = TaskStateRunning;
+
+	if(next->addressSpace != NULL) {
+		next->effectiveAddressSpace = next->addressSpace;
+		SetMMUBase(next->addressSpace->tablePAddr);
+	} else {
+		next->effectiveAddressSpace = &KernelSpace;
+	}
+
+	RunFirstAsm(next);
+}
+
+void Sched_RunFirst()
+{
+	Current = LIST_HEAD(runList, struct Task, list);
+    LIST_REMOVE(runList, Current->list);
+
 	runFirst(Current);
 }
 

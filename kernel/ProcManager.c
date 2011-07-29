@@ -9,35 +9,50 @@
 
 struct StartupInfo {
 	char name[16];
+	struct Task *task;
 };
 
-static void startUser()
+static struct Channel *procManagerChannel;
+
+static void startUser(void *param)
 {
-	int stackSize = PAGE_SIZE;
-	struct List stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
-	char *stack = (char*)(KERNEL_START - stackSize);
-	AddressSpace_Map(Current->addressSpace, stack, stackPages);
-	struct StartupInfo *startupInfo = (struct StartupInfo*)Current - 1;
+	struct StartupInfo *startupInfo;
+	struct Task *task;
+	int stackSize;
+	struct List stackPages;
+	char *stack;
 	int size;
-	void *data = InitFs_Lookup(startupInfo->name, &size);
-	void *entry = Elf_Load(Current->addressSpace, data, size);
+	void *data;
+	void *entry;
+
+	startupInfo = (struct StartupInfo*)param;
+	task = startupInfo->task;
+
+	stackSize = PAGE_SIZE;
+	stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
+	stack = (char*)(KERNEL_START - stackSize);
+	AddressSpace_Map(task->addressSpace, stack, stackPages);
+
+	data = InitFs_Lookup(startupInfo->name, &size);
+	entry = Elf_Load(task->addressSpace, data, size);
 
 	EnterUser(entry, stack + stackSize);
 }
 
-static struct Task *createUserTask(const char *name)
+static void startUserTask(const char *name)
 {
-	struct Task *task = Task_Create(startUser);
-	struct StartupInfo *startupInfo = (struct StartupInfo*)task->regs[R_SP] - 1;
-	task->regs[R_SP] = (unsigned int)startupInfo;
+	struct Task *task;
+	struct StartupInfo *startupInfo;
+
+	task = Task_Create(AddressSpace_Create());
+
+	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
 	strcpy(startupInfo->name, name);
 
-	return task;
+	Task_Start(task, startUser, startupInfo);
 }
 
-static struct Channel *procManagerChannel;
-
-static void testStart()
+static void testStart(void *param)
 {
 	struct Connection *connection = Connection_Create(Current, procManagerChannel);
 
@@ -48,12 +63,13 @@ static void testStart()
 
 static void procManagerMain(void *param)
 {
-	struct Task *task = Task_Create(testStart);
+	struct Task *task;
 	struct Connection *connection;
 
-	Task_AddTail(task);
-
 	procManagerChannel = Channel_Create(Current);
+
+	task = Task_Create(NULL);
+	Task_Start(task, testStart, NULL);
 
 	while(1) {
 		connection = Message_Receive(procManagerChannel);
@@ -63,8 +79,8 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = Task_Create(procManagerMain);
-	Task_AddTail(task);
+	struct Task *task = Task_Create(AddressSpace_Create());
+	Task_Start(task, procManagerMain, NULL);
 
-	ScheduleFirst();
+	Sched_RunFirst();
 }

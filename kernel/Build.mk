@@ -12,6 +12,7 @@ kernel_SOURCES := \
 	ProcManager.c \
 	Sched.c \
 	Slab.c \
+	Task.c \
 	Util.c
 kernel_LDFLAGS := -T $(CWD)ldscript
 kernel_CFLAGS := -g

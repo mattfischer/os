@@ -33,11 +33,11 @@ void Message_Send(struct Connection *connection)
 	LIST_ADD_TAIL(channel->waiters, connection->list);
 
 	if(task->state == TaskStateReceiveBlock) {
-		Task_AddTail(task);
+		Sched_AddTail(task);
 	}
 
 	Current->state = TaskStateSendBlock;
-	Schedule();
+	Sched_RunNext();
 }
 
 struct Connection *Message_Receive(struct Channel *channel)
@@ -46,7 +46,7 @@ struct Connection *Message_Receive(struct Channel *channel)
 
 	if(LIST_SIZE(channel->waiters) == 0) {
 		Current->state = TaskStateReceiveBlock;
-		Schedule();
+		Sched_RunNext();
 	}
 
 	connection = LIST_HEAD(channel->waiters, struct Connection, list);
@@ -60,7 +60,7 @@ void Message_Reply(struct Connection *connection)
 {
 	struct Task *task = connection->task;
 
-	Task_AddTail(task);
+	Sched_AddTail(task);
 }
 
 void Message_Init()

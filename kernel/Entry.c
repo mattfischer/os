@@ -24,5 +24,5 @@ void Entry()
 
 void SysEntry(int code)
 {
-	Schedule();
+	Sched_RunNext();
 }
