@@ -1,7 +1,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include "Map.h"
+#include "AddressSpace.h"
 
 typedef unsigned int Elf32_Addr;
 typedef unsigned short Elf32_Half;

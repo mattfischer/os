@@ -1,12 +1,12 @@
 TARGETS := kernel
 
 kernel_SOURCES := \
+	AddressSpace.c \
 	AsmFuncs.s \
 	Elf.c \
 	EntryAsm.s \
 	Entry.c \
 	InitFs.c \
-	Map.c \
 	Message.c \
 	Page.c \
 	ProcManager.c \

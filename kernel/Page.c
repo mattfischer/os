@@ -1,5 +1,5 @@
 #include "Page.h"
-#include "Map.h"
+#include "AddressSpace.h"
 #include "Defs.h"
 
 struct Page Pages[N_PAGES];

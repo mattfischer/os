@@ -5,6 +5,7 @@
 #include "Elf.h"
 #include "Util.h"
 #include "Message.h"
+#include "AddressSpace.h"
 
 struct StartupInfo {
 	char name[16];
@@ -15,7 +16,7 @@ static void startUser()
 	int stackSize = PAGE_SIZE;
 	struct List stackPages = PageAllocMulti(stackSize >> PAGE_SHIFT);
 	char *stack = (char*)(KERNEL_START - stackSize);
-	MapCreate(Current->addressSpace, stack, stackPages);
+	AddressSpaceMap(Current->addressSpace, stack, stackPages);
 	struct StartupInfo *startupInfo = (struct StartupInfo*)Current - 1;
 	int size;
 	void *data = InitFsLookup(startupInfo->name, &size);

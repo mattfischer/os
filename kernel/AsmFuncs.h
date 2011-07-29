@@ -2,7 +2,7 @@
 #define ASM_FUNCS_H
 
 #include "Sched.h"
-#include "Map.h"
+#include "AddressSpace.h"
 
 void EnterUser(void (*userStart)(), void* userStack);
 void SetMMUBase(PAddr table);

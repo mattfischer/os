@@ -8,8 +8,6 @@
 struct List runList;
 struct Task *Current = NULL;
 
-struct SlabAllocator addressSpaceSlab;
-
 void TaskAdd(struct Task *task)
 {
 	task->state = TaskStateReady;
@@ -24,24 +22,6 @@ static struct Task *removeHead()
 	LIST_REMOVE(runList, task->list);
 
 	return task;
-}
-
-static void initAddressSpace(struct AddressSpace *space)
-{
-	int i;
-	unsigned *base;
-	unsigned *kernelTable;
-	int kernel_nr;
-
-	space->table = PageAllocContig(4, 4);
-	space->tablePAddr = PAGE_TO_PADDR(LIST_HEAD(space->table, struct Page, list));
-	base = (unsigned*)PADDR_TO_VADDR(space->tablePAddr);
-
-	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
-	memset(base, 0, kernel_nr * sizeof(unsigned));
-
-	kernelTable = (unsigned*)PADDR_TO_VADDR(KernelSpace.tablePAddr);
-	memcpy(base + kernel_nr, kernelTable + kernel_nr, PAGE_TABLE_SIZE - kernel_nr);
 }
 
 struct Task *TaskCreate(void (*start)())
@@ -59,8 +39,7 @@ struct Task *TaskCreate(void (*start)())
 	task->regs[R_PC] = (unsigned int)start;
 	task->regs[R_SP] = (unsigned int)task;
 
-	task->addressSpace = SlabAllocate(&addressSpaceSlab);
-	initAddressSpace(task->addressSpace);
+	task->addressSpace = AddressSpaceCreate();
 
 	return task;
 }
@@ -107,6 +86,5 @@ void ScheduleFirst()
 
 void SchedInit()
 {
-	SlabInit(&addressSpaceSlab, sizeof(struct AddressSpace));
 	LIST_INIT(runList);
 }

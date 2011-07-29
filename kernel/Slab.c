@@ -1,5 +1,5 @@
 #include "Slab.h"
-#include "Map.h"
+#include "AddressSpace.h"
 #include "Page.h"
 #include "Defs.h"
 
