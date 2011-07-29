@@ -1,5 +1,6 @@
 #include "Message.h"
 #include "Slab.h"
+#include "Util.h"
 
 struct SlabAllocator channelSlab;
 struct SlabAllocator connectionSlab;
@@ -22,45 +23,55 @@ struct Connection *Connection_Create(struct Task *task, struct Channel *channel)
 	connection = (struct Connection*)Slab_Allocate(&connectionSlab);
 	connection->task = task;
 	connection->channel = channel;
-	LIST_ENTRY_CLEAR(connection->list);
 }
 
-void Message_Send(struct Connection *connection)
+void Message_Send(struct Connection *connection, void *sendBuf, int sendSize, void *replyBuf, int replySize)
 {
 	struct Channel *channel = connection->channel;
 	struct Task *task = channel->task;
+	struct Message message;
 
-	LIST_ADD_TAIL(channel->waiters, connection->list);
+	message.connection = connection;
+	message.sendBuf = sendBuf;
+	message.sendSize = sendSize;
+	message.replyBuf = replyBuf;
+	message.replySize = replySize;
+	LIST_ENTRY_CLEAR(message.list);
+	LIST_ADD_TAIL(channel->waiters, message.list);
 
 	if(task->state == TaskStateReceiveBlock) {
-		Sched_AddTail(task);
+		Sched_AddHead(task);
 	}
 
 	Current->state = TaskStateSendBlock;
 	Sched_RunNext();
 }
 
-struct Connection *Message_Receive(struct Channel *channel)
+struct Message *Message_Receive(struct Channel *channel, void *recvBuf, int recvSize)
 {
-	struct Connection *connection;
+	struct Message *message;
+	int size;
 
 	if(LIST_SIZE(channel->waiters) == 0) {
 		Current->state = TaskStateReceiveBlock;
 		Sched_RunNext();
 	}
 
-	connection = LIST_HEAD(channel->waiters, struct Connection, list);
-	LIST_REMOVE(channel->waiters, connection->list);
+	message = LIST_HEAD(channel->waiters, struct Message, list);
+	LIST_REMOVE(channel->waiters, message->list);
 
-	connection->task->state = TaskStateReplyBlock;
-	return connection;
+	memcpy(recvBuf, message->sendBuf, min(recvSize, message->sendSize));
+
+	message->connection->task->state = TaskStateReplyBlock;
+	return message;
 }
 
-void Message_Reply(struct Connection *connection)
+void Message_Reply(struct Message *message, void *replyBuf, int replySize)
 {
-	struct Task *task = connection->task;
+	struct Task *task = message->connection->task;
 
-	Sched_AddTail(task);
+	memcpy(message->replyBuf, replyBuf, min(message->replySize, replySize));
+	Sched_AddHead(task);
 }
 
 void Message_Init()

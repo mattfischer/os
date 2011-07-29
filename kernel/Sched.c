@@ -8,6 +8,12 @@
 LIST(struct Task) runList;
 struct Task *Current = NULL;
 
+void Sched_AddHead(struct Task *task)
+{
+       task->state = TaskStateReady;
+       LIST_ADD_HEAD(runList, task->list);
+}
+
 void Sched_AddTail(struct Task *task)
 {
        task->state = TaskStateReady;

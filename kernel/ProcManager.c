@@ -55,16 +55,19 @@ static void startUserTask(const char *name)
 static void testStart(void *param)
 {
 	struct Connection *connection = Connection_Create(Current, procManagerChannel);
+	int x = 0;
 
 	while(1) {
-		Message_Send(connection);
+		int r;
+		Message_Send(connection, &x, sizeof(x), &r, sizeof(r));
+		x = r;
 	}
 }
 
 static void procManagerMain(void *param)
 {
 	struct Task *task;
-	struct Connection *connection;
+	struct Message *message;
 
 	procManagerChannel = Channel_Create(Current);
 
@@ -72,8 +75,10 @@ static void procManagerMain(void *param)
 	Task_Start(task, testStart, NULL);
 
 	while(1) {
-		connection = Message_Receive(procManagerChannel);
-		Message_Reply(connection);
+		int x;
+		message = Message_Receive(procManagerChannel, &x, sizeof(x));
+		x += 1;
+		Message_Reply(message, &x, sizeof(x));
 	}
 }
 
