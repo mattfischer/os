@@ -1,6 +1,7 @@
 #ifndef PAGE_H
 #define PAGE_H
 
+#include "List.h"
 #include "PageTable.h"
 
 #define PAGE_FREE 0
@@ -8,13 +9,17 @@
 
 struct Page {
 	unsigned int flags;
-	struct Page *next;
+	struct ListEntry list;
 };
 
-#define N_PAGES (1024 * 1024)
+#define KB 1024
+#define MB (KB * 1024)
 
-#define PAGE_SIZE 4096
+#define PAGE_SIZE (4 * KB)
 #define PAGE_SHIFT 12
+
+#define RAM_SIZE (128 * MB)
+#define N_PAGES (RAM_SIZE >> PAGE_SHIFT)
 
 #define PADDR_TO_PAGE_NR(paddr) ((paddr) >> PAGE_SHIFT)
 #define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
@@ -31,12 +36,13 @@ struct Page {
 #define PAGE_TO_PADDR(page) PAGE_NR_TO_PADDR(PAGE_NR(page))
 #define PAGE_TO_VADDR(page) PAGE_NR_TO_VADDR(PAGE_NR(page))
 
-struct Page *PageAllocContig(int align, int num);
-struct Page *PageAlloc(int num);
+struct List PageAllocContig(int align, int num);
+struct List PageAllocMulti(int num);
+struct Page *PageAlloc();
 void PageFree(struct Page *page);
-void PageFreeAll(struct Page *page);
+void PageFreeAll(struct List list);
 
-struct Page *PageAllocContigLow(int align, int num);
+struct List PageAllocContigLow(int align, int num);
 
 void PageInit();
 void PageInitLow();

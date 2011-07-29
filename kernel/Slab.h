@@ -8,7 +8,7 @@ struct SlabAllocator {
 	int numPerPage;
 	int bitfieldLen;
 	int dataStart;
-	struct Page *pages;
+	struct List pages;
 };
 
 void SlabInit(struct SlabAllocator *slab, int size);

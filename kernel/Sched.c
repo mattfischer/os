@@ -5,38 +5,23 @@
 #include "Util.h"
 #include "AsmFuncs.h"
 
-struct RunList {
-	struct Task *head;
-	struct Task *tail;
-};
-
-struct RunList runList = {NULL, NULL};
+struct List runList;
 struct Task *Current = NULL;
 
 struct SlabAllocator addressSpaceSlab;
 
 void TaskAdd(struct Task *task)
 {
-	if(runList.tail == NULL) {
-		runList.head = task;
-	} else {
-		runList.tail->next = task;
-	}
-
-	runList.tail = task;
-
 	task->state = TaskStateReady;
+	LIST_ADD_TAIL(runList, task->list);
 }
 
 static struct Task *removeHead()
 {
 	struct Task *task;
 
-	task = runList.head;
-	runList.head = runList.head->next;
-	if(runList.head == NULL) {
-		runList.tail = NULL;
-	}
+	task = LIST_HEAD(runList, struct Task, list);
+	LIST_REMOVE(runList, task->list);
 
 	return task;
 }
@@ -49,13 +34,13 @@ static void initAddressSpace(struct AddressSpace *space)
 	int kernel_nr;
 
 	space->table = PageAllocContig(4, 4);
-	space->tablePAddr = PAGE_TO_PADDR(space->table);
-	base = (unsigned*)PAGE_TO_VADDR(space->table);
+	space->tablePAddr = PAGE_TO_PADDR(LIST_HEAD(space->table, struct Page, list));
+	base = (unsigned*)PADDR_TO_VADDR(space->tablePAddr);
 
 	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
 	memset(base, 0, kernel_nr * sizeof(unsigned));
 
-	kernelTable = (unsigned*)PAGE_TO_VADDR(KernelSpace.table);
+	kernelTable = (unsigned*)PADDR_TO_VADDR(KernelSpace.tablePAddr);
 	memcpy(base + kernel_nr, kernelTable + kernel_nr, PAGE_TABLE_SIZE - kernel_nr);
 }
 
@@ -73,9 +58,6 @@ struct Task *TaskCreate(void (*start)())
 	memset(task->regs, 0, 16 * sizeof(unsigned int));
 	task->regs[R_PC] = (unsigned int)start;
 	task->regs[R_SP] = (unsigned int)task;
-
-	memset(task->channels, 0, sizeof(task->channels));
-	memset(task->connections, 0, sizeof(task->connections));
 
 	task->addressSpace = SlabAllocate(&addressSpaceSlab);
 	initAddressSpace(task->addressSpace);
@@ -126,4 +108,5 @@ void ScheduleFirst()
 void SchedInit()
 {
 	SlabInit(&addressSpaceSlab, sizeof(struct AddressSpace));
+	LIST_INIT(runList);
 }

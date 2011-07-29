@@ -23,19 +23,16 @@ void SlabInit(struct SlabAllocator *slab, int size)
 	slab->numPerPage = PAGE_SIZE >> slab->order;
 	slab->bitfieldLen = (slab->numPerPage + 31) >> 5;
 	slab->dataStart = (slab->bitfieldLen * 4 + alignedSize - 1) >> slab->order;
-	slab->pages = NULL;
+	LIST_INIT(slab->pages);
 }
 
 void *SlabAllocate(struct SlabAllocator *slab)
 {
 	struct Page *page;
-	struct Page *prev;
 	struct SlabHead *head;
 	int i, j;
 
-	prev = NULL;
-	page = slab->pages;
-	while(page != NULL) {
+	LIST_FOREACH(slab->pages, page, struct Page, list) {
 		head = (struct SlabHead*)PAGE_TO_VADDR(page);
 
 		for(i=slab->dataStart; i<slab->numPerPage; i++) {
@@ -51,17 +48,11 @@ void *SlabAllocate(struct SlabAllocator *slab)
 
 			return PAGE_TO_VADDR(page) + (i << slab->order);
 		}
-
-		prev = page;
-		page = page->next;
 	}
 
-	page = PageAlloc(1);
-	if(prev == NULL) {
-		slab->pages = page;
-	} else {
-		prev->next = page;
-	}
+	page = PageAlloc();
+	LIST_ADD_TAIL(slab->pages, page->list);
+
 	head = (struct SlabHead*)PAGE_TO_VADDR(page);
 	for(i=0; i<slab->bitfieldLen; i++) {
 		head->bitfield[i] = 0;
@@ -90,18 +81,6 @@ void SlabFree(struct SlabAllocator *slab, void *p)
 		}
 	}
 
-	prev = NULL;
-	cursor = slab->pages;
-	while(cursor != page) {
-		prev = cursor;
-		cursor = cursor->next;
-	}
-
-	if(prev == NULL) {
-		slab->pages = page->next;
-	} else {
-		prev->next = page->next;
-	}
-
+	LIST_REMOVE(slab->pages, page->list);
 	PageFree(page);
 }

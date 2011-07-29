@@ -1,7 +1,7 @@
 .section .low
 .globl EntryAsm
 
-.equ AddressSpace_tablePAddr, 4
+.equ AddressSpace_tablePAddr, 0xc
 
 EntryAsm:
 	ldr r1, memOffset

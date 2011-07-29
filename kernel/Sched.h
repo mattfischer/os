@@ -5,6 +5,7 @@
 #include "Page.h"
 #include "Map.h"
 #include "Message.h"
+#include "List.h"
 
 #define R_SP 13
 #define R_PC 15
@@ -23,9 +24,7 @@ struct Task {
 	enum TaskState state;
 	struct AddressSpace *addressSpace;
 	struct Page *stack;
-	struct Task *next;
-	struct Channel *channels[16];
-	struct Connection *connections[16];
+	struct ListEntry list;
 };
 
 void Schedule();

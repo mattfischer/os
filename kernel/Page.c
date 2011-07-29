@@ -4,51 +4,15 @@
 
 struct Page Pages[N_PAGES];
 
-struct Page *PageAlloc(int num)
+struct Page *PageAlloc()
 {
-	struct Page *ret = NULL;
-	struct Page *tail = NULL;
 	int i;
-	int n;
 
-	for(i=0, n=0; i<N_PAGES && n < num; i++) {
+	for(i=0; i<N_PAGES; i++) {
 		struct Page *page = PAGE(i);
 
 		if(page->flags == PAGE_FREE) {
 			page->flags = PAGE_INUSE;
-			if(tail == NULL) {
-				ret = page;
-				tail = page;
-			} else {
-				tail->next = page;
-			}
-			tail = page;
-			tail->next = NULL;
-			n++;
-		}
-	}
-
-	return ret;
-}
-
-struct Page *PageAllocContig(int align, int num)
-{
-	struct Page *ret;
-	int i, j;
-
-	for(i=0; i<N_PAGES; i += align) {
-		struct Page *page = PAGE(i);
-
-		for(j=0; j<num; j++) {
-			if(PAGE(i + j)->flags == PAGE_INUSE) {
-				break;
-			}
-		}
-
-		if(j == num) {
-			for(j=0; j<num; j++) {
-				PAGE(i+j)->flags = PAGE_INUSE;
-			}
 			return page;
 		}
 	}
@@ -56,45 +20,94 @@ struct Page *PageAllocContig(int align, int num)
 	return NULL;
 }
 
-SECTION_LOW struct Page *PageAllocContigLow(int align, int num)
+struct List PageAllocMulti(int num)
 {
-	struct Page *ret;
+	struct List list;
+	int n;
+
+	LIST_INIT(list);
+
+	for(n=0; n < num; n++) {
+		struct Page *page = PageAlloc();
+		LIST_ADD_TAIL(list, page->list);
+	}
+
+	return list;
+}
+
+struct List PageAllocContig(int align, int num)
+{
+	struct List list;
 	int i, j;
 
+	LIST_INIT(list);
 	for(i=0; i<N_PAGES; i += align) {
-		struct Page *page = PAGE(i);
-		struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
-
 		for(j=0; j<num; j++) {
-			if(pageLow[j].flags == PAGE_INUSE) {
+			struct Page *page = PAGE(i + j);
+
+			if(page->flags == PAGE_INUSE) {
 				break;
 			}
 		}
 
 		if(j == num) {
 			for(j=0; j<num; j++) {
-				pageLow[j].flags = PAGE_INUSE;
+				struct Page *page = PAGE(i + j);
+
+				page->flags = PAGE_INUSE;
+				LIST_ADD_TAIL(list, page->list);
 			}
-			return page;
+			return list;
 		}
 	}
 
-	return NULL;
+	return list;
+}
+
+SECTION_LOW struct List PageAllocContigLow(int align, int num)
+{
+	struct List list;
+	int i, j;
+
+	LIST_INIT(list);
+	for(i=0; i<N_PAGES; i += align) {
+		for(j=0; j<num; j++) {
+			struct Page *page = PAGE(i + j);
+			struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
+
+			if(pageLow->flags == PAGE_INUSE) {
+				break;
+			}
+		}
+
+		if(j == num) {
+			for(j=0; j<num; j++) {
+				struct Page *page = PAGE(i + j);
+				struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
+
+				pageLow->flags = PAGE_INUSE;
+				LIST_ADD_TAIL(list, pageLow->list);
+			}
+			return list;
+		}
+	}
+
+	return list;
 }
 
 void PageFree(struct Page *page)
 {
 	page->flags = PAGE_FREE;
-	page->next = NULL;
 }
 
-void PageFreeAll(struct Page *page)
+void PageFreeAll(struct List list)
 {
-	struct Page *next;
-	while(page != NULL) {
-		next = page->next;
+	struct Page *page;
+	struct Page *extra;
+
+	LIST_FOREACH_CAN_REMOVE(list, page, extra, struct Page, list) {
+		LIST_REMOVE(list, page->list);
 		PageFree(page);
-		page = next;
 	}
 }
 
@@ -105,6 +118,6 @@ SECTION_LOW void PageInitLow()
 
 	for(i=0; i<N_PAGES; i++) {
 		pages[i].flags = PAGE_FREE;
-		pages[i].next = NULL;
+		LIST_ENTRY_CLEAR(pages[i].list);
 	}
 }

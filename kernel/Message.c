@@ -10,15 +10,8 @@ struct Channel *ChannelCreate(struct Task *task)
 	struct Channel *channel;
 
 	channel = (struct Channel*)SlabAllocate(&channelSlab);
-	channel->waiters = NULL;
-	channel->waitersTail = NULL;
 	channel->task = task;
-	for(i=0; i<16; i++) {
-		if(task->channels[i] == NULL) {
-			task->channels[i] = channel;
-			break;
-		}
-	}
+	LIST_INIT(channel->waiters);
 }
 
 struct Connection *ConnectionCreate(struct Task *task, struct Channel *channel)
@@ -29,13 +22,7 @@ struct Connection *ConnectionCreate(struct Task *task, struct Channel *channel)
 	connection = (struct Connection*)SlabAllocate(&connectionSlab);
 	connection->task = task;
 	connection->channel = channel;
-	connection->next = NULL;
-	for(i=0; i<16; i++) {
-		if(task->connections[i] == NULL) {
-			task->connections[i] = connection;
-			break;
-		}
-	}
+	LIST_ENTRY_CLEAR(connection->list);
 }
 
 void MessageSend(struct Connection *connection)
@@ -43,13 +30,7 @@ void MessageSend(struct Connection *connection)
 	struct Channel *channel = connection->channel;
 	struct Task *task = channel->task;
 
-	if(channel->waitersTail == NULL) {
-		channel->waiters = connection;
-	} else {
-		channel->waitersTail->next = connection;
-	}
-	connection->next = NULL;
-	channel->waitersTail = connection;
+	LIST_ADD_TAIL(channel->waiters, connection->list);
 
 	if(task->state == TaskStateReceiveBlock) {
 		TaskAdd(task);
@@ -63,16 +44,13 @@ struct Connection *MessageReceive(struct Channel *channel)
 {
 	struct Connection *connection;
 
-	if(channel->waiters == NULL) {
+	if(LIST_SIZE(channel->waiters) == 0) {
 		Current->state = TaskStateReceiveBlock;
 		Schedule();
 	}
 
-	connection = channel->waiters;
-	channel->waiters = connection->next;
-	if(channel->waiters == NULL) {
-		channel->waitersTail = NULL;
-	}
+	connection = LIST_HEAD(channel->waiters, struct Connection, list);
+	LIST_REMOVE(channel->waiters, connection->list);
 
 	connection->task->state = TaskStateReplyBlock;
 	return connection;

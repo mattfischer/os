@@ -3,6 +3,7 @@
 
 #include "Page.h"
 #include "PageTable.h"
+#include "List.h"
 
 extern char __KernelStart[];
 extern char __KernelEnd[];
@@ -17,21 +18,21 @@ typedef unsigned int PAddr;
 struct Map {
 	void *start;
 	int size;
-	struct Page *pages;
-	struct Map *next;
+	struct List pages;
+	struct ListEntry list;
 };
 
 struct AddressSpace {
-	struct Page *table;
+	struct List table;
 	PAddr tablePAddr;
-	struct Page *L2Tables;
-	struct Map *maps;
+	struct List L2Tables;
+	struct List maps;
 };
 
 void MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
 void MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);
 
-void MapCreate(struct AddressSpace *space, void *vaddr, struct Page *pages);
+void MapCreate(struct AddressSpace *space, void *vaddr, struct List pages);
 
 void MapInit();
 void MapInitLow();

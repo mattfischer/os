@@ -2,17 +2,17 @@
 #define MESSAGE_H
 
 #include "Sched.h"
+#include "List.h"
 
 struct Channel {
 	struct Task *task;
-	struct Connection *waiters;
-	struct Connection *waitersTail;
+	struct List waiters;
 };
 
 struct Connection {
 	struct Task *task;
 	struct Channel *channel;
-	struct Connection *next;
+	struct ListEntry list;
 };
 
 struct Channel *ChannelCreate(struct Task *task);
