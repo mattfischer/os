@@ -4,6 +4,7 @@
 #include "AsmFuncs.h"
 #include "Elf.h"
 #include "Util.h"
+#include "Message.h"
 
 struct StartupInfo {
 	char name[16];
@@ -33,13 +34,29 @@ static struct Task *createUserTask(const char *name)
 	return task;
 }
 
-static void procManagerMain(void *param)
+static struct Channel *procManagerChannel;
+
+static void testStart()
 {
-	struct Task *task = createUserTask("test");
-	TaskAdd(task);
+	struct Connection *connection = ConnectionCreate(Current, procManagerChannel);
 
 	while(1) {
-		Schedule();
+		MessageSend(connection);
+	}
+}
+
+static void procManagerMain(void *param)
+{
+	struct Task *task = TaskCreate(testStart);
+	struct Connection *connection;
+
+	TaskAdd(task);
+
+	procManagerChannel = ChannelCreate(Current);
+
+	while(1) {
+		connection = MessageReceive(procManagerChannel);
+		MessageReply(connection);
 	}
 }
 

@@ -3,6 +3,7 @@
 #include "Map.h"
 #include "Defs.h"
 #include "ProcManager.h"
+#include "Message.h"
 
 char InitStack[256];
 
@@ -16,6 +17,7 @@ void Entry()
 {
 	MapInit();
 	SchedInit();
+	MessageInit();
 
 	ProcManagerStart();
 }

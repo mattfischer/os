@@ -24,6 +24,8 @@ void TaskAdd(struct Task *task)
 	}
 
 	runList.tail = task;
+
+	task->state = TaskStateReady;
 }
 
 static struct Task *removeHead()
@@ -51,14 +53,10 @@ static void initAddressSpace(struct AddressSpace *space)
 	base = (unsigned*)PAGE_TO_VADDR(space->table);
 
 	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
-	for(i=0; i<kernel_nr; i++) {
-		base[i] = 0;
-	}
+	memset(base, 0, kernel_nr * sizeof(unsigned));
 
 	kernelTable = (unsigned*)PAGE_TO_VADDR(KernelSpace.table);
-	for(i=kernel_nr; i<PAGE_TABLE_SIZE; i++) {
-		base[i] = kernelTable[i];
-	}
+	memcpy(base + kernel_nr, kernelTable + kernel_nr, PAGE_TABLE_SIZE - kernel_nr);
 }
 
 struct Task *TaskCreate(void (*start)())
@@ -71,9 +69,13 @@ struct Task *TaskCreate(void (*start)())
 	task = (struct Task*)(PAGE_TO_VADDR(stack) + PAGE_SIZE - sizeof(struct Task));
 
 	task->stack = stack;
-	memset(task->regs, 0, 16 * 4);
+	task->state = TaskStateInit;
+	memset(task->regs, 0, 16 * sizeof(unsigned int));
 	task->regs[R_PC] = (unsigned int)start;
 	task->regs[R_SP] = (unsigned int)task;
+
+	memset(task->channels, 0, sizeof(task->channels));
+	memset(task->connections, 0, sizeof(task->connections));
 
 	task->addressSpace = SlabAllocate(&addressSpaceSlab);
 	initAddressSpace(task->addressSpace);
@@ -83,12 +85,16 @@ struct Task *TaskCreate(void (*start)())
 
 static void switchTo(struct Task *current, struct Task *next)
 {
+	next->state = TaskStateRunning;
+
 	SetMMUBase(next->addressSpace->tablePAddr);
 	SwitchToAsm(current, next);
 }
 
 static void runFirst(struct Task *next)
 {
+	next->state = TaskStateRunning;
+
 	SetMMUBase(next->addressSpace->tablePAddr);
 	RunFirstAsm(next);
 }
@@ -98,7 +104,9 @@ void Schedule()
 	struct Task *next;
 	struct Task *old;
 	
-	TaskAdd(Current);
+	if(Current->state == TaskStateRunning) {
+		TaskAdd(Current);
+	}
 
 	next = removeHead();
 
