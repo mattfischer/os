@@ -11,7 +11,6 @@ struct ListEntry {
 struct List {
 	struct ListEntry *head;
 	struct ListEntry *tail;
-	int size;
 };
 
 #define CONTAINER_OF(ptr, type, member) (type*)((char*)ptr - offsetof(type, member))
@@ -20,8 +19,7 @@ struct List {
 
 #define LIST_INIT(list) \
 	(list).head = NULL; \
-	(list).tail = NULL; \
-	(list).size = 0;
+	(list).tail = NULL;
 
 #define LIST_HEAD(list, type, member) \
 	(((list).head == NULL) ? NULL : CONTAINER_OF((list).head, type, member))
@@ -38,8 +36,7 @@ struct List {
 	} else { \
 		(list).tail->next = &(entry); \
 		(list).tail = &(entry); \
-	} \
-	(list).size++;
+	}
 
 #define LIST_ADD_HEAD(list, entry) \
 	(entry).prev = NULL; \
@@ -50,8 +47,7 @@ struct List {
 	} else { \
 		(list).head->prev = &(entry); \
 		(list).head = &(entry); \
-	} \
-	(list).size++;
+	}
 
 #define LIST_ADD_BEFORE(list, entry, target) \
 	(entry).prev = (target).prev; \
@@ -62,8 +58,7 @@ struct List {
 	} else { \
 		(target).prev->next = &(entry); \
 		(target).prev = &(entry); \
-	} \
-	(list).size++;
+	}
 
 #define LIST_ADD_AFTER(list, entry, target) \
 	(entry).prev = &(target); \
@@ -74,8 +69,7 @@ struct List {
 	} else { \
 		(target).next->prev = &(entry); \
 		(target).next = &(entry); \
-	} \
-	(list).size++;
+	}
 
 #define LIST_REMOVE(list, entry) \
 	if((entry).prev) { \
@@ -90,12 +84,11 @@ struct List {
 	if((list).tail == &(entry)) { \
 		(list).tail = (entry).prev; \
 	} \
-	(list).size--; \
 	LIST_ENTRY_CLEAR(entry);
 
 #define LIST_ENTRY(ptr, type, member) (type*)CONTAINER_OF(ptr, type, member)
 
-#define LIST_SIZE(list) (list).size
+#define LIST_EMPTY(list) ((list).head == NULL)
 
 #define LIST_ENTRY_CLEAR(entry) \
 	(entry).next = NULL; \

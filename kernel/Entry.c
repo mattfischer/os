@@ -3,7 +3,7 @@
 #include "AddressSpace.h"
 #include "Defs.h"
 #include "ProcManager.h"
-#include "Message.h"
+#include "Object.h"
 
 char InitStack[256];
 
@@ -17,7 +17,7 @@ void Entry()
 {
 	AddressSpace_Init();
 	Sched_Init();
-	Message_Init();
+	Object_Init();
 
 	ProcManager_Start();
 }

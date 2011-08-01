@@ -7,7 +7,7 @@ kernel_SOURCES := \
 	EntryAsm.s \
 	Entry.c \
 	InitFs.c \
-	Message.c \
+	Object.c \
 	Page.c \
 	ProcManager.c \
 	Sched.c \

@@ -4,15 +4,15 @@
 #include "AsmFuncs.h"
 #include "Elf.h"
 #include "Util.h"
-#include "Message.h"
 #include "AddressSpace.h"
+#include "Object.h"
 
 struct StartupInfo {
 	char name[16];
 	struct Task *task;
 };
 
-static struct Channel *procManagerChannel;
+static struct Object *procManager;
 
 static void startUser(void *param)
 {
@@ -54,12 +54,11 @@ static void startUserTask(const char *name)
 
 static void testStart(void *param)
 {
-	struct Connection *connection = Connection_Create(Current, procManagerChannel);
 	int x = 0;
 
 	while(1) {
 		int r;
-		Message_Send(connection, &x, sizeof(x), &r, sizeof(r));
+		Object_SendMessage(procManager, &x, sizeof(x), &r, sizeof(r));
 		x = r;
 	}
 }
@@ -69,16 +68,16 @@ static void procManagerMain(void *param)
 	struct Task *task;
 	struct Message *message;
 
-	procManagerChannel = Channel_Create(Current);
+	procManager = Object_Create();
 
 	task = Task_Create(NULL);
 	Task_Start(task, testStart, NULL);
 
 	while(1) {
 		int x;
-		message = Message_Receive(procManagerChannel, &x, sizeof(x));
+		message = Object_ReceiveMessage(procManager, &x, sizeof(x));
 		x += 1;
-		Message_Reply(message, &x, sizeof(x));
+		Object_ReplyMessage(message, &x, sizeof(x));
 	}
 }
 
