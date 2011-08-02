@@ -5,6 +5,7 @@
 #include "Defs.h"
 #include "Page.h"
 #include "List.h"
+#include "Process.h"
 
 #define R_SP 13
 #define R_PC 15
@@ -21,13 +22,13 @@ enum TaskState {
 struct Task {
 	unsigned int regs[16];
 	enum TaskState state;
-	struct AddressSpace *addressSpace;
-	struct AddressSpace *effectiveAddressSpace;
 	struct Page *stack;
+	struct Process *process;
+	struct AddressSpace *effectiveAddressSpace;
 	struct ListEntry list;
 };
 
-struct Task *Task_Create(struct AddressSpace *addressSpace);
+struct Task *Task_Create(struct Process *process);
 void *Task_StackAllocate(struct Task *task, int size);
 void Task_Start(struct Task *task, void (*start)(void *), void *param);
 

@@ -24,9 +24,9 @@ static void switchTo(struct Task *current, struct Task *next)
 {
 	next->state = TaskStateRunning;
 
-	if(next->addressSpace != NULL) {
-		next->effectiveAddressSpace = next->addressSpace;
-		SetMMUBase(next->addressSpace->tablePAddr);
+	if(next->process != NULL) {
+		next->effectiveAddressSpace = next->process->addressSpace;
+		SetMMUBase(next->process->addressSpace->tablePAddr);
 	} else {
 		next->effectiveAddressSpace = Current->effectiveAddressSpace;
 	}
@@ -57,9 +57,9 @@ static void runFirst(struct Task *next)
 {
 	next->state = TaskStateRunning;
 
-	if(next->addressSpace != NULL) {
-		next->effectiveAddressSpace = next->addressSpace;
-		SetMMUBase(next->addressSpace->tablePAddr);
+	if(next->process != NULL) {
+		next->effectiveAddressSpace = next->process->addressSpace;
+		SetMMUBase(next->process->addressSpace->tablePAddr);
 	} else {
 		next->effectiveAddressSpace = &KernelSpace;
 	}

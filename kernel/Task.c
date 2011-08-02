@@ -1,7 +1,7 @@
 #include "Task.h"
 #include "Util.h"
 
-struct Task *Task_Create(struct AddressSpace *addressSpace)
+struct Task *Task_Create(struct Process *process)
 {
 	int i;
 	struct Task *task;
@@ -15,7 +15,8 @@ struct Task *Task_Create(struct AddressSpace *addressSpace)
 	memset(task->regs, 0, 16 * sizeof(unsigned int));
 	task->regs[R_SP] = (unsigned int)task;
 
-	task->addressSpace = addressSpace;
+	task->process = process;
+	task->effectiveAddressSpace = NULL;
 
 	return task;
 }

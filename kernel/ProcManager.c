@@ -5,6 +5,7 @@
 #include "Elf.h"
 #include "Util.h"
 #include "AddressSpace.h"
+#include "Process.h"
 #include "Object.h"
 
 struct StartupInfo {
@@ -31,20 +32,22 @@ static void startUser(void *param)
 	stackSize = PAGE_SIZE;
 	stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
 	stack = (char*)(KERNEL_START - stackSize);
-	AddressSpace_Map(task->addressSpace, stack, stackPages);
+	AddressSpace_Map(task->process->addressSpace, stack, stackPages);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(task->addressSpace, data, size);
+	entry = Elf_Load(task->process->addressSpace, data, size);
 
 	EnterUser(entry, stack + stackSize);
 }
 
 static void startUserTask(const char *name)
 {
+	struct Process *process;
 	struct Task *task;
 	struct StartupInfo *startupInfo;
 
-	task = Task_Create(AddressSpace_Create());
+	process = Process_Create();
+	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
 	strcpy(startupInfo->name, name);
@@ -83,7 +86,7 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = Task_Create(AddressSpace_Create());
+	struct Task *task = Task_Create(NULL);
 	Task_Start(task, procManagerMain, NULL);
 
 	Sched_RunFirst();
