@@ -1,20 +1,26 @@
 #include <kernel/include/Syscalls.h>
+#include <kernel/include/MessageFmt.h>
 
-int swi(unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3, unsigned int arg4, unsigned int arg5);
+int swi(unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3);
 
-int SendMessage(int obj, void *sendBuf, int sendSz, void *replyBuf, int replySz)
+int SendMessage(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	return swi(SyscallSendMessage, (unsigned int)obj, (unsigned int)sendBuf, (unsigned int)sendSz, (unsigned int)replyBuf, (unsigned int)replySz);
+	return swi(SyscallSendMessage, (unsigned int)obj, (unsigned int)sendMsg, (unsigned int)replyMsg);
 }
 
 void _start()
 {
 	int x;
+	struct MessageHeader header;
 	int r;
 
 	x = 0;
 	while(1) {
-		SendMessage(0, &x, sizeof(x), &r, sizeof(r));
-		x = r;
+		header.size = sizeof(int);
+		header.body = &x;
+		header.objectsOffset = 0;
+		header.objectsSize = 0;
+
+		SendMessage(0, &header, &header);
 	}
 }

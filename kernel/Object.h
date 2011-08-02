@@ -4,12 +4,12 @@
 #include "List.h"
 #include "Task.h"
 
+#include <kernel/include/MessageFmt.h>
+
 struct Message {
 	struct Task *sender;
-	void *sendBuf;
-	int sendSize;
-	void *replyBuf;
-	int replySize;
+	struct MessageHeader sendMsg;
+	struct MessageHeader replyMsg;
 	struct ListEntry list;
 };
 
@@ -20,8 +20,8 @@ struct Object {
 
 struct Object *Object_Create();
 
-int Object_SendMessage(struct Object *object, void *sendBuf, int sendSize, void *replyBuf, int replySize);
-struct Message *Object_ReceiveMessage(struct Object *object, void *recvBuf, int recvSize);
-int Object_ReplyMessage(struct Message *message, void *replyBuf, int replySize);
+int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
+struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg);
+int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg);
 
 #endif

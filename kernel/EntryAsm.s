@@ -60,14 +60,9 @@ vecSWI:
 	sub sp, #60
 	stmfd sp!, {lr}
 
-	ldr r4, [sp, #56]
-	ldm r4, {r4-r6}
-	stmfd sp!, {r4-r6}
-
 	ldr ip, SysEntryAddr
 	blx ip
 
-	add sp, #12
 	ldmfd sp!, {lr}
 	ldmfd sp, {r0-r14}^
 	add sp, #60

@@ -24,7 +24,7 @@ void Entry()
 	ProcManager_Start();
 }
 
-int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3, unsigned int arg4)
+int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2)
 {
 	struct Object *object;
 	struct Message *message;
@@ -37,18 +37,18 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 
 		case SyscallSendMessage:
 			object = Current->process->objects[arg0];
-			ret = Object_SendMessage(object, (void*)arg1, arg2, (void*)arg3, arg4);
+			ret = Object_SendMessage(object, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
 			return ret;
 
 		case SyscallReceiveMessage:
 			object = Current->process->objects[arg0];
-			message = Object_ReceiveMessage(object, (void*)arg1, arg2);
+			message = Object_ReceiveMessage(object, (struct MessageHeader*)arg1);
 			ret = Process_RefMessage(Current->process, message);
 			return ret;
 
 		case SyscallReplyMessage:
 			message = Current->process->messages[arg0];
-			ret = Object_ReplyMessage(message, (void*)arg1, arg2);
+			ret = Object_ReplyMessage(message, (struct MessageHeader*)arg1);
 			Process_UnrefMessage(Current->process, arg0);
 			return ret;
 	}

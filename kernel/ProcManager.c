@@ -54,7 +54,7 @@ static void startUserProcess(const char *name)
 	Task_Start(task, startUser, startupInfo);
 }
 
-static void testStart(void *param)
+/*static void testStart(void *param)
 {
 	int x = 0;
 
@@ -63,12 +63,13 @@ static void testStart(void *param)
 		Object_SendMessage(procManager, &x, sizeof(x), &r, sizeof(r));
 		x = r;
 	}
-}
+}*/
 
 static void procManagerMain(void *param)
 {
 	struct Task *task;
 	struct Message *message;
+	struct MessageHeader header;
 
 	procManager = Object_Create();
 
@@ -78,9 +79,15 @@ static void procManagerMain(void *param)
 
 	while(1) {
 		int x;
-		message = Object_ReceiveMessage(procManager, &x, sizeof(x));
+
+		header.size = sizeof(int);
+		header.body = &x;
+		header.objectsOffset = 0;
+		header.objectsSize = 0;
+
+		message = Object_ReceiveMessage(procManager, &header);
 		x += 1;
-		Object_ReplyMessage(message, &x, sizeof(x));
+		Object_ReplyMessage(message, &header);
 	}
 }
 
