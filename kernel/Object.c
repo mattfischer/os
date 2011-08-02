@@ -32,14 +32,15 @@ void Object_SendMessage(struct Object *object, void *sendBuf, int sendSize, void
 	LIST_ENTRY_CLEAR(message.list);
 	LIST_ADD_TAIL(object->messages, message.list);
 
+	Current->state = TaskStateSendBlock;
+
 	if(!LIST_EMPTY(object->receivers)) {
 		task = LIST_HEAD(object->receivers, struct Task, list);
 		LIST_REMOVE(object->receivers, task->list);
-		Sched_AddHead(task);
+		Sched_SwitchTo(task);
+	} else {
+		Sched_RunNext();
 	}
-
-	Current->state = TaskStateSendBlock;
-	Sched_RunNext();
 }
 
 struct Message *Object_ReceiveMessage(struct Object *object, void *recvBuf, int recvSize)
@@ -67,5 +68,6 @@ void Object_ReplyMessage(struct Message *message, void *replyBuf, int replySize)
 	struct Task *sender = message->sender;
 
 	memcpy(message->replyBuf, replyBuf, min(message->replySize, replySize));
-	Sched_AddHead(sender);
+	Sched_Add(Current);
+	Sched_SwitchTo(sender);
 }

@@ -5,8 +5,8 @@
 
 void Sched_RunFirst();
 void Sched_RunNext();
-void Sched_AddHead(struct Task *task);
-void Sched_AddTail(struct Task *task);
+void Sched_Add(struct Task *task);
+void Sched_SwitchTo(struct Task *task);
 void Sched_Init();
 
 extern struct Task *Current;

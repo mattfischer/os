@@ -8,16 +8,10 @@
 LIST(struct Task) runList;
 struct Task *Current = NULL;
 
-void Sched_AddHead(struct Task *task)
+void Sched_Add(struct Task *task)
 {
-       task->state = TaskStateReady;
-       LIST_ADD_HEAD(runList, task->list);
-}
-
-void Sched_AddTail(struct Task *task)
-{
-       task->state = TaskStateReady;
-       LIST_ADD_TAIL(runList, task->list);
+	task->state = TaskStateReady;
+	LIST_ADD_TAIL(runList, task->list);
 }
 
 static void switchTo(struct Task *current, struct Task *next)
@@ -31,7 +25,13 @@ static void switchTo(struct Task *current, struct Task *next)
 		next->effectiveAddressSpace = Current->effectiveAddressSpace;
 	}
 
+	Current = next;
 	SwitchToAsm(current, next);
+}
+
+void Sched_SwitchTo(struct Task *task)
+{
+	switchTo(Current, task);
 }
 
 void Sched_RunNext()
@@ -40,39 +40,38 @@ void Sched_RunNext()
 	struct Task *old;
 	
 	if(Current->state == TaskStateRunning) {
-		Sched_AddTail(Current);
+		Sched_Add(Current);
 	}
 
 	next = LIST_HEAD(runList, struct Task, list);
     LIST_REMOVE(runList, next->list);
 
 	if(next != Current) {
-		old = Current;
-		Current = next;
-		switchTo(old, Current);
+		switchTo(Current, next);
 	}
 }
 
-static void runFirst(struct Task *next)
+static void runFirst(struct Task *task)
 {
-	next->state = TaskStateRunning;
+	task->state = TaskStateRunning;
 
-	if(next->process != NULL) {
-		next->effectiveAddressSpace = next->process->addressSpace;
-		SetMMUBase(next->process->addressSpace->tablePAddr);
+	if(task->process != NULL) {
+		task->effectiveAddressSpace = task->process->addressSpace;
+		SetMMUBase(task->process->addressSpace->tablePAddr);
 	} else {
-		next->effectiveAddressSpace = &KernelSpace;
+		task->effectiveAddressSpace = &KernelSpace;
 	}
 
-	RunFirstAsm(next);
+	Current = task;
+	RunFirstAsm(task);
 }
 
 void Sched_RunFirst()
 {
-	Current = LIST_HEAD(runList, struct Task, list);
-    LIST_REMOVE(runList, Current->list);
+	struct Task *task = LIST_HEAD(runList, struct Task, list);
+    LIST_REMOVE(runList, task->list);
 
-	runFirst(Current);
+	runFirst(task);
 }
 
 void Sched_Init()

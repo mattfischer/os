@@ -33,5 +33,5 @@ void Task_Start(struct Task *task, void (*start)(void *), void *param)
 	task->regs[0]    = (unsigned int)param;
 	task->regs[R_PC] = (unsigned int)start;
 
-	Sched_AddTail(task);
+	Sched_Add(task);
 }
