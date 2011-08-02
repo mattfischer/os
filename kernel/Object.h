@@ -8,6 +8,7 @@
 
 struct Message {
 	struct Task *sender;
+	struct Task *receiver;
 	struct MessageHeader sendMsg;
 	struct MessageHeader replyMsg;
 	struct ListEntry list;

@@ -19,6 +19,30 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
+static void translateObjects(struct Process *sourceProcess, struct Process *destProcess, char *buffer, int objectOffset, int numObjects)
+{
+	int i;
+
+	for(i=0; i<numObjects; i++) {
+		unsigned int *ptr;
+		struct Object *object;
+
+		ptr = (int*)(buffer + objectOffset) + i;
+
+		if(sourceProcess == NULL) {
+			object = (struct Object*)*ptr;
+		} else {
+			object = sourceProcess->objects[*ptr];
+		}
+
+		if(destProcess == NULL) {
+			*ptr = (unsigned int)object;
+		} else {
+			*ptr = Process_RefObject(destProcess, object);
+		}
+	}
+}
+
 int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
 	struct Message message;
@@ -40,13 +64,15 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 		Sched_RunNext();
 	}
 
+	*replyMsg = message.replyMsg;
+	translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize);
+
 	return 0;
 }
 
 struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg)
 {
 	struct Message *message;
-	struct AddressSpace *addressSpace;
 	int size;
 
 	if(LIST_EMPTY(object->messages)) {
@@ -58,9 +84,14 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	message = LIST_HEAD(object->messages, struct Message, list);
 	LIST_REMOVE(object->messages, message->list);
 
-	addressSpace = message->sender->process->addressSpace;
+	message->receiver = Current;
+
 	recvMsg->size = min(message->sendMsg.size, recvMsg->size);
-	AddressSpace_CopyFrom(addressSpace, recvMsg->body, message->sendMsg.body, recvMsg->size);
+	recvMsg->objectsOffset = message->sendMsg.objectsOffset;
+	recvMsg->objectsSize = message->sendMsg.objectsSize;
+
+	AddressSpace_CopyFrom(message->sender->process->addressSpace, recvMsg->body, message->sendMsg.body, recvMsg->size);
+	translateObjects(message->sender->process, Current->process, recvMsg->body, recvMsg->objectsOffset, recvMsg->objectsSize);
 
 	message->sender->state = TaskStateReplyBlock;
 	return message;
@@ -74,6 +105,9 @@ int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg)
 
 	addressSpace = sender->process->addressSpace;
 	message->replyMsg.size = min(message->replyMsg.size, replyMsg->size);
+	message->replyMsg.objectsOffset = replyMsg->objectsOffset;
+	message->replyMsg.objectsSize = replyMsg->objectsSize;
+
 	AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
 
 	Sched_Add(Current);

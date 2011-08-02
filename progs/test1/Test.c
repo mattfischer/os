@@ -8,19 +8,35 @@ int SendMessage(int obj, struct MessageHeader *sendMsg, struct MessageHeader *re
 	return swi(SyscallSendMessage, (unsigned int)obj, (unsigned int)sendMsg, (unsigned int)replyMsg);
 }
 
+void UnrefObject(int obj)
+{
+	swi(SyscallObjectUnref, obj, 0, 0);
+}
+
+struct Msg {
+	int x;
+	int obj;
+};
+
 void _start()
 {
 	int x;
-	struct MessageHeader header;
-	int r;
 
 	x = 0;
 	while(1) {
-		header.size = sizeof(int);
-		header.body = &x;
+		struct MessageHeader header;
+		struct Msg msg;
+
+		header.size = sizeof(struct Msg);
+		header.body = &msg;
 		header.objectsOffset = 0;
 		header.objectsSize = 0;
 
+		msg.x = x;
+
 		SendMessage(0, &header, &header);
+
+		x = msg.x;
+		UnrefObject(msg.obj);
 	}
 }

@@ -51,5 +51,15 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			ret = Object_ReplyMessage(message, (struct MessageHeader*)arg1);
 			Process_UnrefMessage(Current->process, arg0);
 			return ret;
+
+		case SyscallObjectCreate:
+			object = Object_Create();
+			ret = Process_RefObject(Current->process, object);
+			return ret;
+
+		case SyscallObjectUnref:
+			Process_UnrefObject(Current->process, arg0);
+			ret = 0;
+			return ret;
 	}
 }

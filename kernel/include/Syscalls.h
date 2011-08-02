@@ -5,7 +5,9 @@ enum Syscall {
 	SyscallYield,
 	SyscallSendMessage,
 	SyscallReceiveMessage,
-	SyscallReplyMessage
+	SyscallReplyMessage,
+	SyscallObjectCreate,
+	SyscallObjectUnref,
 };
 
 #endif
