@@ -34,6 +34,9 @@ void AddressSpace_Map(struct AddressSpace *space, void *vaddr, LIST(struct Page)
 void AddressSpace_MapPage(struct AddressSpace *space, void *vaddr, PAddr paddr);
 void AddressSpace_MapSectionLow(struct AddressSpace *space, void *vaddr, PAddr paddr);
 
+void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source, int size);
+void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size);
+
 void AddressSpace_Init();
 void AddressSpace_InitLow();
 

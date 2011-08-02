@@ -37,5 +37,6 @@
 
 #define PTE_L2_AP_ALL_READ_WRITE 0xff0
 
+#define PTE_L2_BASE_MASK 0xfffff000
 #define PTE_L2_BASE_SHIFT 12
 #endif

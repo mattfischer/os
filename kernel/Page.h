@@ -17,6 +17,7 @@ struct Page {
 
 #define PAGE_SIZE (4 * KB)
 #define PAGE_SHIFT 12
+#define PAGE_MASK 0xfffff000
 
 #define RAM_SIZE (128 * MB)
 #define N_PAGES (RAM_SIZE >> PAGE_SHIFT)

@@ -144,6 +144,51 @@ struct AddressSpace *AddressSpace_Create()
 	return space;
 }
 
+static void *lookupAddress(struct AddressSpace *space, unsigned addr)
+{
+	unsigned *table = (unsigned*)PADDR_TO_VADDR(space->tablePAddr);
+	int idx = addr >> PAGE_TABLE_SECTION_SHIFT;
+	unsigned pte = table[idx];
+
+	if((pte & PTE_TYPE_MASK) == PTE_TYPE_SECTION) {
+		return (void*)((pte & PTE_SECTION_BASE_MASK) | (addr & (~PTE_SECTION_BASE_MASK)));
+	}
+
+	unsigned *L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
+	int l2idx = ((unsigned)addr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
+	return PADDR_TO_VADDR((L2Table[l2idx] & PTE_L2_BASE_MASK) | (addr & (~PTE_L2_BASE_MASK)));
+}
+
+void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source, int size)
+{
+	int copied = 0;
+
+	while(copied < size) {
+		unsigned p = (unsigned)source + copied;
+		unsigned aligned = p & PAGE_MASK;
+		unsigned alignedNext = aligned + PAGE_SIZE;
+		int pageSize = min(alignedNext - p, size - copied);
+		void *addr = lookupAddress(space, p);
+		memcpy((char*)dest + copied, addr, pageSize);
+		copied += pageSize;
+	}
+}
+
+void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size)
+{
+	int copied = 0;
+
+	while(copied < size) {
+		unsigned p = (unsigned)dest + copied;
+		unsigned aligned = p & PAGE_MASK;
+		unsigned alignedNext = aligned + PAGE_SIZE;
+		int pageSize = min(alignedNext - p, size - copied);
+		void *addr = lookupAddress(space, p);
+		memcpy(addr, (char*)source + copied, pageSize);
+		copied += pageSize;
+	}
+}
+
 void AddressSpace_Init()
 {
 	int i;

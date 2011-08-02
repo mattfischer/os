@@ -59,7 +59,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, void *recvBuf, int 
 	message = LIST_HEAD(object->messages, struct Message, list);
 	LIST_REMOVE(object->messages, message->list);
 
-	memcpy(recvBuf, message->sendBuf, min(recvSize, message->sendSize));
+	AddressSpace_CopyFrom(message->sender->process->addressSpace, recvBuf, message->sendBuf, min(recvSize, message->sendSize));
 
 	message->sender->state = TaskStateReplyBlock;
 	return message;
@@ -69,7 +69,8 @@ int Object_ReplyMessage(struct Message *message, void *replyBuf, int replySize)
 {
 	struct Task *sender = message->sender;
 
-	memcpy(message->replyBuf, replyBuf, min(message->replySize, replySize));
+	AddressSpace_CopyTo(sender->process->addressSpace, message->replyBuf, replyBuf, min(message->replySize, replySize));
+
 	Sched_Add(Current);
 	Sched_SwitchTo(sender);
 
