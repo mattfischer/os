@@ -19,7 +19,7 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
-void Object_SendMessage(struct Object *object, void *sendBuf, int sendSize, void *replyBuf, int replySize)
+int Object_SendMessage(struct Object *object, void *sendBuf, int sendSize, void *replyBuf, int replySize)
 {
 	struct Message message;
 	struct Task *task;
@@ -41,6 +41,8 @@ void Object_SendMessage(struct Object *object, void *sendBuf, int sendSize, void
 	} else {
 		Sched_RunNext();
 	}
+
+	return 0;
 }
 
 struct Message *Object_ReceiveMessage(struct Object *object, void *recvBuf, int recvSize)
@@ -63,11 +65,13 @@ struct Message *Object_ReceiveMessage(struct Object *object, void *recvBuf, int 
 	return message;
 }
 
-void Object_ReplyMessage(struct Message *message, void *replyBuf, int replySize)
+int Object_ReplyMessage(struct Message *message, void *replyBuf, int replySize)
 {
 	struct Task *sender = message->sender;
 
 	memcpy(message->replyBuf, replyBuf, min(message->replySize, replySize));
 	Sched_Add(Current);
 	Sched_SwitchTo(sender);
+
+	return 0;
 }

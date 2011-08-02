@@ -139,7 +139,7 @@ struct AddressSpace *AddressSpace_Create()
 	memset(base, 0, kernel_nr * sizeof(unsigned));
 
 	kernelTable = (unsigned*)PADDR_TO_VADDR(KernelSpace.tablePAddr);
-	memcpy(base + kernel_nr, kernelTable + kernel_nr, PAGE_TABLE_SIZE - kernel_nr);
+	memcpy(base + kernel_nr, kernelTable + kernel_nr, (PAGE_TABLE_SIZE - kernel_nr) * sizeof(unsigned));
 
 	return space;
 }

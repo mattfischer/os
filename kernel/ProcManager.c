@@ -10,7 +10,6 @@
 
 struct StartupInfo {
 	char name[16];
-	struct Task *task;
 };
 
 static struct Object *procManager;
@@ -27,26 +26,26 @@ static void startUser(void *param)
 	void *entry;
 
 	startupInfo = (struct StartupInfo*)param;
-	task = startupInfo->task;
 
 	stackSize = PAGE_SIZE;
 	stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
 	stack = (char*)(KERNEL_START - stackSize);
-	AddressSpace_Map(task->process->addressSpace, stack, stackPages);
+	AddressSpace_Map(Current->process->addressSpace, stack, stackPages);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(task->process->addressSpace, data, size);
+	entry = Elf_Load(Current->process->addressSpace, data, size);
 
 	EnterUser(entry, stack + stackSize);
 }
 
-static void startUserTask(const char *name)
+static void startUserProcess(const char *name)
 {
 	struct Process *process;
 	struct Task *task;
 	struct StartupInfo *startupInfo;
 
 	process = Process_Create();
+	Process_RefObject(process, procManager);
 	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
@@ -73,8 +72,9 @@ static void procManagerMain(void *param)
 
 	procManager = Object_Create();
 
-	task = Task_Create(NULL);
-	Task_Start(task, testStart, NULL);
+	/*task = Task_Create(NULL);
+	Task_Start(task, testStart, NULL);*/
+	startUserProcess("test");
 
 	while(1) {
 		int x;

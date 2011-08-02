@@ -10,7 +10,7 @@ OBJDIR := $(OUTDIR)obj/
 BINDIR := $(OUTDIR)bin/
 DEPDIR := $(OUTDIR)deps/
 
-CFLAGS := -I .
+CFLAGS := -I . -g
 
 define build_target
 target := $(1)
