@@ -19,7 +19,7 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
-static void translateObjects(struct Process *sourceProcess, struct Process *destProcess, char *buffer, int objectOffset, int numObjects)
+static void translateObjects(struct Process *sourceProcess, struct Process *destProcess, char *buffer, int objectOffset, int numObjects, struct ObjectTranslate translateCache[])
 {
 	int i;
 
@@ -27,12 +27,17 @@ static void translateObjects(struct Process *sourceProcess, struct Process *dest
 		unsigned int *ptr;
 		struct Object *object;
 
+		if(translateCache[i].target != 0xffffffff) {
+			*ptr = translateCache[i].target;
+			continue;
+		}
+
 		ptr = (int*)(buffer + objectOffset) + i;
 
 		if(sourceProcess == NULL) {
-			object = (struct Object*)*ptr;
+			object = (struct Object*)translateCache[i].source;
 		} else {
-			object = sourceProcess->objects[*ptr];
+			object = sourceProcess->objects[translateCache[i].source];
 		}
 
 		if(destProcess == NULL) {
@@ -40,6 +45,8 @@ static void translateObjects(struct Process *sourceProcess, struct Process *dest
 		} else {
 			*ptr = Process_RefObject(destProcess, object);
 		}
+
+		translateCache[i].target = *ptr;
 	}
 }
 
@@ -47,10 +54,17 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 {
 	struct Message message;
 	struct Task *task;
+	int i;
 
 	message.sender = Current;
 	message.sendMsg = *sendMsg;
 	message.replyMsg = *replyMsg;
+	memset(message.translateCache, 0xff, sizeof(message.translateCache));
+
+	for(i=0; i<sendMsg->objectsSize; i++) {
+		message.translateCache[i].source = ((unsigned int*)((char*)sendMsg->body + sendMsg->objectsOffset))[i];
+	}
+
 	LIST_ENTRY_CLEAR(message.list);
 	LIST_ADD_TAIL(object->messages, message.list);
 
@@ -65,7 +79,7 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 	}
 
 	*replyMsg = message.replyMsg;
-	translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize);
+	translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize, message.translateCache);
 
 	return 0;
 }
@@ -91,7 +105,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	recvMsg->objectsSize = message->sendMsg.objectsSize;
 
 	AddressSpace_CopyFrom(message->sender->process->addressSpace, recvMsg->body, message->sendMsg.body, recvMsg->size);
-	translateObjects(message->sender->process, Current->process, recvMsg->body, recvMsg->objectsOffset, recvMsg->objectsSize);
+	translateObjects(message->sender->process, Current->process, recvMsg->body, recvMsg->objectsOffset, recvMsg->objectsSize, message->translateCache);
 
 	message->sender->state = TaskStateReplyBlock;
 	return message;
@@ -102,11 +116,17 @@ int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg)
 	struct Task *sender = message->sender;
 	struct MessageHeader replyMsgLocal;
 	struct AddressSpace *addressSpace;
+	int i;
 
 	addressSpace = sender->process->addressSpace;
 	message->replyMsg.size = min(message->replyMsg.size, replyMsg->size);
 	message->replyMsg.objectsOffset = replyMsg->objectsOffset;
 	message->replyMsg.objectsSize = replyMsg->objectsSize;
+	memset(message->translateCache, 0xff, sizeof(message->translateCache));
+
+	for(i=0; i<replyMsg->objectsSize; i++) {
+		message->translateCache[i].source = ((unsigned int*)((char*)replyMsg->body + replyMsg->objectsOffset))[i];
+	}
 
 	AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
 

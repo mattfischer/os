@@ -6,12 +6,18 @@
 
 #include <kernel/include/MessageFmt.h>
 
+struct ObjectTranslate {
+	unsigned int source;
+	unsigned int target;
+};
+
 struct Message {
 	struct Task *sender;
 	struct Task *receiver;
 	struct MessageHeader sendMsg;
 	struct MessageHeader replyMsg;
 	struct ListEntry list;
+	struct ObjectTranslate translateCache[MESSAGE_MAX_OBJECTS];
 };
 
 struct Object {
