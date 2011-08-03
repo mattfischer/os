@@ -1,5 +1,6 @@
+#include "Shared.h"
+
 #include <kernel/include/Syscalls.h>
-#include <kernel/include/MessageFmt.h>
 #include <kernel/include/ProcManagerFmt.h>
 
 #include <stddef.h>
@@ -58,24 +59,25 @@ void SetName(const char *name, int obj)
 	SendMessage(0, &hdr, NULL);
 }
 
-struct Msg {
-	int x;
-};
-
-void _start()
+int LookupName(const char *name)
 {
-	int obj = CreateObject();
+	struct MessageHeader send;
+	struct ProcManagerMsg msgSend;
+	struct MessageHeader reply;
+	struct ProcManagerMsgNameLookupReply msgReply;
 
-	SetName("test", obj);
+	send.size = sizeof(msgSend);
+	send.body = &msgSend;
+	send.objectsSize = 0;
+	send.objectsOffset = 0;
 
-	while(1) {
-		struct MessageHeader header;
-		struct Msg msg;
+	msgSend.type = ProcManagerNameLookup;
+	strcpy(msgSend.u.lookup.name, name);
 
-		header.size = sizeof(msg);
-		header.body = &msg;
+	reply.size = sizeof(msgReply);
+	reply.body = &msgReply;
 
-		ReceiveMessage(obj, &header);
-		ReplyMessage(obj, NULL);
-	}
+	SendMessage(0, &send, &reply);
+
+	return msgReply.obj;
 }

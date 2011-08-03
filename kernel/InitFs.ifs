@@ -1,1 +1,2 @@
-test:out/bin/test
+server:out/bin/server
+client:out/bin/client

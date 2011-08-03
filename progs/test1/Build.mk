@@ -1,5 +1,11 @@
-TARGETS := test
+TARGETS := server client
 
-test_SOURCES := \
-	Test.c \
-	TestAsm.s
+server_SOURCES := \
+	Server.c \
+	Shared.c \
+	SharedAsm.s
+
+client_SOURCES := \
+	Client.c \
+	Shared.c \
+	SharedAsm.s

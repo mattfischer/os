@@ -70,6 +70,8 @@ int main(int argc, char *argv[])
 		int i;
 		len = strlen(line);
 		line[len-1] = '\0';
+		line[len-2] = '\0';
+
 		for(i=0; i<len; i++) {
 			char *int_name;
 			char *ext_name;
@@ -86,7 +88,7 @@ int main(int argc, char *argv[])
 			ext_name = line + i + 1;
 
 			if(output != NULL && deps == NULL) {
-				data_file = fopen(ext_name, "r");
+				data_file = fopen(ext_name, "rb");
 				if(data_file == NULL) {
 					fprintf(stderr, "Error: Could not open file %s\n", ext_name);
 					continue;

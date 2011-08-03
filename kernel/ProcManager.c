@@ -61,7 +61,8 @@ static void procManagerMain(void *param)
 {
 	procManager = Object_Create();
 
-	startUserProcess("test");
+	startUserProcess("server");
+	startUserProcess("client");
 
 	while(1) {
 		struct ProcManagerMsg msg;
