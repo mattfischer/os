@@ -4,6 +4,7 @@
 #include "Defs.h"
 #include "ProcManager.h"
 #include "Object.h"
+#include "Name.h"
 
 #include <kernel/include/Syscalls.h>
 
@@ -20,6 +21,7 @@ void Entry()
 	AddressSpace_Init();
 	Sched_Init();
 	Object_Init();
+	Name_Init();
 
 	ProcManager_Start();
 }

@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	input = fopen(argv[optind], "r");
+	input = fopen(argv[optind], "rb");
 
 	if(input == NULL) {
 		fprintf(stderr, "Error: Could not open input file %s\n", argv[optind]);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 	}
 
 	if(outputFilename != NULL && depsFilename == NULL) {
-		output = fopen(outputFilename, "w");
+		output = fopen(outputFilename, "wb");
 		if(output == NULL) {
 			fprintf(stderr, "Error: Could not open output file %s\n", optarg);
 			exit(1);

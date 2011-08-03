@@ -58,7 +58,12 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 
 	message.sender = Current;
 	message.sendMsg = *sendMsg;
-	message.replyMsg = *replyMsg;
+
+	if(replyMsg == NULL) {
+		memset(&message.replyMsg, 0, sizeof(message.replyMsg));
+	} else {
+		message.replyMsg = *replyMsg;
+	}
 	memset(message.translateCache, 0xff, sizeof(message.translateCache));
 
 	for(i=0; i<sendMsg->objectsSize; i++) {
@@ -78,8 +83,10 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 		Sched_RunNext();
 	}
 
-	*replyMsg = message.replyMsg;
-	translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize, message.translateCache);
+	if(replyMsg != NULL) {
+		*replyMsg = message.replyMsg;
+		translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize, message.translateCache);
+	}
 
 	return 0;
 }
@@ -118,17 +125,19 @@ int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg)
 	struct AddressSpace *addressSpace;
 	int i;
 
-	addressSpace = sender->process->addressSpace;
-	message->replyMsg.size = min(message->replyMsg.size, replyMsg->size);
-	message->replyMsg.objectsOffset = replyMsg->objectsOffset;
-	message->replyMsg.objectsSize = replyMsg->objectsSize;
-	memset(message->translateCache, 0xff, sizeof(message->translateCache));
+	if(replyMsg != NULL) {
+		addressSpace = sender->process->addressSpace;
+		message->replyMsg.size = min(message->replyMsg.size, replyMsg->size);
+		message->replyMsg.objectsOffset = replyMsg->objectsOffset;
+		message->replyMsg.objectsSize = replyMsg->objectsSize;
+		memset(message->translateCache, 0xff, sizeof(message->translateCache));
 
-	for(i=0; i<replyMsg->objectsSize; i++) {
-		message->translateCache[i].source = ((unsigned int*)((char*)replyMsg->body + replyMsg->objectsOffset))[i];
+		for(i=0; i<replyMsg->objectsSize; i++) {
+			message->translateCache[i].source = ((unsigned int*)((char*)replyMsg->body + replyMsg->objectsOffset))[i];
+		}
+
+		AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
 	}
-
-	AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
 
 	Sched_Add(Current);
 	Sched_SwitchTo(sender);

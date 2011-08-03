@@ -7,6 +7,9 @@
 #include "AddressSpace.h"
 #include "Process.h"
 #include "Object.h"
+#include "Name.h"
+
+#include <kernel/include/ProcManagerFmt.h>
 
 struct StartupInfo {
 	char name[16];
@@ -54,22 +57,6 @@ static void startUserProcess(const char *name)
 	Task_Start(task, startUser, startupInfo);
 }
 
-/*static void testStart(void *param)
-{
-	int x = 0;
-
-	while(1) {
-		int r;
-		Object_SendMessage(procManager, &x, sizeof(x), &r, sizeof(r));
-		x = r;
-	}
-}*/
-
-struct Msg {
-	int x;
-	struct Object *obj;
-};
-
 static void procManagerMain(void *param)
 {
 	procManager = Object_Create();
@@ -77,21 +64,39 @@ static void procManagerMain(void *param)
 	startUserProcess("test");
 
 	while(1) {
-		struct Msg msg;
+		struct ProcManagerMsg msg;
 		struct MessageHeader header;
 		struct Message *message;
 
-		header.size = sizeof(struct Msg);
+		header.size = sizeof(msg);
 		header.body = &msg;
 
 		message = Object_ReceiveMessage(procManager, &header);
 
-		header.objectsOffset = 4;
-		header.objectsSize = 1;
-		msg.x += 1;
-		msg.obj = Object_Create();
+		switch(msg.type) {
+			case ProcManagerNameLookup:
+			{
+				struct Object *object = Name_Lookup(msg.u.lookup.name);
+				struct ProcManagerMsgNameLookupReply reply;
 
-		Object_ReplyMessage(message, &header);
+				reply.obj = (unsigned int)object;
+				header.body = &reply;
+				header.size = sizeof(reply);
+				header.objectsSize = 1;
+				header.objectsOffset = offsetof(struct ProcManagerMsgNameLookupReply, obj);
+
+				Object_ReplyMessage(message, &header);
+				break;
+			}
+
+			case ProcManagerNameSet:
+			{
+				Name_Set(msg.u.set.name, (struct Object*)msg.u.set.obj);
+
+				Object_ReplyMessage(message, NULL);
+				break;
+			}
+		}
 	}
 }
 
