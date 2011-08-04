@@ -1,1 +1,1 @@
-SUBDIRS := kernel tools progs
+SUBDIRS := kernel tools progs lib

@@ -1,11 +1,9 @@
 BINARIES := server client
 
 server_SOURCES := \
-	Server.c \
-	Shared.c \
-	SharedAsm.s
+	Server.c
+server_LIBS := system
 
 client_SOURCES := \
-	Client.c \
-	Shared.c \
-	SharedAsm.s
+	Client.c
+client_LIBS := system

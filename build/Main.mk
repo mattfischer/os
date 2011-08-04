@@ -1,5 +1,4 @@
-OUTDIR := out/
-
+include $(BUILD_DIR)Defs.mk
 include $(BUILD_DIR)BuildBinary.mk
 
 all: build_all
