@@ -1,4 +1,6 @@
-HOST_TARGETS := mkinitfs
+BINARIES := mkinitfs
 
 mkinitfs_SOURCES := \
 	mkinitfs.c
+
+mkinitfs_PLATFORM := HOST

@@ -1,7 +1,6 @@
 OUTDIR := out/
 
-include $(BUILD_DIR)BuildTarget.mk
-include $(BUILD_DIR)BuildHost.mk
+include $(BUILD_DIR)BuildBinary.mk
 
 all: build_all
 
@@ -14,12 +13,10 @@ ifeq ($$(CWD),./)
 endif
 
 SUBDIRS :=
-TARGETS :=
-HOST_TARGETS :=
+BINARIES :=
 
 include $$(makefile)
-$$(foreach target,$$(TARGETS),$$(eval $$(call build_target,$$(target))))
-$$(foreach target,$$(HOST_TARGETS),$$(eval $$(call build_host,$$(target))))
+$$(foreach target,$$(BINARIES),$$(eval $$(call build_binary,$$(target))))
 $$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(CWD)$$(subdir)/Build.mk)))
 CWD := $$(firstword $$(cwdstack))
 ifeq ($$(CWD),./)
