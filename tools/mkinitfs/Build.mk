@@ -1,4 +1,4 @@
-BINARIES := mkinitfs
+TARGETS := mkinitfs
 
 mkinitfs_SOURCES := \
 	mkinitfs.c

@@ -1,4 +1,4 @@
-BINARIES := server client
+TARGETS := server client
 
 server_SOURCES := \
 	Server.c

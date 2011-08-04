@@ -12,10 +12,10 @@ ifeq ($$(CWD),./)
 endif
 
 SUBDIRS :=
-BINARIES :=
+TARGETS :=
 
 include $$(makefile)
-$$(foreach target,$$(BINARIES),$$(eval $$(call build_binary,$$(target))))
+$$(foreach target,$$(TARGETS),$$(eval $$(call build_binary,$$(target))))
 $$(foreach subdir,$$(SUBDIRS),$$(eval $$(call do_include,$$(CWD)$$(subdir)/Build.mk)))
 CWD := $$(firstword $$(cwdstack))
 ifeq ($$(CWD),./)

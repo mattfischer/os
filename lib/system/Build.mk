@@ -1,4 +1,4 @@
-BINARIES := system
+TARGETS := system
 
 system_SOURCES := \
 	Shared.c \

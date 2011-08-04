@@ -1,4 +1,4 @@
-BINARIES := kernel
+TARGETS := kernel
 
 kernel_SOURCES := \
 	AddressSpace.c \
