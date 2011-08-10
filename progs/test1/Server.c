@@ -1,4 +1,6 @@
-#include <lib/system/Shared.h>
+#include <lib/system/Object.h>
+#include <lib/system/Message.h>
+#include <lib/system/Name.h>
 
 #include "Msg.h"
 

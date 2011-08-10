@@ -1,6 +1,8 @@
 TARGETS := system
 
 system_SOURCES := \
-	Shared.c \
-	SharedAsm.s
+	Message.c \
+	Name.c \
+	Object.c \
+	SwiAsm.s
 system_TYPE := LIBRARY

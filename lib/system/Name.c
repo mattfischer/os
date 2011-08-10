@@ -1,36 +1,10 @@
-#include "Shared.h"
+#include <lib/system/Name.h>
 
+#include <lib/system/Message.h>
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/ProcManagerFmt.h>
 
 #include <stddef.h>
-
-int swi(unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3);
-
-int SendMessage(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
-{
-	return swi(SyscallSendMessage, (unsigned int)obj, (unsigned int)sendMsg, (unsigned int)replyMsg);
-}
-
-int ReceiveMessage(int obj, struct MessageHeader *recvMsg)
-{
-	return swi(SyscallReceiveMessage, (unsigned int)obj, (unsigned int)recvMsg, 0);
-}
-
-int ReplyMessage(int message, struct MessageHeader *replyMsg)
-{
-	return swi(SyscallReplyMessage, (unsigned int)message, (unsigned int)replyMsg, 0);
-}
-
-int CreateObject()
-{
-	return swi(SyscallObjectCreate, 0, 0, 0);
-}
-
-void UnrefObject(int obj)
-{
-	swi(SyscallObjectUnref, obj, 0, 0);
-}
 
 char *strcpy(char *dest, const char *src)
 {
