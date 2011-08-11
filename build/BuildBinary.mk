@@ -49,6 +49,9 @@ else
   global_aflags := $(CROSS_AFLAGS)
   global_ldflags := $(CROSS_LDFLAGS)
   libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)%$$(CROSS_LIB_EXT))
+  ifneq ($$($$(target)_BASE_ADDR),)
+    global_ldflags += -Ttext $$($$(target)_BASE_ADDR)
+  endif
 endif
 
 sources := $$($$(target)_SOURCES)
