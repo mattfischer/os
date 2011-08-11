@@ -31,7 +31,7 @@ static void startUser(void *param)
 	startupInfo = (struct StartupInfo*)param;
 
 	stackSize = PAGE_SIZE;
-	stackArea = MemArea_Create(stackSize);
+	stackArea = MemArea_CreatePages(stackSize);
 	stackVAddr = (char*)(KERNEL_START - stackArea->size);
 	AddressSpace_Map(Current->process->addressSpace, stackArea, stackVAddr, 0, stackArea->size);
 
@@ -63,6 +63,7 @@ static void procManagerMain(void *param)
 
 	startUserProcess("server");
 	startUserProcess("client");
+	startUserProcess("client2");
 
 	while(1) {
 		struct ProcManagerMsg msg;
@@ -96,6 +97,14 @@ static void procManagerMain(void *param)
 
 				Object_ReplyMessage(message, NULL);
 				break;
+			}
+
+			case ProcManagerMapPhys:
+			{
+				struct MemArea *area = MemArea_CreatePhys(msg.u.mapPhys.size, msg.u.mapPhys.paddr);
+				AddressSpace_Map(message->sender->process->addressSpace, area, (void*)msg.u.mapPhys.vaddr, 0, area->size);
+
+				Object_ReplyMessage(message, NULL);
 			}
 		}
 	}

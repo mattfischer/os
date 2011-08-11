@@ -13,10 +13,8 @@ extern char vectorEnd[];
 
 void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
 {
-	struct Page *page;
 	struct Mapping *mapping;
 	struct Mapping *mappingCursor;
-	unsigned int skipPages;
 
 	mapping = (struct Mapping*)Slab_Allocate(&mappingSlab);
 	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
@@ -24,15 +22,33 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
 	mapping->area = area;
 
-	skipPages = mapping->offset >> PAGE_SHIFT;
-	LIST_FOREACH(area->pages, page, struct Page, list) {
-		if(skipPages > 0) {
-			skipPages--;
-			continue;
+	switch(area->type) {
+		case MemAreaTypePages:
+		{
+			struct Page *page;
+			unsigned int skipPages;
+
+			skipPages = mapping->offset >> PAGE_SHIFT;
+			LIST_FOREACH(area->u.pages, page, struct Page, list) {
+				if(skipPages > 0) {
+					skipPages--;
+					continue;
+				}
+
+				PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
+				vaddr += PAGE_SIZE;
+			}
+			break;
 		}
 
-		PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
-		vaddr += PAGE_SIZE;
+		case MemAreaTypePhys:
+		{
+			PAddr paddr;
+			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
+				PageTable_MapPage(space->pageTable, vaddr, paddr);
+			}
+			break;
+		}
 	}
 
 	LIST_FOREACH(space->mappings, mappingCursor, struct Mapping, list) {

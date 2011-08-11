@@ -1,21 +1,11 @@
 #include <lib/system/Name.h>
 
 #include <lib/system/Message.h>
+#include <lib/system/Util.h>
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/ProcManagerFmt.h>
 
 #include <stddef.h>
-
-char *strcpy(char *dest, const char *src)
-{
-	int i;
-
-	for(i=0; src[i] != '\0'; i++) {
-		dest[i] = src[i];
-	}
-
-	return dest;
-}
 
 void SetName(const char *name, int obj)
 {

@@ -4,12 +4,24 @@
 #include "List.h"
 #include "Page.h"
 
-struct MemArea {
-	int size;
-	LIST(struct Page) pages;
+enum MemAreaType {
+	MemAreaTypePages,
+	MemAreaTypePhys
 };
 
-struct MemArea *MemArea_Create(int size);
+struct MemArea {
+	enum MemAreaType type;
+	int size;
+
+	union {
+		LIST(struct Page) pages;
+		PAddr paddr;
+	} u;
+};
+
+struct MemArea *MemArea_CreatePages(int size);
+struct MemArea *MemArea_CreatePhys(int size, PAddr paddr);
+
 void MemArea_Init();
 
 #endif

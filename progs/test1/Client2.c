@@ -16,7 +16,7 @@ void _start()
 		hdr.size = sizeof(msg);
 		hdr.body = &msg;
 
-		strcpy(msg.message, "A\r\n");
+		strcpy(msg.message, "B\r\n");
 		SendMessage(obj, &hdr, &hdr);
 	}
 }

@@ -1,2 +1,3 @@
 server:out/bin/server
 client:out/bin/client
+client2:out/bin/client2
