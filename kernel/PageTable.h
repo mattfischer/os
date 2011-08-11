@@ -1,42 +1,33 @@
 #ifndef PAGE_TABLE_H
 #define PAGE_TABLE_H
 
-#define PAGE_TABLE_SECTION_SIZE (1024 * 1024)
-#define PAGE_TABLE_SECTION_MASK 0xfff00000
-#define PAGE_TABLE_SECTION_SHIFT 20
+#include "Page.h"
 
-#define PTE_TYPE_MASK 3
-#define PTE_TYPE_DISABLED 0
-#define PTE_TYPE_COARSE 1
-#define PTE_TYPE_SECTION 2
+typedef unsigned int PAddr;
 
-#define PTE_SECTION_AP_SHIFT 10
-#define PTE_SECTION_AP_READ_WRITE (0x3 << PTE_SECTION_AP_SHIFT)
+#define PADDR_TO_VADDR(paddr) ((char*)(paddr) + KERNEL_START)
+#define VADDR_TO_PADDR(vaddr) ((PAddr)(vaddr) - KERNEL_START)
 
-#define PTE_SECTION_BASE_MASK 0xfff00000
-#define PTE_SECTION_BASE_SHIFT 20
+extern char __KernelStart[];
+extern char __KernelEnd[];
 
-#define PTE_COARSE_BASE_MASK 0xfffffc00
-#define PTE_COARSE_BASE_SHIFT 10
+#define KERNEL_START (unsigned int)__KernelStart
 
-#define PAGE_TABLE_SIZE 4096
+struct PageTable {
+	struct Page *table;
+	PAddr tablePAddr;
+	LIST(struct Page) L2Tables;
+};
 
-#define PAGE_L2_TABLE_SIZE 256
+struct PageTable *PageTable_Create();
 
-#define PTE_L2_TYPE_MASK 3
-#define PTE_L2_TYPE_DISABLED 0
-#define PTE_L2_TYPE_LARGE 1
-#define PTE_L2_TYPE_SMALL 2
+void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr);
+void PageTable_MapSectionLow(struct PageTable *pageTable, void *vaddr, PAddr paddr);
 
-#define PTE_L2_AP0_SHIFT 4
-#define PTE_L2_AP1_SHIFT 6
-#define PTE_L2_AP2_SHIFT 8
-#define PTE_L2_AP3_SHIFT 10
+PAddr PageTable_TranslateVAddr(struct PageTable *pageTable, void *vaddr);
 
-#define PTE_L2_AP_READ_WRITE 0x3
+void PageTable_Init();
+void PageTable_InitLow();
 
-#define PTE_L2_AP_ALL_READ_WRITE 0xff0
-
-#define PTE_L2_BASE_MASK 0xfffff000
-#define PTE_L2_BASE_SHIFT 12
+extern struct PageTable KernelPageTable;
 #endif

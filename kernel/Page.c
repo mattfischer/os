@@ -35,12 +35,10 @@ LIST(struct Page) Page_AllocMulti(int num)
 	return list;
 }
 
-LIST(struct Page) Page_AllocContig(int align, int num)
+struct Page *Page_AllocContig(int align, int num)
 {
-	LIST(struct Page) list;
 	int i, j;
 
-	LIST_INIT(list);
 	for(i=0; i<N_PAGES; i += align) {
 		for(j=0; j<num; j++) {
 			struct Page *page = PAGE(i + j);
@@ -55,13 +53,12 @@ LIST(struct Page) Page_AllocContig(int align, int num)
 				struct Page *page = PAGE(i + j);
 
 				page->flags = PAGE_INUSE;
-				LIST_ADD_TAIL(list, page->list);
 			}
-			return list;
+			return PAGE(i);
 		}
 	}
 
-	return list;
+	return NULL;
 }
 
 void Page_Free(struct Page *page)
@@ -91,7 +88,7 @@ SECTION_LOW void Page_InitLow()
 	}
 }
 
-SECTION_LOW LIST(struct Page) Page_AllocContigLow(int align, int num)
+SECTION_LOW struct Page *Page_AllocContigLow(int align, int num)
 {
 	LIST(struct Page) list;
 	int i, j;
@@ -113,11 +110,10 @@ SECTION_LOW LIST(struct Page) Page_AllocContigLow(int align, int num)
 				struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
 
 				pageLow->flags = PAGE_INUSE;
-				LIST_ADD_TAIL(list, pageLow->list);
 			}
-			return list;
+			return PAGE(i);
 		}
 	}
 
-	return list;
+	return NULL;
 }

@@ -13,6 +13,7 @@ char InitStack[256];
 SECTION_LOW void EntryLow()
 {
 	Page_InitLow();
+	PageTable_InitLow();
 	AddressSpace_InitLow();
 }
 

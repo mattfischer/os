@@ -10,6 +10,7 @@ kernel_SOURCES := \
 	Name.c \
 	Object.c \
 	Page.c \
+	PageTable.c \
 	ProcManager.c \
 	Process.c \
 	Sched.c \
