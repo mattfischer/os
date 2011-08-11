@@ -22,7 +22,7 @@ static void startUser(void *param)
 	struct StartupInfo *startupInfo;
 	struct Task *task;
 	int stackSize;
-	LIST(struct Page) stackPages;
+	struct MemArea *stackArea;
 	char *stack;
 	int size;
 	void *data;
@@ -31,9 +31,9 @@ static void startUser(void *param)
 	startupInfo = (struct StartupInfo*)param;
 
 	stackSize = PAGE_SIZE;
-	stackPages = Page_AllocMulti(stackSize >> PAGE_SHIFT);
-	stack = (char*)(KERNEL_START - stackSize);
-	AddressSpace_Map(Current->process->addressSpace, stack, stackPages);
+	stackArea = MemArea_Create(stackSize);
+	stack = (char*)(KERNEL_START - stackArea->size);
+	AddressSpace_Map(Current->process->addressSpace, stack, stackArea);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
 	entry = Elf_Load(Current->process->addressSpace, data, size);

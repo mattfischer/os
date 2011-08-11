@@ -5,37 +5,36 @@
 
 struct AddressSpace KernelSpace;
 
-struct SlabAllocator areaSlab;
-struct SlabAllocator AddressSpaceSlab;
+static struct SlabAllocator mappingSlab;
+static struct SlabAllocator addressSpaceSlab;
 
 extern char vectorStart[];
 extern char vectorEnd[];
 
-void AddressSpace_Map(struct AddressSpace *space, void *start, LIST(struct Page) pages)
+void AddressSpace_Map(struct AddressSpace *space, void *start, struct MemArea *area)
 {
 	struct Page *page;
-	struct Area *area;
-	struct Area *areaCursor;
+	struct Mapping *mapping;
+	struct Mapping *mappingCursor;
 	int size;
 	char *vaddr;
 
 	vaddr = start;
 	size = 0;
 
-	LIST_FOREACH(pages, page, struct Page, list) {
+	LIST_FOREACH(area->pages, page, struct Page, list) {
 		PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
 		vaddr += PAGE_SIZE;
 		size += PAGE_SIZE;
 	}
 
-	area = (struct Area*)Slab_Allocate(&areaSlab);
-	area->start = start;
-	area->size = size;
-	area->pages = pages;
+	mapping = (struct Mapping*)Slab_Allocate(&mappingSlab);
+	mapping->start = start;
+	mapping->area = area;
 
-	LIST_FOREACH(space->areas, areaCursor, struct Area, list) {
-		if(areaCursor->start > area->start) {
-			LIST_ADD_AFTER(space->areas, area->list, areaCursor->list);
+	LIST_FOREACH(space->mappings, mappingCursor, struct Mapping, list) {
+		if(mappingCursor->start > mapping->start) {
+			LIST_ADD_AFTER(space->mappings, mapping->list, mappingCursor->list);
 			break;
 		}
 	}
@@ -50,8 +49,8 @@ struct AddressSpace *AddressSpace_Create()
 	unsigned *kernelTable;
 	int kernel_nr;
 
-	space = (struct AddressSpace*)Slab_Allocate(&AddressSpaceSlab);
-	LIST_INIT(space->areas);
+	space = (struct AddressSpace*)Slab_Allocate(&addressSpaceSlab);
+	LIST_INIT(space->mappings);
 
 	space->pageTable = PageTable_Create();
 
@@ -100,8 +99,8 @@ void AddressSpace_Init()
 	PageTable_MapPage(KernelSpace.pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
 	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
-	Slab_Init(&AddressSpaceSlab, sizeof(struct AddressSpace));
-	Slab_Init(&areaSlab, sizeof(struct Area));
+	Slab_Init(&addressSpaceSlab, sizeof(struct AddressSpace));
+	Slab_Init(&mappingSlab, sizeof(struct Mapping));
 }
 
 SECTION_LOW void AddressSpace_InitLow()
@@ -109,5 +108,5 @@ SECTION_LOW void AddressSpace_InitLow()
 	struct AddressSpace *kernelSpaceLow = (struct AddressSpace*)VADDR_TO_PADDR(&KernelSpace);
 
 	kernelSpaceLow->pageTable = &KernelPageTable;
-	LIST_INIT(kernelSpaceLow->areas);
+	LIST_INIT(kernelSpaceLow->mappings);
 }

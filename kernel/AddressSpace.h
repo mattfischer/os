@@ -3,22 +3,22 @@
 
 #include "List.h"
 #include "PageTable.h"
+#include "MemArea.h"
 
-struct Area {
+struct Mapping {
 	void *start;
-	int size;
-	LIST(struct Page) pages;
+	struct MemArea *area;
 	struct ListEntry list;
 };
 
 struct AddressSpace {
 	struct PageTable *pageTable;
-	LIST(struct Area) areas;
+	LIST(struct Mapping) mappings;
 };
 
 struct AddressSpace *AddressSpace_Create();
 
-void AddressSpace_Map(struct AddressSpace *space, void *vaddr, LIST(struct Page) pages);
+void AddressSpace_Map(struct AddressSpace *space, void *vaddr, struct MemArea *area);
 
 void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source, int size);
 void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size);

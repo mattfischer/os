@@ -7,6 +7,7 @@ kernel_SOURCES := \
 	EntryAsm.s \
 	Entry.c \
 	InitFs.c \
+	MemArea.c \
 	Name.c \
 	Object.c \
 	Page.c \
