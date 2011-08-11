@@ -11,29 +11,32 @@ static struct SlabAllocator addressSpaceSlab;
 extern char vectorStart[];
 extern char vectorEnd[];
 
-void AddressSpace_Map(struct AddressSpace *space, void *start, struct MemArea *area)
+void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
 {
 	struct Page *page;
 	struct Mapping *mapping;
 	struct Mapping *mappingCursor;
-	int size;
-	char *vaddr;
-
-	vaddr = start;
-	size = 0;
-
-	LIST_FOREACH(area->pages, page, struct Page, list) {
-		PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
-		vaddr += PAGE_SIZE;
-		size += PAGE_SIZE;
-	}
+	unsigned int skipPages;
 
 	mapping = (struct Mapping*)Slab_Allocate(&mappingSlab);
-	mapping->start = start;
+	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
+	mapping->offset = PAGE_ADDR_ROUND_DOWN(offset);
+	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
 	mapping->area = area;
 
+	skipPages = mapping->offset >> PAGE_SHIFT;
+	LIST_FOREACH(area->pages, page, struct Page, list) {
+		if(skipPages > 0) {
+			skipPages--;
+			continue;
+		}
+
+		PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
+		vaddr += PAGE_SIZE;
+	}
+
 	LIST_FOREACH(space->mappings, mappingCursor, struct Mapping, list) {
-		if(mappingCursor->start > mapping->start) {
+		if(mappingCursor->vaddr > mapping->vaddr) {
 			LIST_ADD_AFTER(space->mappings, mapping->list, mappingCursor->list);
 			break;
 		}

@@ -23,7 +23,7 @@ static void startUser(void *param)
 	struct Task *task;
 	int stackSize;
 	struct MemArea *stackArea;
-	char *stack;
+	char *stackVAddr;
 	int size;
 	void *data;
 	void *entry;
@@ -32,13 +32,13 @@ static void startUser(void *param)
 
 	stackSize = PAGE_SIZE;
 	stackArea = MemArea_Create(stackSize);
-	stack = (char*)(KERNEL_START - stackArea->size);
-	AddressSpace_Map(Current->process->addressSpace, stack, stackArea);
+	stackVAddr = (char*)(KERNEL_START - stackArea->size);
+	AddressSpace_Map(Current->process->addressSpace, stackArea, stackVAddr, 0, stackArea->size);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
 	entry = Elf_Load(Current->process->addressSpace, data, size);
 
-	EnterUser(entry, stack + stackSize);
+	EnterUser(entry, stackVAddr + stackSize);
 }
 
 static void startUserProcess(const char *name)

@@ -37,6 +37,9 @@ struct Page {
 #define PAGE_TO_PADDR(page) PAGE_NR_TO_PADDR(PAGE_NR(page))
 #define PAGE_TO_VADDR(page) PAGE_NR_TO_VADDR(PAGE_NR(page))
 
+#define PAGE_SIZE_ROUND_UP(size) ((size + PAGE_SIZE - 1) & PAGE_MASK)
+#define PAGE_ADDR_ROUND_DOWN(addr) ((unsigned)addr & PAGE_MASK)
+
 struct Page *Page_AllocContig(int align, int num);
 LIST(struct Page) Page_AllocMulti(int num);
 struct Page *Page_Alloc();

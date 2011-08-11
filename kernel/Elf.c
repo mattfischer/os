@@ -18,7 +18,7 @@ void *Elf_Load(struct AddressSpace *space, void *data, int size)
 		}
 
 		area = MemArea_Create(phdr->p_memsz);
-		AddressSpace_Map(space, (void*)phdr->p_vaddr, area);
+		AddressSpace_Map(space, area, (void*)phdr->p_vaddr, 0, area->size);
 		memcpy((void*)phdr->p_vaddr, (void*)((char*)data + phdr->p_offset), phdr->p_filesz);
 		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
 	}

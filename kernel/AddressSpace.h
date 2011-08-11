@@ -6,7 +6,9 @@
 #include "MemArea.h"
 
 struct Mapping {
-	void *start;
+	void *vaddr;
+	unsigned int offset;
+	unsigned int size;
 	struct MemArea *area;
 	struct ListEntry list;
 };
@@ -18,7 +20,7 @@ struct AddressSpace {
 
 struct AddressSpace *AddressSpace_Create();
 
-void AddressSpace_Map(struct AddressSpace *space, void *vaddr, struct MemArea *area);
+void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
 
 void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source, int size);
 void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size);
