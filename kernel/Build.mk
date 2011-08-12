@@ -46,10 +46,12 @@ $(initfs_o): $(initfs_in) $(MKINITFS) $(makefile)
 kernel_EXTRA_OBJS := $(initfs_o)
 
 qemu: $(CROSS_BINDIR)kernel
-	qemu-system-arm -kernel $< -s -S
+	@echo "Starting QEMU..."
+	@qemu-system-arm -kernel $< -s -S
 
 gdbcmd := /tmp/gdbcmd
 
 gdb: $(CROSS_BINDIR)kernel
-	echo "target remote :1234" > $(gdbcmd)
-	$(CROSS_GDB) $< -x $(gdbcmd)
+	@echo "target remote :1234" > $(gdbcmd)
+	@echo "Starting GDB..."
+	@$(CROSS_GDB) $< -x $(gdbcmd)

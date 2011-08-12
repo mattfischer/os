@@ -35,7 +35,7 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 					continue;
 				}
 
-				PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page));
+				PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page), PageTablePermissionRW);
 				vaddr += PAGE_SIZE;
 			}
 			break;
@@ -45,7 +45,7 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 		{
 			PAddr paddr;
 			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
-				PageTable_MapPage(space->pageTable, vaddr, paddr);
+				PageTable_MapPage(space->pageTable, vaddr, paddr, PageTablePermissionRW);
 			}
 			break;
 		}
@@ -115,7 +115,7 @@ void AddressSpace_Init()
 
 	vectorPage = Page_Alloc();
 	vector = PAGE_TO_VADDR(vectorPage);
-	PageTable_MapPage(KernelSpace.pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage));
+	PageTable_MapPage(KernelSpace.pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
 	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
 	Slab_Init(&addressSpaceSlab, sizeof(struct AddressSpace));

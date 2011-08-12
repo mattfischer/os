@@ -69,7 +69,7 @@ else
   ifeq ($$($$(target)_TYPE),BINARY)
     ifneq ($$($$(target)_PLATFORM),TARGET_BARE)
       ldflags += -L$$(CROSS_LIBDIR) -u _start -lsystem -lc
-	  extra_deps += system
+	  extra_deps += $$(CROSS_LIBDIR)libsystem$$(CROSS_LIB_EXT)
     endif
   endif
 endif

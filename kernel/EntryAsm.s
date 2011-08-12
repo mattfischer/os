@@ -19,7 +19,7 @@ EntryAsm:
 	ldr r0, [r0, #PageTable_tablePAddr]
 	mcr p15, 0, r0, c2, c0, 0
 
-	mov r0, #0xffffffff
+	ldr r0, domainValue
 	mcr p15, 0, r0, c3, c0, 0
 	
 	mrc p15, 0, r0, c1, c0, 0
@@ -42,6 +42,8 @@ EntryAddr:
 	.word Entry
 memOffset:
 	.word 0xC0000000
+domainValue:
+	.word 0x55555555
 
 .section .text
 .globl vectorStart

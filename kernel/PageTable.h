@@ -21,8 +21,14 @@ struct PageTable {
 
 struct PageTable *PageTable_Create();
 
-void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr);
-void PageTable_MapSectionLow(struct PageTable *pageTable, void *vaddr, PAddr paddr);
+enum PageTablePermission {
+	PageTablePermissionRO,
+	PageTablePermissionRW,
+	PageTablePermissionRWPriv
+};
+
+void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr, enum PageTablePermission permission);
+void PageTable_MapSectionLow(struct PageTable *pageTable, void *vaddr, PAddr paddr, enum PageTablePermission permission);
 
 PAddr PageTable_TranslateVAddr(struct PageTable *pageTable, void *vaddr);
 

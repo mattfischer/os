@@ -16,6 +16,8 @@
 
 #define PTE_SECTION_AP_SHIFT 10
 #define PTE_SECTION_AP_READ_WRITE (0x3 << PTE_SECTION_AP_SHIFT)
+#define PTE_SECTION_AP_READ_ONLY (0x2 << PTE_SECTION_AP_SHIFT)
+#define PTE_SECTION_AP_READ_WRITE_PRIV (0x1 << PTE_SECTION_AP_SHIFT)
 #define PTE_SECTION_BASE_MASK 0xfff00000
 #define PTE_SECTION_BASE_SHIFT 20
 
@@ -34,8 +36,13 @@
 #define PTE_L2_AP2_SHIFT 8
 #define PTE_L2_AP3_SHIFT 10
 
+
 #define PTE_L2_AP_READ_WRITE 0x3
+#define PTE_L2_AP_READ_ONLY 0x2
+#define PTE_L2_AP_READ_WRITE_PRIV 0x1
 #define PTE_L2_AP_ALL_READ_WRITE 0xff0
+#define PTE_L2_AP_ALL_READ_ONLY 0xCC0
+#define PTE_L2_AP_ALL_READ_WRITE_PRIV 0x550
 
 #define PTE_L2_BASE_MASK 0xfffff000
 #define PTE_L2_BASE_SHIFT 12
@@ -108,12 +115,13 @@ static void allocL2Table(struct PageTable *pageTable, void *vaddr)
 	table[idx] = VADDR_TO_PADDR(L2Table) | PTE_TYPE_COARSE;
 }
 
-void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr)
+void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr, enum PageTablePermission permission)
 {
 	unsigned *table;
 	int idx;
 	unsigned pte;
 	unsigned *L2Table;
+	unsigned int perm;
 	int l2idx;
 
 	table = (unsigned*)PADDR_TO_VADDR(pageTable->tablePAddr);
@@ -127,21 +135,34 @@ void PageTable_MapPage(struct PageTable *pageTable, void *vaddr, PAddr paddr)
 
 	pte = table[idx];
 
+	switch(permission) {
+		case PageTablePermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
+		case PageTablePermissionRW: perm = PTE_L2_AP_ALL_READ_WRITE; break;
+		case PageTablePermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
+	}
+
 	if((pte & PTE_TYPE_MASK) == PTE_TYPE_COARSE) {
 		L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
 		l2idx = ((unsigned)vaddr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
-		L2Table[l2idx] = (paddr & PTE_COARSE_BASE_MASK) | PTE_L2_AP_ALL_READ_WRITE | PTE_L2_TYPE_SMALL;
+		L2Table[l2idx] = (paddr & PTE_COARSE_BASE_MASK) | perm | PTE_L2_TYPE_SMALL;
 	}
 }
 
-SECTION_LOW void PageTable_MapSectionLow(struct PageTable *pageTable, void *vaddr, PAddr paddr)
+SECTION_LOW void PageTable_MapSectionLow(struct PageTable *pageTable, void *vaddr, PAddr paddr, enum PageTablePermission permission)
 {
 	unsigned *table;
 	int idx;
+	unsigned int perm;
+
+	switch(permission) {
+		case PageTablePermissionRO: perm = PTE_SECTION_AP_READ_ONLY; break;
+		case PageTablePermissionRW: perm = PTE_SECTION_AP_READ_WRITE; break;
+		case PageTablePermissionRWPriv: perm = PTE_SECTION_AP_READ_WRITE_PRIV; break;
+	}
 
 	table = (unsigned*)pageTable->tablePAddr;
 	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
-	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_SECTION;
+	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
 }
 
 PAddr PageTable_TranslateVAddr(struct PageTable *pageTable, void *addr)
@@ -183,10 +204,10 @@ SECTION_LOW void PageTable_InitLow()
 	LIST_INIT(kernelTableLow->L2Tables);
 
 	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		PageTable_MapSectionLow(kernelTableLow, (void*)vaddr, paddr);
+		PageTable_MapSectionLow(kernelTableLow, (void*)vaddr, paddr, PageTablePermissionRWPriv);
 	}
 
 	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		PageTable_MapSectionLow(kernelTableLow, (void*)vaddr, paddr);
+		PageTable_MapSectionLow(kernelTableLow, (void*)vaddr, paddr, PageTablePermissionRWPriv);
 	}
 }
