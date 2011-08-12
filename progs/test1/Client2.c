@@ -1,11 +1,12 @@
 #include <lib/system/Object.h>
 #include <lib/system/Message.h>
 #include <lib/system/Name.h>
-#include <lib/system/Util.h>
+
+#include <string.h>
 
 #include "Msg.h"
 
-void _start()
+int main(int argc, char *argv[])
 {
 	int obj = LookupName("test");
 

@@ -5,6 +5,7 @@ system_SOURCES := \
 	Message.c \
 	Name.c \
 	Object.c \
-	SwiAsm.s \
-	Util.c
+	Start.c \
+	SwiAsm.s
+
 system_TYPE := LIBRARY

@@ -13,7 +13,7 @@ void PrintUart(char *uart, char *message)
 	}
 }
 
-void _start()
+int main(int argc, char *argv[])
 {
 	char *uart = (char*)0x16000000;
 	int obj = CreateObject();

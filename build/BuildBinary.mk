@@ -1,9 +1,17 @@
 define build_binary
 target := $(1)
 
+ifeq ($$($$(target)_PLATFORM),)
+  $$(target)_PLATFORM := TARGET
+endif
+
+ifeq ($$($$(target)_TYPE),)
+  $$(target)_TYPE := BINARY
+endif
+
 ifeq ($$($$(target)_PLATFORM),HOST)
   ifeq ($$($$(target)_TYPE),LIBRARY)
-    binary := $$(HOST_LIBDIR)$$(target)$$(HOST_LIB_EXT)
+    binary := $$(HOST_LIBDIR)lib$$(target)$$(HOST_LIB_EXT)
 	outdir := $$(HOST_LIBDIR)
   else
     binary := $$(HOST_BINDIR)$$(target)$$(HOST_EXE_EXT)
@@ -21,13 +29,15 @@ ifeq ($$($$(target)_PLATFORM),HOST)
 
   objdir := $$(HOST_OBJDIR)$$(target)
   depdir := $$(HOST_DEPDIR)$$(target)
-  global_cflags := $(HOST_CFLAGS)
-  global_aflags := $(HOST_AFLAGS)
-  global_ldflags := $(HOST_LDFLAGS)
+  cflags := $(HOST_CFLAGS) $$($$(target)_CFLAGS)
+  aflags := $(HOST_AFLAGS) $$($$(target)_AFLAGS)
+  ldflags := $(HOST_LDFLAGS) $$($$(target)_LDFLAGS)
+  extra_deps := $$($$(target)_EXTRA_DEPS)
+  extra_objs := $$($$(target)_EXTRA_OBJS)
   libs := $$($$(target)_LIBS:%=$$(HOST_LIBDIR)%$$(HOST_LIB_EXT))
 else
   ifeq ($$($$(target)_TYPE),LIBRARY)
-    binary := $$(CROSS_LIBDIR)$$(target)$$(CROSS_LIB_EXT)
+    binary := $$(CROSS_LIBDIR)lib$$(target)$$(CROSS_LIB_EXT)
 	outdir := $$(CROSS_LIBDIR)
   else
     binary := $$(CROSS_BINDIR)$$(target)$$(CROSS_EXE_EXT)
@@ -45,12 +55,22 @@ else
 
   objdir := $$(CROSS_OBJDIR)$$(target)
   depdir := $$(CROSS_DEPDIR)$$(target)
-  global_cflags := $(CROSS_CFLAGS)
-  global_aflags := $(CROSS_AFLAGS)
-  global_ldflags := $(CROSS_LDFLAGS)
+  cflags := $(CROSS_CFLAGS) $$($$(target)_CFLAGS)
+  aflags := $(CROSS_AFLAGS) $$($$(target)_AFLAGS)
+  ldflags := $(CROSS_LDFLAGS) $$($$(target)_LDFLAGS)
   libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)%$$(CROSS_LIB_EXT))
   ifneq ($$($$(target)_BASE_ADDR),)
-    global_ldflags += -Ttext $$($$(target)_BASE_ADDR)
+    ldflags += -Ttext $$($$(target)_BASE_ADDR)
+  endif
+
+  extra_deps := $$($$(target)_EXTRA_DEPS)
+  extra_objs := $$($$(target)_EXTRA_OBJS)
+
+  ifeq ($$($$(target)_TYPE),BINARY)
+    ifneq ($$($$(target)_PLATFORM),TARGET_BARE)
+      ldflags += -L$$(CROSS_LIBDIR) -u _start -lsystem -lc
+	  extra_deps += system
+    endif
   endif
 endif
 
@@ -61,19 +81,16 @@ objects := $$(c_sources:%.c=$$(objdir)/%.o) $$(s_sources:%.s=$$(objdir)/%.o)
 
 $$(binary): CWD := $$(CWD)
 $$(binary): makefile := $$(makefile)
-$$(binary): cflags := $$(global_cflags) $$($$(target)_CFLAGS)
-$$(binary): aflags := $$(global_aflags) $$($$(target)_AFLAGS)
-$$(binary): ldflags := $$(global_ldflags) $$($$(target)_LDFLAGS)
+$$(binary): cflags := $$(cflags)
+$$(binary): aflags := $$(aflags)
+$$(binary): ldflags := $$(ldflags)
 $$(binary): objects := $$(objects)
 $$(binary): libs := $$(libs)
-$$(binary): extra_deps := $$($$(target)_EXTRA_DEPS)
-$$(binary): extra_objs := $$($$(target)_EXTRA_OBJS)
+$$(binary): extra_deps := $$(extra_deps)
+$$(binary): extra_objs := $$(extra_objs)
 $$(binary): outdir := $$(outdir)
 $$(binary): objdir := $$(objdir)
 $$(binary): depdir := $$(depdir)
-
-extra_objs := $$($$(target)_EXTRA_OBJS)
-extra_deps := $$($$(target)_EXTRA_DEPS)
 
 clean-$$(target): target := $$(target)
 clean-$$(target): binary := $$(binary)
@@ -91,7 +108,7 @@ else
 $$(binary): $$(objects) $$(libs) $$(extra_objs) $$(extra_deps) $$(makefile)
 	@echo "  $$(ld_desc) $$@"
 	@mkdir -p $$(outdir)
-	@$$(ld) $$(objects) $$(libs) $$(extra_objs) -o $$@ $$(ldflags)
+	@$$(ld) $$(objects) $$(libs) $$(extra_objs) $$(ldflags) -o $$@
 endif
 
 $$(objdir)/%.o: $$(CWD)%.c $$(makefile)

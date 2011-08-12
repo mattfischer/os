@@ -1,10 +1,10 @@
 #include <lib/system/Name.h>
 
 #include <lib/system/Message.h>
-#include <lib/system/Util.h>
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/ProcManagerFmt.h>
 
+#include <string.h>
 #include <stddef.h>
 
 void SetName(const char *name, int obj)
