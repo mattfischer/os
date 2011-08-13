@@ -28,7 +28,7 @@ void Entry()
 	ProcManager_Start();
 }
 
-int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2)
+int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
 	struct Object *object;
 	struct Message *message;
@@ -44,6 +44,9 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 
 		case SyscallReceiveMessage:
 			return ReceiveMessagex(arg0, (struct MessageHeader*)arg1);
+
+		case SyscallReadMessage:
+			return ReadMessage(arg0, (void*)arg1, (int)arg2, (int)arg3);
 
 		case SyscallReplyMessage:
 			return ReplyMessagex(arg0, (int)arg1, (struct MessageHeader*)arg2);

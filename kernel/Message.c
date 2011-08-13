@@ -70,6 +70,13 @@ int ReceiveMessagex(int obj, struct MessageHeader *recvMsg)
 	return Process_RefMessage(Current->process, message);
 }
 
+int ReadMessage(int msg, void *buffer, int offset, int size)
+{
+	struct Message *message = Current->process->messages[msg];
+
+	return Object_ReadMessage(message, buffer, offset, size);
+}
+
 int ReplyMessage(int msg, int ret, void *reply, int replySize)
 {
 	struct MessageHeader replyMsg;

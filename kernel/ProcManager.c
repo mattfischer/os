@@ -82,13 +82,11 @@ static void procManagerMain(void *param)
 			case ProcManagerNameLookup:
 			{
 				int object = Name_Lookup(message.u.lookup.name);
-				struct ProcManagerMsgNameLookupReply reply;
 
-				reply.obj = object;
-				header.body = &reply;
-				header.size = sizeof(reply);
+				header.body = &object;
+				header.size = sizeof(object);
 				header.objectsSize = 1;
-				header.objectsOffset = offsetof(struct ProcManagerMsgNameLookupReply, obj);
+				header.objectsOffset = 0;
 
 				ReplyMessagex(msg, 0, &header);
 				break;

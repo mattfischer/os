@@ -1,6 +1,7 @@
 TARGETS := system
 
 system_SOURCES := \
+	IO.c \
 	Map.c \
 	Message.c \
 	Name.c \

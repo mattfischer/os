@@ -11,7 +11,9 @@ int SendMessagex(int obj, struct MessageHeader *sendMsg, struct MessageHeader *r
 int ReceiveMessage(int obj, void *recv, int recvSize);
 int ReceiveMessagex(int obj, struct MessageHeader *recvMsg);
 
-int ReplyMessage(int message, int ret, void *reply, int replySize);
-int ReplyMessagex(int message, int ret, struct MessageHeader *replyMsg);
+int ReadMessage(int msg, void *buffer, int offset, int size);
+
+int ReplyMessage(int msg, int ret, void *reply, int replySize);
+int ReplyMessagex(int msg, int ret, struct MessageHeader *replyMsg);
 
 #endif

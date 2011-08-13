@@ -118,6 +118,14 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	return message;
 }
 
+int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
+{
+	size = min(message->sendMsg.size, size);
+	AddressSpace_CopyFrom(message->sender->process->addressSpace, buffer, (char*)message->sendMsg.body + offset, size);
+
+	return size;
+}
+
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
 {
 	struct Task *sender = message->sender;

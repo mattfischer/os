@@ -28,15 +28,15 @@ int LookupName(const char *name)
 	struct MessageHeader send;
 	struct ProcManagerMsg msgSend;
 	struct MessageHeader reply;
-	struct ProcManagerMsgNameLookupReply msgReply;
+	int object;
 
 	msgSend.type = ProcManagerNameLookup;
 	strcpy(msgSend.u.lookup.name, name);
 
-	reply.size = sizeof(msgReply);
-	reply.body = &msgReply;
+	reply.size = sizeof(object);
+	reply.body = &object;
 
 	SendMessagesx(0, &msgSend, sizeof(msgSend), &reply);
 
-	return msgReply.obj;
+	return object;
 }

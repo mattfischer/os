@@ -3,9 +3,10 @@
 #include <Name.h>
 #include <Map.h>
 
+#include <malloc.h>
 #include <stddef.h>
 
-#include "Msg.h"
+#include <kernel/include/IOFmt.h>
 
 void PrintUart(char *uart, char *message)
 {
@@ -24,11 +25,20 @@ int main(int argc, char *argv[])
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {
-		struct PrintMsg msg;
+		struct IOMsg msg;
 		int m;
 
 		m = ReceiveMessage(obj, &msg, sizeof(msg));
-		PrintUart(uart, msg.message);
-		ReplyMessage(m, 0, NULL, 0);
+		switch(msg.type) {
+			case IOMsgTypeWrite:
+			{
+				char *buffer = malloc(msg.u.write.size);
+				ReadMessage(m, buffer, offsetof(struct IOMsg, u.write.data), msg.u.write.size);
+				PrintUart(uart, buffer);
+				free(buffer);
+				ReplyMessage(m, 0, NULL, 0);
+				break;
+			}
+		}
 	}
 }

@@ -32,6 +32,7 @@ struct Object *Object_Create();
 
 int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg);
+int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size);
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg);
 
 int CreateObject();

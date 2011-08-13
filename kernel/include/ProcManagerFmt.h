@@ -14,13 +14,9 @@ struct ProcManagerMsgNameLookup {
 	char name[PROC_MANAGER_MSG_NAME_MAX_LEN];
 };
 
-struct ProcManagerMsgNameLookupReply {
-	unsigned int obj;
-};
-
 struct ProcManagerMsgNameSet {
 	char name[PROC_MANAGER_MSG_NAME_MAX_LEN];
-	unsigned int obj;
+	int obj;
 };
 
 struct ProcManagerMsgMapPhys {
