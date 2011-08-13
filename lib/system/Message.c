@@ -13,7 +13,7 @@ int ReceiveMessage(int obj, struct MessageHeader *recvMsg)
 	return swi(SyscallReceiveMessage, (unsigned int)obj, (unsigned int)recvMsg, 0);
 }
 
-int ReplyMessage(int message, struct MessageHeader *replyMsg)
+int ReplyMessage(int message, unsigned int ret, struct MessageHeader *replyMsg)
 {
-	return swi(SyscallReplyMessage, (unsigned int)message, (unsigned int)replyMsg, 0);
+	return swi(SyscallReplyMessage, (unsigned int)message, ret, (unsigned int)replyMsg);
 }

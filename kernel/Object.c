@@ -88,7 +88,7 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 		translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize, message.translateCache);
 	}
 
-	return 0;
+	return message.ret;
 }
 
 struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg)
@@ -118,7 +118,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	return message;
 }
 
-int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg)
+int Object_ReplyMessage(struct Message *message, unsigned int ret, struct MessageHeader *replyMsg)
 {
 	struct Task *sender = message->sender;
 	struct MessageHeader replyMsgLocal;
@@ -138,6 +138,8 @@ int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg)
 
 		AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
 	}
+
+	message->ret = ret;
 
 	Sched_Add(Current);
 	Sched_SwitchTo(sender);

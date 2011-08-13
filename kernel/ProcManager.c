@@ -87,7 +87,7 @@ static void procManagerMain(void *param)
 				header.objectsSize = 1;
 				header.objectsOffset = offsetof(struct ProcManagerMsgNameLookupReply, obj);
 
-				Object_ReplyMessage(message, &header);
+				Object_ReplyMessage(message, 0, &header);
 				break;
 			}
 
@@ -95,7 +95,7 @@ static void procManagerMain(void *param)
 			{
 				Name_Set(msg.u.set.name, (struct Object*)msg.u.set.obj);
 
-				Object_ReplyMessage(message, NULL);
+				Object_ReplyMessage(message, 0, NULL);
 				break;
 			}
 
@@ -104,7 +104,7 @@ static void procManagerMain(void *param)
 				struct MemArea *area = MemArea_CreatePhys(msg.u.mapPhys.size, msg.u.mapPhys.paddr);
 				AddressSpace_Map(message->sender->process->addressSpace, area, (void*)msg.u.mapPhys.vaddr, 0, area->size);
 
-				Object_ReplyMessage(message, NULL);
+				Object_ReplyMessage(message, 0, NULL);
 			}
 		}
 	}

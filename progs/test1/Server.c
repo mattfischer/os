@@ -3,6 +3,8 @@
 #include <lib/system/Name.h>
 #include <lib/system/Map.h>
 
+#include <stddef.h>
+
 #include "Msg.h"
 
 void PrintUart(char *uart, char *message)
@@ -31,6 +33,6 @@ int main(int argc, char *argv[])
 
 		m = ReceiveMessage(obj, &header);
 		PrintUart(uart, msg.message);
-		ReplyMessage(m, &header);
+		ReplyMessage(m, 0, NULL);
 	}
 }

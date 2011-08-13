@@ -18,6 +18,6 @@ int main(int argc, char *argv[])
 		hdr.body = &msg;
 
 		strcpy(msg.message, "A\r\n");
-		SendMessage(obj, &hdr, &hdr);
+		SendMessage(obj, &hdr, NULL);
 	}
 }

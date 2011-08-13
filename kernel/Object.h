@@ -16,6 +16,7 @@ struct Message {
 	struct Task *receiver;
 	struct MessageHeader sendMsg;
 	struct MessageHeader replyMsg;
+	unsigned int ret;
 	struct ListEntry list;
 	struct ObjectTranslate translateCache[MESSAGE_MAX_OBJECTS];
 };
@@ -29,6 +30,6 @@ struct Object *Object_Create();
 
 int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg);
-int Object_ReplyMessage(struct Message *message, struct MessageHeader *replyMsg);
+int Object_ReplyMessage(struct Message *message, unsigned int ret, struct MessageHeader *replyMsg);
 
 #endif
