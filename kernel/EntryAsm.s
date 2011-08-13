@@ -4,13 +4,13 @@
 .equ PageTable_tablePAddr, 0x4
 EntryAsm:
 	ldr r1, memOffset
-	ldr sp, InitStackAddr
+	ldr sp, =InitStack
 	sub sp, r1
 	add sp, #256
 
 	bl EntryLow
 
-	ldr r0, KernelPageTableAddr
+	ldr r0, =KernelPageTable
 	ldr r1, memOffset
 	sub r0, r1
 	ldr r0, [r0, #PageTable_tablePAddr]
@@ -26,17 +26,11 @@ EntryAsm:
 	orr r0, #1
 	mcr p15, 0, r0, c1, c0, 0
 
-	ldr sp, InitStackAddr
+	ldr sp, =InitStack
 	add sp, #256
 	
-	ldr r0, EntryAddr
+	ldr r0, =Entry
 	bx r0
-InitStackAddr:
-	.word InitStack
-KernelPageTableAddr:
-	.word KernelPageTable
-EntryAddr:
-	.word Entry
 memOffset:
 	.word 0xC0000000
 domainValue:
