@@ -6,6 +6,8 @@
 
 #include <kernel/include/MessageFmt.h>
 
+#define INVALID_OBJECT 0x7fffffff
+
 struct ObjectTranslate {
 	unsigned int source;
 	unsigned int target;

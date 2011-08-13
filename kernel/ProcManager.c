@@ -8,6 +8,7 @@
 #include "Process.h"
 #include "Object.h"
 #include "Name.h"
+#include "Message.h"
 
 #include <kernel/include/ProcManagerFmt.h>
 
@@ -15,7 +16,7 @@ struct StartupInfo {
 	char name[16];
 };
 
-static struct Object *procManager;
+static int procManager;
 
 static void startUser(void *param)
 {
@@ -43,12 +44,14 @@ static void startUser(void *param)
 
 static void startUserProcess(const char *name)
 {
+	struct AddressSpace *addressSpace;
 	struct Process *process;
 	struct Task *task;
 	struct StartupInfo *startupInfo;
 
-	process = Process_Create();
-	Process_RefObject(process, procManager);
+	addressSpace = AddressSpace_Create();
+	process = Process_Create(addressSpace);
+	Process_RefObject(process, Current->process->objects[procManager]);
 	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
@@ -59,52 +62,52 @@ static void startUserProcess(const char *name)
 
 static void procManagerMain(void *param)
 {
-	procManager = Object_Create();
+	procManager = CreateObject();
 
 	startUserProcess("server");
 	startUserProcess("client");
 	startUserProcess("client2");
 
 	while(1) {
-		struct ProcManagerMsg msg;
+		struct ProcManagerMsg message;
 		struct MessageHeader header;
-		struct Message *message;
+		int msg;
 
-		header.size = sizeof(msg);
-		header.body = &msg;
+		header.size = sizeof(message);
+		header.body = &message;
 
-		message = Object_ReceiveMessage(procManager, &header);
+		msg = ReceiveMessagex(procManager, &header);
 
-		switch(msg.type) {
+		switch(message.type) {
 			case ProcManagerNameLookup:
 			{
-				struct Object *object = Name_Lookup(msg.u.lookup.name);
+				int object = Name_Lookup(message.u.lookup.name);
 				struct ProcManagerMsgNameLookupReply reply;
 
-				reply.obj = (unsigned int)object;
+				reply.obj = object;
 				header.body = &reply;
 				header.size = sizeof(reply);
 				header.objectsSize = 1;
 				header.objectsOffset = offsetof(struct ProcManagerMsgNameLookupReply, obj);
 
-				Object_ReplyMessage(message, 0, &header);
+				ReplyMessagex(msg, 0, &header);
 				break;
 			}
 
 			case ProcManagerNameSet:
 			{
-				Name_Set(msg.u.set.name, (struct Object*)msg.u.set.obj);
+				Name_Set(message.u.set.name, message.u.set.obj);
 
-				Object_ReplyMessage(message, 0, NULL);
+				ReplyMessage(msg, 0, NULL, 0);
 				break;
 			}
 
 			case ProcManagerMapPhys:
 			{
-				struct MemArea *area = MemArea_CreatePhys(msg.u.mapPhys.size, msg.u.mapPhys.paddr);
-				AddressSpace_Map(message->sender->process->addressSpace, area, (void*)msg.u.mapPhys.vaddr, 0, area->size);
+				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
+				AddressSpace_Map(Current->process->messages[msg]->sender->process->addressSpace, area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
-				Object_ReplyMessage(message, 0, NULL);
+				ReplyMessage(msg, 0, NULL, 0);
 			}
 		}
 	}
@@ -112,7 +115,7 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = Task_Create(NULL);
+	struct Task *task = Task_Create(KernelProcess);
 	Task_Start(task, procManagerMain, NULL);
 
 	Sched_RunFirst();

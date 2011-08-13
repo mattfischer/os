@@ -1,7 +1,6 @@
 .section .low
 .globl EntryAsm
 
-.equ AddressSpace_pageTable, 0x0
 .equ PageTable_tablePAddr, 0x4
 EntryAsm:
 	ldr r1, memOffset
@@ -11,10 +10,8 @@ EntryAsm:
 
 	bl EntryLow
 
-	ldr r0, KernelSpaceAddr
+	ldr r0, KernelPageTableAddr
 	ldr r1, memOffset
-	sub r0, r1
-	ldr r0, [r0, #AddressSpace_pageTable]
 	sub r0, r1
 	ldr r0, [r0, #PageTable_tablePAddr]
 	mcr p15, 0, r0, c2, c0, 0
@@ -36,8 +33,8 @@ EntryAsm:
 	bx r0
 InitStackAddr:
 	.word InitStack
-KernelSpaceAddr:
-	.word KernelSpace
+KernelPageTableAddr:
+	.word KernelPageTable
 EntryAddr:
 	.word Entry
 memOffset:

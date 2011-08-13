@@ -26,8 +26,7 @@ void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source,
 void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size);
 
 void AddressSpace_Init();
-void AddressSpace_InitLow();
 
-extern struct AddressSpace KernelSpace;
+extern struct AddressSpace *KernelSpace;
 
 #endif

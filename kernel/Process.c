@@ -4,11 +4,13 @@
 
 static struct SlabAllocator processSlab;
 
-struct Process *Process_Create()
+struct Process *KernelProcess;
+
+struct Process *Process_Create(struct AddressSpace *addressSpace)
 {
 	struct Process *process = Slab_Allocate(&processSlab);
 
-	process->addressSpace = AddressSpace_Create();
+	process->addressSpace = addressSpace;
 	memset(process->objects, 0, sizeof(struct Object*) * 16);
 	memset(process->messages, 0, sizeof(struct Message*) * 16);
 
@@ -56,4 +58,6 @@ void Process_UnrefMessage(struct Process *process, int n)
 void Process_Init()
 {
 	Slab_Init(&processSlab, sizeof(struct Process));
+
+	KernelProcess = Process_Create(KernelSpace);
 }

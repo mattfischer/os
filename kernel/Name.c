@@ -6,7 +6,7 @@
 
 struct NameEntry {
 	char name[32];
-	struct Object *object;
+	int object;
 	struct ListEntry list;
 };
 
@@ -25,18 +25,18 @@ struct NameEntry *findEntry(const char *name)
 
 	return NULL;
 }
-struct Object *Name_Lookup(const char *name)
+int Name_Lookup(const char *name)
 {
 	struct NameEntry *entry = findEntry(name);
 
 	if(entry == NULL) {
-		return NULL;
+		return INVALID_OBJECT;
 	} else {
 		return entry->object;
 	}
 }
 
-void Name_Set(const char *name, struct Object *object)
+void Name_Set(const char *name, int object)
 {
 	struct NameEntry *entry;
 

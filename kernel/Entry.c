@@ -15,7 +15,6 @@ SECTION_LOW void EntryLow()
 {
 	Page_InitLow();
 	PageTable_InitLow();
-	AddressSpace_InitLow();
 }
 
 void Entry()
@@ -23,6 +22,7 @@ void Entry()
 	AddressSpace_Init();
 	Sched_Init();
 	Object_Init();
+	Process_Init();
 	Name_Init();
 
 	ProcManager_Start();

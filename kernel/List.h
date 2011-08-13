@@ -28,7 +28,7 @@ struct List {
 	(((list).tail == NULL) ? NULL : CONTAINER_OF((list).tail, type, member))
 
 #define LIST_ADD_TAIL(list, entry) \
-	(entry).prev = (list).head; \
+	(entry).prev = (list).tail; \
 	(entry).next = NULL; \
 	if((list).head == NULL) { \
 		(list).head = &(entry); \

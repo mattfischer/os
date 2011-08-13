@@ -3,8 +3,8 @@
 
 #include "Object.h"
 
-struct Object *Name_Lookup(const char *name);
-void Name_Set(const char *name, struct Object *object);
+int Name_Lookup(const char *name);
+void Name_Set(const char *name, int object);
 
 void Name_Init();
 

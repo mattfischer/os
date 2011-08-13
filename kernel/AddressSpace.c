@@ -3,7 +3,7 @@
 #include "AsmFuncs.h"
 #include "Util.h"
 
-struct AddressSpace KernelSpace;
+struct AddressSpace *KernelSpace;
 
 static struct SlabAllocator mappingSlab;
 static struct SlabAllocator addressSpaceSlab;
@@ -113,19 +113,15 @@ void AddressSpace_Init()
 	struct Page *vectorPage;
 	char *vector;
 
-	vectorPage = Page_Alloc();
-	vector = PAGE_TO_VADDR(vectorPage);
-	PageTable_MapPage(KernelSpace.pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
-	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
-
 	Slab_Init(&addressSpaceSlab, sizeof(struct AddressSpace));
 	Slab_Init(&mappingSlab, sizeof(struct Mapping));
-}
 
-SECTION_LOW void AddressSpace_InitLow()
-{
-	struct AddressSpace *kernelSpaceLow = (struct AddressSpace*)VADDR_TO_PADDR(&KernelSpace);
+	KernelSpace = AddressSpace_Create();
+	KernelSpace->pageTable = &KernelPageTable;
+	LIST_INIT(KernelSpace->mappings);
 
-	kernelSpaceLow->pageTable = &KernelPageTable;
-	LIST_INIT(kernelSpaceLow->mappings);
+	vectorPage = Page_Alloc();
+	vector = PAGE_TO_VADDR(vectorPage);
+	PageTable_MapPage(KernelSpace->pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
+	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }
