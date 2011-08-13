@@ -17,7 +17,8 @@ void *Elf_Load(struct AddressSpace *space, void *data, int size)
 			continue;
 		}
 
-		area = MemArea_CreatePages(phdr->p_memsz);
+		int aligned = PAGE_ADDR_ROUND_DOWN(phdr->p_vaddr);
+		area = MemArea_CreatePages(phdr->p_memsz + phdr->p_vaddr - aligned);
 		AddressSpace_Map(space, area, (void*)phdr->p_vaddr, 0, area->size);
 		memcpy((void*)phdr->p_vaddr, (void*)((char*)data + phdr->p_offset), phdr->p_filesz);
 		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);

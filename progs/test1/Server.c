@@ -11,6 +11,10 @@
 void PrintUart(char *uart, char *message)
 {
 	while(*message != '\0') {
+		if(*message == '\n') {
+			*uart = '\r';
+		}
+
 		*uart = *message;
 		message++;
 	}
