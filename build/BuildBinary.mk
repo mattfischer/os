@@ -69,7 +69,7 @@ else
   ifeq ($$($$(target)_PLATFORM),TARGET)
     cflags += -isystem lib/system/include
     ifeq ($$($$(target)_TYPE),BINARY)
-      ldflags += -L$$(CROSS_LIBDIR) -u _start -lsystem -lc
+      ldflags += -L$$(CROSS_LIBDIR) -u _start -lsystem -lc -lsystem
 	  extra_deps += $$(CROSS_LIBDIR)libsystem$$(CROSS_LIB_EXT)
     endif
   endif

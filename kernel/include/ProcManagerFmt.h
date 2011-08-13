@@ -4,7 +4,8 @@
 enum ProcManagerMsgType {
 	ProcManagerNameLookup,
 	ProcManagerNameSet,
-	ProcManagerMapPhys
+	ProcManagerMapPhys,
+	ProcManagerSbrk
 };
 
 #define PROC_MANAGER_MSG_NAME_MAX_LEN 20
@@ -28,12 +29,17 @@ struct ProcManagerMsgMapPhys {
 	unsigned int size;
 };
 
+struct ProcManagerMsgSbrk {
+	unsigned int increment;
+};
+
 struct ProcManagerMsg {
 	enum ProcManagerMsgType type;
 	union {
 		struct ProcManagerMsgNameLookup lookup;
 		struct ProcManagerMsgNameSet set;
 		struct ProcManagerMsgMapPhys mapPhys;
+		struct ProcManagerMsgSbrk sbrk;
 	} u;
 };
 

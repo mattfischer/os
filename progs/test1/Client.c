@@ -3,13 +3,13 @@
 #include <Name.h>
 
 #include <string.h>
+#include <stdlib.h>
 
 #include "Msg.h"
 
 int main(int argc, char *argv[])
 {
 	int obj = LookupName("test");
-
 	while(1) {
 		struct PrintMsg msg;
 

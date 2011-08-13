@@ -108,6 +108,45 @@ static void procManagerMain(void *param)
 				AddressSpace_Map(Current->process->messages[msg]->sender->process->addressSpace, area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
+				break;
+			}
+
+			case ProcManagerSbrk:
+			{
+				struct Process *process = Current->process->messages[msg]->sender->process;
+				int increment = message.u.sbrk.increment;
+				int ret;
+
+				if(process->heapTop == NULL) {
+					int size = PAGE_SIZE_ROUND_UP(increment);
+
+					process->heap = MemArea_CreatePages(size);
+					process->heapTop = (void*)(0x10000000 + increment);
+					process->heapAreaTop = (void*)(0x10000000 + size);
+					AddressSpace_Map(process->addressSpace, process->heap, (void*)0x10000000, 0, size);
+					ret = 0x10000000;
+				} else {
+					if(process->heapTop + increment < process->heapAreaTop) {
+						ret = (int)process->heapTop;
+						process->heapTop += increment;
+					} else {
+						int size = PAGE_SIZE_ROUND_UP(increment);
+						int extraPages = size >> PAGE_SHIFT;
+						int i;
+
+						ret = (int)process->heapTop;
+						for(i=0; i<extraPages; i++) {
+							struct Page *page = Page_Alloc();
+							LIST_ADD_TAIL(process->heap->u.pages, page->list);
+							PageTable_MapPage(process->addressSpace->pageTable, process->heapAreaTop, PAGE_TO_PADDR(page), PageTablePermissionRW);
+							process->heapAreaTop += PAGE_SIZE;
+						}
+						process->heapTop += increment;
+					}
+				}
+
+				ReplyMessage(msg, ret, NULL, 0);
+				break;
 			}
 		}
 	}

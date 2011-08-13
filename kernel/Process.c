@@ -11,6 +11,8 @@ struct Process *Process_Create(struct AddressSpace *addressSpace)
 	struct Process *process = Slab_Allocate(&processSlab);
 
 	process->addressSpace = addressSpace;
+	process->heap = NULL;
+	process->heapTop = NULL;
 	memset(process->objects, 0, sizeof(struct Object*) * 16);
 	memset(process->messages, 0, sizeof(struct Message*) * 16);
 
