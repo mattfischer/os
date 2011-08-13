@@ -8,6 +8,7 @@ kernel_SOURCES := \
 	Entry.c \
 	InitFs.c \
 	MemArea.c \
+	Message.c \
 	Name.c \
 	Object.c \
 	Page.c \

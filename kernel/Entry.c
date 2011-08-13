@@ -5,8 +5,9 @@
 #include "ProcManager.h"
 #include "Object.h"
 #include "Name.h"
+#include "Message.h"
 
-#include <kernel/include/Syscalls.h>
+#include "include/Syscalls.h"
 
 char InitStack[256];
 
@@ -39,30 +40,19 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallSendMessage:
-			object = Current->process->objects[arg0];
-			ret = Object_SendMessage(object, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
-			return ret;
+			return SendMessagex(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
 
 		case SyscallReceiveMessage:
-			object = Current->process->objects[arg0];
-			message = Object_ReceiveMessage(object, (struct MessageHeader*)arg1);
-			ret = Process_RefMessage(Current->process, message);
-			return ret;
+			return ReceiveMessagex(arg0, (struct MessageHeader*)arg1);
 
 		case SyscallReplyMessage:
-			message = Current->process->messages[arg0];
-			ret = Object_ReplyMessage(message, (int)arg1, (struct MessageHeader*)arg2);
-			Process_UnrefMessage(Current->process, arg0);
-			return ret;
+			return ReplyMessagex(arg0, (int)arg1, (struct MessageHeader*)arg2);
 
-		case SyscallObjectCreate:
-			object = Object_Create();
-			ret = Process_RefObject(Current->process, object);
-			return ret;
+		case SyscallCreateObject:
+			return CreateObject();
 
-		case SyscallObjectUnref:
-			Process_UnrefObject(Current->process, arg0);
-			ret = 0;
-			return ret;
+		case SyscallReleaseObject:
+			ReleaseObject(arg0);
+			return 0;
 	}
 }

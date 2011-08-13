@@ -32,4 +32,7 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg);
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg);
 
+int CreateObject();
+void ReleaseObject(int obj);
+
 #endif

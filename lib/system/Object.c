@@ -5,10 +5,10 @@
 
 int CreateObject()
 {
-	return swi(SyscallObjectCreate, 0, 0, 0);
+	return swi(SyscallCreateObject, 0, 0, 0);
 }
 
-void UnrefObject(int obj)
+void ReleaseObject(int obj)
 {
-	swi(SyscallObjectUnref, obj, 0, 0);
+	swi(SyscallReleaseObject, obj, 0, 0);
 }

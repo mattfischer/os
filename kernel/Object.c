@@ -146,3 +146,14 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 
 	return 0;
 }
+
+int CreateObject()
+{
+	struct Object *object = Object_Create();
+	return Process_RefObject(Current->process, object);
+}
+
+void ReleaseObject(int obj)
+{
+	Process_UnrefObject(Current->process, obj);
+}

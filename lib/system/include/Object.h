@@ -2,6 +2,6 @@
 #define OBJECT_H
 
 int CreateObject();
-void UnrefObject(int obj);
+void ReleaseObject(int obj);
 
 #endif
