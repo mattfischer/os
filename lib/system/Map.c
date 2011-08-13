@@ -1,6 +1,6 @@
-#include <lib/system/Map.h>
+#include "include/Map.h"
+#include "include/Message.h"
 
-#include <lib/system/Message.h>
 #include <kernel/include/ProcManagerFmt.h>
 
 #include <stddef.h>

@@ -1,6 +1,6 @@
-#include <lib/system/Message.h>
+#include "include/Message.h"
+#include "Swi.h"
 
-#include "private/Internal.h"
 #include <kernel/include/Syscalls.h>
 
 int SendMessage(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)

@@ -1,6 +1,6 @@
-#include <lib/system/Object.h>
+#include "include/Object.h"
+#include "Swi.h"
 
-#include "private/Internal.h"
 #include <kernel/include/Syscalls.h>
 
 int CreateObject()

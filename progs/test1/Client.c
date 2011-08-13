@@ -1,6 +1,6 @@
-#include <lib/system/Object.h>
-#include <lib/system/Message.h>
-#include <lib/system/Name.h>
+#include <Object.h>
+#include <Message.h>
+#include <Name.h>
 
 #include <string.h>
 

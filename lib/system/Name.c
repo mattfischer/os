@@ -1,6 +1,6 @@
-#include <lib/system/Name.h>
+#include "include/Name.h"
+#include "include/Message.h"
 
-#include <lib/system/Message.h>
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/ProcManagerFmt.h>
 

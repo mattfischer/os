@@ -66,8 +66,9 @@ else
   extra_deps := $$($$(target)_EXTRA_DEPS)
   extra_objs := $$($$(target)_EXTRA_OBJS)
 
-  ifeq ($$($$(target)_TYPE),BINARY)
-    ifneq ($$($$(target)_PLATFORM),TARGET_BARE)
+  ifeq ($$($$(target)_PLATFORM),TARGET)
+    cflags += -isystem lib/system/include
+    ifeq ($$($$(target)_TYPE),BINARY)
       ldflags += -L$$(CROSS_LIBDIR) -u _start -lsystem -lc
 	  extra_deps += $$(CROSS_LIBDIR)libsystem$$(CROSS_LIB_EXT)
     endif
