@@ -118,7 +118,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	return message;
 }
 
-int Object_ReplyMessage(struct Message *message, unsigned int ret, struct MessageHeader *replyMsg)
+int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
 {
 	struct Task *sender = message->sender;
 	struct MessageHeader replyMsgLocal;

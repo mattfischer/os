@@ -20,7 +20,7 @@ void SetName(const char *name, int obj)
 	msg.type = ProcManagerNameSet;
 	strcpy(msg.u.set.name, name);
 	msg.u.set.obj = obj;
-	SendMessage(0, &hdr, NULL);
+	SendMessagexs(0, &hdr, NULL, 0);
 }
 
 int LookupName(const char *name)
@@ -30,18 +30,13 @@ int LookupName(const char *name)
 	struct MessageHeader reply;
 	struct ProcManagerMsgNameLookupReply msgReply;
 
-	send.size = sizeof(msgSend);
-	send.body = &msgSend;
-	send.objectsSize = 0;
-	send.objectsOffset = 0;
-
 	msgSend.type = ProcManagerNameLookup;
 	strcpy(msgSend.u.lookup.name, name);
 
 	reply.size = sizeof(msgReply);
 	reply.body = &msgReply;
 
-	SendMessage(0, &send, &reply);
+	SendMessagesx(0, &msgSend, sizeof(msgSend), &reply);
 
 	return msgReply.obj;
 }

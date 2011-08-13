@@ -24,15 +24,11 @@ int main(int argc, char *argv[])
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {
-		struct MessageHeader header;
 		struct PrintMsg msg;
 		int m;
 
-		header.size = sizeof(msg);
-		header.body = &msg;
-
-		m = ReceiveMessage(obj, &header);
+		m = ReceiveMessage(obj, &msg, sizeof(msg));
 		PrintUart(uart, msg.message);
-		ReplyMessage(m, 0, NULL);
+		ReplyMessage(m, 0, NULL, 0);
 	}
 }

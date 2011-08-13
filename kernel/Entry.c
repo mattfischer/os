@@ -51,7 +51,7 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 
 		case SyscallReplyMessage:
 			message = Current->process->messages[arg0];
-			ret = Object_ReplyMessage(message, arg1, (struct MessageHeader*)arg2);
+			ret = Object_ReplyMessage(message, (int)arg1, (struct MessageHeader*)arg2);
 			Process_UnrefMessage(Current->process, arg0);
 			return ret;
 
