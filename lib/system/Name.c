@@ -4,6 +4,8 @@
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/ProcManagerFmt.h>
 
+#include "Internal.h"
+
 #include <string.h>
 #include <stddef.h>
 
@@ -20,7 +22,7 @@ void SetName(const char *name, int obj)
 	msg.type = ProcManagerNameSet;
 	strcpy(msg.u.set.name, name);
 	msg.u.set.obj = obj;
-	SendMessagexs(0, &hdr, NULL, 0);
+	SendMessagexs(__ProcessManager, &hdr, NULL, 0);
 }
 
 int LookupName(const char *name)
@@ -36,7 +38,7 @@ int LookupName(const char *name)
 	reply.size = sizeof(object);
 	reply.body = &object;
 
-	SendMessagesx(0, &msgSend, sizeof(msgSend), &reply);
+	SendMessagesx(__ProcessManager, &msgSend, sizeof(msgSend), &reply);
 
 	return object;
 }

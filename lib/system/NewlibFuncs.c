@@ -3,6 +3,8 @@
 
 #include <kernel/include/ProcManagerFmt.h>
 
+#include "Internal.h"
+
 #include <sys/stat.h>
 #include <stddef.h>
 
@@ -12,7 +14,7 @@ void *_sbrk(int inc)
 
 	msg.type = ProcManagerSbrk;
 	msg.u.sbrk.increment = inc;
-	return (void*)SendMessage(0, &msg, sizeof(msg), NULL, 0);
+	return (void*)SendMessage(__ProcessManager, &msg, sizeof(msg), NULL, 0);
 }
 
 int _write(int fd, char *buffer, int len)

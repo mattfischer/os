@@ -23,6 +23,10 @@ int Process_RefObject(struct Process *process, struct Object *object)
 {
 	int i;
 
+	if(object == NULL) {
+		return INVALID_OBJECT;
+	}
+
 	for(i=0; i<16; i++) {
 		if(process->objects[i] == NULL) {
 			process->objects[i] = object;
@@ -30,12 +34,42 @@ int Process_RefObject(struct Process *process, struct Object *object)
 		}
 	}
 
-	return -1;
+	return INVALID_OBJECT;
+}
+
+int Process_RefObjectTo(struct Process *process, int obj, struct Object *object)
+{
+	if(process->objects[obj] != NULL || object == NULL) {
+		return INVALID_OBJECT;
+	}
+
+	process->objects[obj] = object;
+	return obj;
 }
 
 void Process_UnrefObject(struct Process *process, int n)
 {
-	process->objects[n] = NULL;
+	if(n != INVALID_OBJECT) {
+		process->objects[n] = NULL;
+	}
+}
+
+int Process_DupObjectRef(struct Process *process, struct Process *sourceProcess, int sourceObject)
+{
+	if(sourceObject == INVALID_OBJECT) {
+		return INVALID_OBJECT;
+	}
+
+	return Process_RefObject(process, sourceProcess->objects[sourceObject]);
+}
+
+int Process_DupObjectRefTo(struct Process *process, int obj, struct Process *sourceProcess, int sourceObject)
+{
+	if(sourceObject == INVALID_OBJECT) {
+		return INVALID_OBJECT;
+	}
+
+	return Process_RefObjectTo(process, obj, sourceProcess->objects[sourceObject]);
 }
 
 int Process_RefMessage(struct Process *process, struct Message *message)

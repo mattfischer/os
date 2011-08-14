@@ -1,3 +1,4 @@
-server:out/bin/server
-client:out/bin/client
-client2:out/bin/client2
+console:out/bin/console
+init:out/bin/init
+clientA:out/bin/clientA
+clientB:out/bin/clientB

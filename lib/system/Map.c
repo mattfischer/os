@@ -3,6 +3,8 @@
 
 #include <kernel/include/ProcManagerFmt.h>
 
+#include "Internal.h"
+
 #include <stddef.h>
 
 void MapPhys(void *vaddr, unsigned int paddr, unsigned int size)
@@ -13,5 +15,5 @@ void MapPhys(void *vaddr, unsigned int paddr, unsigned int size)
 	msg.u.mapPhys.vaddr = (unsigned int)vaddr;
 	msg.u.mapPhys.paddr = paddr;
 	msg.u.mapPhys.size = size;
-	SendMessage(0, &msg, sizeof(msg), NULL, 0);
+	SendMessage(__ProcessManager, &msg, sizeof(msg), NULL, 0);
 }

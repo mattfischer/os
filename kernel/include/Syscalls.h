@@ -9,6 +9,7 @@ enum Syscall {
 	SyscallReplyMessage,
 	SyscallCreateObject,
 	SyscallReleaseObject,
+	SyscallGetProcessManager
 };
 
 #endif

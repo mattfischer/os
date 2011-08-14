@@ -7,7 +7,10 @@ system_SOURCES := \
 	Name.c \
 	NewlibFuncs.c \
 	Object.c \
+	ProcessManager.c \
+	Spawn.c \
 	Start.c \
-	SwiAsm.s
+	SwiAsm.s \
+	Yield.c
 
 system_TYPE := LIBRARY

@@ -16,7 +16,7 @@ struct StartupInfo {
 	char name[16];
 };
 
-static int procManager;
+int ProcessManager;
 
 static void startUser(void *param)
 {
@@ -42,7 +42,7 @@ static void startUser(void *param)
 	EnterUser(entry, stackVAddr + stackSize);
 }
 
-static void startUserProcess(const char *name)
+static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
 	struct AddressSpace *addressSpace;
 	struct Process *process;
@@ -51,7 +51,9 @@ static void startUserProcess(const char *name)
 
 	addressSpace = AddressSpace_Create();
 	process = Process_Create(addressSpace);
-	Process_RefObject(process, Current->process->objects[procManager]);
+	Process_DupObjectRefTo(process, 0, Current->process, stdinObject);
+	Process_DupObjectRefTo(process, 1, Current->process, stdoutObject);
+	Process_DupObjectRefTo(process, 2, Current->process, stdoutObject);
 	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
@@ -62,11 +64,9 @@ static void startUserProcess(const char *name)
 
 static void procManagerMain(void *param)
 {
-	procManager = CreateObject();
+	ProcessManager = CreateObject();
 
-	startUserProcess("server");
-	startUserProcess("client");
-	startUserProcess("client2");
+	startUserProcess("init", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
 
 	while(1) {
 		struct ProcManagerMsg message;
@@ -76,7 +76,7 @@ static void procManagerMain(void *param)
 		header.size = sizeof(message);
 		header.body = &message;
 
-		msg = ReceiveMessagex(procManager, &header);
+		msg = ReceiveMessagex(ProcessManager, &header);
 
 		switch(message.type) {
 			case ProcManagerNameLookup:
@@ -145,6 +145,16 @@ static void procManagerMain(void *param)
 
 				ReplyMessage(msg, ret, NULL, 0);
 				break;
+			}
+
+			case ProcManagerSpawnProcess:
+			{
+				startUserProcess(message.u.spawn.name, message.u.spawn.stdinObject, message.u.spawn.stdoutObject, message.u.spawn.stderrObject);
+				ReleaseObject(message.u.spawn.stdinObject);
+				ReleaseObject(message.u.spawn.stdoutObject);
+				ReleaseObject(message.u.spawn.stderrObject);
+
+				ReplyMessage(msg, 0, NULL, 0);
 			}
 		}
 	}

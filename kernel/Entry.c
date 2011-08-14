@@ -57,5 +57,8 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 		case SyscallReleaseObject:
 			ReleaseObject(arg0);
 			return 0;
+
+		case SyscallGetProcessManager:
+			return Process_DupObjectRef(Current->process, KernelProcess, ProcessManager);
 	}
 }

@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	char *uart = (char*)0x16000000;
 	int obj = CreateObject();
 
-	SetName("test", obj);
+	SetName("console", obj);
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {
