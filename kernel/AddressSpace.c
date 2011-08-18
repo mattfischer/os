@@ -76,33 +76,28 @@ struct AddressSpace *AddressSpace_Create()
 	return space;
 }
 
-void AddressSpace_CopyFrom(struct AddressSpace *space, void *dest, void *source, int size)
+static unsigned nextPageBoundary(unsigned addr)
 {
-	int copied = 0;
-
-	while(copied < size) {
-		unsigned p = (unsigned)source + copied;
-		unsigned aligned = p & PAGE_MASK;
-		unsigned alignedNext = aligned + PAGE_SIZE;
-		int pageSize = min(alignedNext - p, size - copied);
-		void *addr = PADDR_TO_VADDR(PageTable_TranslateVAddr(space->pageTable, (void*)p));
-		memcpy((char*)dest + copied, addr, pageSize);
-		copied += pageSize;
-	}
+	return (addr & PAGE_MASK) + PAGE_SIZE;
 }
 
-void AddressSpace_CopyTo(struct AddressSpace *space, void *dest, void *source, int size)
+void AddressSpace_Memcpy(struct AddressSpace *destSpace, void *dest, struct AddressSpace *srcSpace, void *src, int size)
 {
-	int copied = 0;
+	unsigned srcPtr = (unsigned)src;
+	unsigned destPtr = (unsigned)dest;
 
-	while(copied < size) {
-		unsigned p = (unsigned)dest + copied;
-		unsigned aligned = p & PAGE_MASK;
-		unsigned alignedNext = aligned + PAGE_SIZE;
-		int pageSize = min(alignedNext - p, size - copied);
-		void *addr = PADDR_TO_VADDR(PageTable_TranslateVAddr(space->pageTable, (void*)p));
-		memcpy(addr, (char*)source + copied, pageSize);
-		copied += pageSize;
+	while(size > 0) {
+		int srcSize = nextPageBoundary(srcPtr) - srcPtr;
+		int destSize = nextPageBoundary(destPtr) - destPtr;
+		int copySize = min(min(srcSize, destSize), size);
+
+		void *srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable, (void*)srcPtr));
+		void *destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable, (void*)destPtr));
+
+		memcpy(destKernel, srcKernel, copySize);
+		srcPtr += copySize;
+		destPtr += copySize;
+		size -= copySize;
 	}
 }
 

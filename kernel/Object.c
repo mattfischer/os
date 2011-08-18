@@ -111,7 +111,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	recvMsg->objectsOffset = message->sendMsg.objectsOffset;
 	recvMsg->objectsSize = message->sendMsg.objectsSize;
 
-	AddressSpace_CopyFrom(message->sender->process->addressSpace, recvMsg->body, message->sendMsg.body, recvMsg->size);
+	AddressSpace_Memcpy(Current->process->addressSpace, recvMsg->body, message->sender->process->addressSpace, message->sendMsg.body, recvMsg->size);
 	translateObjects(message->sender->process, Current->process, recvMsg->body, recvMsg->objectsOffset, recvMsg->objectsSize, message->translateCache);
 
 	message->sender->state = TaskStateReplyBlock;
@@ -121,7 +121,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
 {
 	size = min(message->sendMsg.size, size);
-	AddressSpace_CopyFrom(message->sender->process->addressSpace, buffer, (char*)message->sendMsg.body + offset, size);
+	AddressSpace_Memcpy(Current->process->addressSpace, buffer, message->sender->process->addressSpace, (char*)message->sendMsg.body + offset, size);
 
 	return size;
 }
@@ -144,7 +144,7 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 			message->translateCache[i].source = ((unsigned int*)((char*)replyMsg->body + replyMsg->objectsOffset))[i];
 		}
 
-		AddressSpace_CopyTo(addressSpace, message->replyMsg.body, replyMsg->body, message->replyMsg.size);
+		AddressSpace_Memcpy(addressSpace, message->replyMsg.body, Current->process->addressSpace, replyMsg->body, message->replyMsg.size);
 	}
 
 	message->ret = ret;
