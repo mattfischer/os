@@ -1,6 +1,6 @@
 TARGETS := mkinitfs
 
 mkinitfs_SOURCES := \
-	mkinitfs.c
+	MkInitFs.c
 
 mkinitfs_PLATFORM := HOST
