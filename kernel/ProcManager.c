@@ -71,10 +71,11 @@ static void procManagerMain(void *param)
 	while(1) {
 		struct ProcManagerMsg message;
 		struct MessageHeader header;
+		struct BufferSegment segments[] = { &message, sizeof(message) };
 		int msg;
 
-		header.size = sizeof(message);
-		header.body = &message;
+		header.segments = segments;
+		header.numSegments = 1;
 
 		msg = ReceiveMessagex(ProcessManager, &header);
 
@@ -83,8 +84,10 @@ static void procManagerMain(void *param)
 			{
 				int object = Name_Lookup(message.u.lookup.name);
 
-				header.body = &object;
-				header.size = sizeof(object);
+				segments[0].buffer = &object;
+				segments[0].size = sizeof(object);
+				header.segments = segments;
+				header.numSegments = 1;
 				header.objectsSize = 1;
 				header.objectsOffset = 0;
 

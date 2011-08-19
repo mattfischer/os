@@ -13,6 +13,7 @@ void SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stder
 {
 	struct MessageHeader hdr;
 	struct ProcManagerMsg msg;
+	struct BufferSegment segs[] = { &msg, sizeof(msg) };
 
 	msg.type = ProcManagerSpawnProcess;
 	strcpy(msg.u.spawn.name, name);
@@ -20,8 +21,8 @@ void SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stder
 	msg.u.spawn.stdoutObject = stdoutObject;
 	msg.u.spawn.stderrObject = stderrObject;
 
-	hdr.body = &msg;
-	hdr.size = sizeof(msg);
+	hdr.segments = segs;
+	hdr.numSegments = 1;
 	hdr.objectsOffset = offsetof(struct ProcManagerMsg, u.spawn.stdinObject);
 	hdr.objectsSize = 3;
 

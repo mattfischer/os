@@ -91,8 +91,20 @@ void AddressSpace_Memcpy(struct AddressSpace *destSpace, void *dest, struct Addr
 		int destSize = nextPageBoundary(destPtr) - destPtr;
 		int copySize = min(min(srcSize, destSize), size);
 
-		void *srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable, (void*)srcPtr));
-		void *destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable, (void*)destPtr));
+		void *srcKernel;
+		void *destKernel;
+
+		if(srcSpace == NULL) {
+			srcKernel = (void*)srcPtr;
+		} else {
+			srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable, (void*)srcPtr));
+		}
+
+		if(destSpace == NULL ) {
+			destKernel = (void*)destPtr;
+		} else {
+			destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable, (void*)destPtr));
+		}
 
 		memcpy(destKernel, srcKernel, copySize);
 		srcPtr += copySize;

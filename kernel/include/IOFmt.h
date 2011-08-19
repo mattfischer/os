@@ -6,15 +6,14 @@ enum IOMsgType {
 	IOMsgTypeLast
 };
 
-struct IOMsgWrite {
+struct IOMsgWriteHdr {
 	int size;
-	char data[1];
 };
 
 struct IOMsg {
 	enum IOMsgType type;
 	union {
-		struct IOMsgWrite write;
+		struct IOMsgWriteHdr write;
 	} u;
 };
 

@@ -19,45 +19,87 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
-static void readBuffer(struct Process *destProcess, void *dest, struct Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
+static int readBuffer(struct Process *destProcess, void *dest, struct Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
 {
-	int i;
+	int i, j;
+	int copied;
+	int srcOffset;
 
-	AddressSpace_Memcpy(destProcess->addressSpace, dest, srcProcess->addressSpace, (char*)src->body + offset, size);
+	copied = 0;
+	srcOffset = 0;
+	for(i=0; i<src->numSegments; i++) {
+		struct BufferSegment segment;
+		int segmentSize;
+		int segmentStart;
 
-	for(i=0; i<src->objectsSize; i++) {
-		int *s, *d;
-		int objOffset;
-		int obj;
+		AddressSpace_Memcpy(NULL, &segment, srcProcess->addressSpace, src->segments + i, sizeof(struct BufferSegment));
 
-		objOffset = src->objectsOffset + i * sizeof(int);
-		if(objOffset < offset || objOffset >= offset + size) {
+		if(srcOffset + segment.size < offset) {
+			srcOffset += segment.size;
 			continue;
 		}
 
-		s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, (char*)src->body + objOffset));
-		d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, dest + objOffset - offset));
-		obj = *s;
+		segmentStart = offset + copied - srcOffset;
+		segmentSize = min(size - copied, segment.size - segmentStart);
 
-		if(translateCache[i] == INVALID_OBJECT) {
-			translateCache[i] = Process_DupObjectRef(destProcess, srcProcess, obj);
+		AddressSpace_Memcpy(destProcess->addressSpace, (char*)dest + copied, srcProcess->addressSpace, (char*)segment.buffer + segmentStart, segmentSize);
+
+		for(j=0; j<src->objectsSize; j++) {
+			int *s, *d;
+			int objOffset;
+			int obj;
+
+			objOffset = src->objectsOffset + j * sizeof(int);
+			if(objOffset < srcOffset + segmentStart || objOffset >= srcOffset + segmentSize) {
+				continue;
+			}
+
+			s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, (char*)segment.buffer + objOffset - srcOffset));
+			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, dest + objOffset - offset));
+			obj = *s;
+
+			if(translateCache[i] == INVALID_OBJECT) {
+				translateCache[i] = Process_DupObjectRef(destProcess, srcProcess, obj);
+			}
+
+			*d = translateCache[i];
 		}
 
-		*d = translateCache[i];
+		srcOffset += segment.size;
+		copied += segmentSize;
+
+		if(copied == size) {
+			break;
+		}
 	}
+
+	return copied;
 }
 
-static void copyBuffer(struct Process *destProcess, struct MessageHeader *dest, struct Process *srcProcess, struct MessageHeader *src, int translateCache[])
+static int copyBuffer(struct Process *destProcess, struct MessageHeader *dest, struct Process *srcProcess, struct MessageHeader *src, int translateCache[])
 {
 	int size;
-
-	size = min(src->size, dest->size);
+	int copied;
+	int i;
 
 	dest->objectsOffset = src->objectsOffset;
 	dest->objectsSize = src->objectsSize;
-	dest->size = size;
 
-	readBuffer(destProcess, dest->body, srcProcess, src, 0, size, translateCache);
+	copied = 0;
+	for(i=0; i<dest->numSegments; i++) {
+		struct BufferSegment segment;
+		int segmentCopied;
+
+		AddressSpace_Memcpy(NULL, &segment, destProcess->addressSpace, dest->segments + i, sizeof(struct BufferSegment));
+
+		segmentCopied = readBuffer(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
+		copied += segmentCopied;
+		if(segmentCopied < segment.size) {
+			break;
+		}
+	}
+
+	return copied;
 }
 
 int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
@@ -114,16 +156,7 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 
 int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
 {
-	int s;
-
-	s = min(message->sendMsg.size - offset, size);
-	if(s < 0) {
-		return 0;
-	}
-
-	readBuffer(Current->process, buffer, message->sender->process, &message->sendMsg, offset, s, message->translateCache);
-
-	return s;
+	return readBuffer(Current->process, buffer, message->sender->process, &message->sendMsg, offset, size, message->translateCache);
 }
 
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)

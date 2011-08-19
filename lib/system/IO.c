@@ -4,21 +4,21 @@
 
 #include <kernel/include/IOFmt.h>
 
-#include <malloc.h>
-#include <string.h>
 #include <stddef.h>
 
 int Write(int obj, void *buffer, int size)
 {
-	int msgSize = sizeof(struct IOMsg) + size - 1;
-	char *msgBuf = malloc(msgSize);
-	struct IOMsg *msg = (struct IOMsg*)msgBuf;
+	struct IOMsg msg;
+	struct MessageHeader hdr;
+	struct BufferSegment segs[] = { &msg, sizeof(msg), buffer, size };
 	int ret;
 
-	msg->type = IOMsgTypeWrite;
-	msg->u.write.size = size;
-	memcpy(msg->u.write.data, buffer, size);
-	ret = SendMessage(obj, msg, msgSize, NULL, 0);
-	free(msgBuf);
+	msg.type = IOMsgTypeWrite;
+	msg.u.write.size = size;
+
+	hdr.segments = segs;
+	hdr.numSegments = 2;
+
+	ret = SendMessagexs(obj, &hdr, NULL, 0);
 	return ret;
 }

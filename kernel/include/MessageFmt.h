@@ -3,9 +3,14 @@
 
 #define MESSAGE_MAX_OBJECTS 4
 
-struct MessageHeader {
+struct BufferSegment {
+	void *buffer;
 	int size;
-	void *body;
+};
+
+struct MessageHeader {
+	struct BufferSegment *segments;
+	int numSegments;
 	int objectsOffset;
 	int objectsSize;
 };

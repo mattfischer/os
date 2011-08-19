@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 			case IOMsgTypeWrite:
 			{
 				char *buffer = malloc(msg.u.write.size);
-				ReadMessage(m, buffer, offsetof(struct IOMsg, u.write.data), msg.u.write.size);
+				ReadMessage(m, buffer, offsetof(struct IOMsg, u.write) + sizeof(msg.u.write), msg.u.write.size);
 				PrintUart(uart, buffer);
 				free(buffer);
 				ReplyMessage(m, 0, NULL, 0);

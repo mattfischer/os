@@ -13,9 +13,10 @@ void SetName(const char *name, int obj)
 {
 	struct MessageHeader hdr;
 	struct ProcManagerMsg msg;
+	struct BufferSegment segs[] = { &msg, sizeof(msg) };
 
-	hdr.size = sizeof(msg);
-	hdr.body = &msg;
+	hdr.segments = segs;
+	hdr.numSegments = 1;
 	hdr.objectsSize = 1;
 	hdr.objectsOffset = offsetof(struct ProcManagerMsg, u.set.obj);
 
@@ -31,12 +32,13 @@ int LookupName(const char *name)
 	struct ProcManagerMsg msgSend;
 	struct MessageHeader reply;
 	int object;
+	struct BufferSegment segs[] = { &object, sizeof(object) };
 
 	msgSend.type = ProcManagerNameLookup;
 	strcpy(msgSend.u.lookup.name, name);
 
-	reply.size = sizeof(object);
-	reply.body = &object;
+	reply.segments = segs;
+	reply.numSegments = 1;
 
 	SendMessagesx(__ProcessManager, &msgSend, sizeof(msgSend), &reply);
 

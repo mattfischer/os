@@ -6,15 +6,17 @@
 int SendMessage(int obj, void *msg, int msgSize, void *reply, int replySize)
 {
 	struct MessageHeader sendMsg;
+	struct BufferSegment sendSegs[] = { msg, msgSize };
 	struct MessageHeader replyMsg;
+	struct BufferSegment replySegs[] = { reply, replySize };
 
-	sendMsg.size = msgSize;
-	sendMsg.body = msg;
+	sendMsg.segments = sendSegs;
+	sendMsg.numSegments = 1;
 	sendMsg.objectsSize = 0;
 	sendMsg.objectsOffset = 0;
 
-	replyMsg.size = replySize;
-	replyMsg.body = reply;
+	replyMsg.segments = replySegs;
+	replyMsg.numSegments = 1;
 	replyMsg.objectsSize = 0;
 	replyMsg.objectsOffset = 0;
 
@@ -24,9 +26,10 @@ int SendMessage(int obj, void *msg, int msgSize, void *reply, int replySize)
 int SendMessagexs(int obj, struct MessageHeader *sendMsg, void *reply, int replySize)
 {
 	struct MessageHeader replyMsg;
+	struct BufferSegment replySegs[] = { reply, replySize };
 
-	replyMsg.size = replySize;
-	replyMsg.body = reply;
+	replyMsg.segments = replySegs;
+	replyMsg.numSegments = 1;
 	replyMsg.objectsSize = 0;
 	replyMsg.objectsOffset = 0;
 
@@ -36,9 +39,10 @@ int SendMessagexs(int obj, struct MessageHeader *sendMsg, void *reply, int reply
 int SendMessagesx(int obj, void *msg, int msgSize, struct MessageHeader *replyMsg)
 {
 	struct MessageHeader sendMsg;
+	struct BufferSegment sendSegs[] = { msg, msgSize };
 
-	sendMsg.size = msgSize;
-	sendMsg.body = msg;
+	sendMsg.segments = sendSegs;
+	sendMsg.numSegments = 1;
 	sendMsg.objectsSize = 0;
 	sendMsg.objectsOffset = 0;
 
@@ -54,9 +58,10 @@ int SendMessagex(int obj, struct MessageHeader *sendMsg, struct MessageHeader *r
 int ReceiveMessage(int obj, void *recv, int recvSize)
 {
 	struct MessageHeader recvMsg;
+	struct BufferSegment recvSegs[] = { recv, recvSize };
 
-	recvMsg.size = recvSize;
-	recvMsg.body = recv;
+	recvMsg.segments = recvSegs;
+	recvMsg.numSegments = 1;
 	recvMsg.objectsSize = 0;
 	recvMsg.objectsOffset = 0;
 
@@ -80,9 +85,10 @@ int ReadMessage(int msg, void *buffer, int offset, int size)
 int ReplyMessage(int msg, int ret, void *reply, int replySize)
 {
 	struct MessageHeader replyMsg;
+	struct BufferSegment replySegs[] = { reply, replySize };
 
-	replyMsg.size = replySize;
-	replyMsg.body = reply;
+	replyMsg.segments = replySegs;
+	replyMsg.numSegments = 1;
 	replyMsg.objectsSize = 0;
 	replyMsg.objectsOffset = 0;
 
