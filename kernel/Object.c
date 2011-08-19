@@ -19,33 +19,45 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
-static void copyBuffer(struct Process *destProcess, struct MessageHeader *dest, struct Process *srcProcess, struct MessageHeader *src, int translateCache[])
+static void readBuffer(struct Process *destProcess, void *dest, struct Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
 {
 	int i;
+
+	AddressSpace_Memcpy(destProcess->addressSpace, dest, srcProcess->addressSpace, (char*)src->body + offset, size);
+
+	for(i=0; i<src->objectsSize; i++) {
+		int *s, *d;
+		int objOffset;
+		int obj;
+
+		objOffset = src->objectsOffset + i * sizeof(int);
+		if(objOffset < offset || objOffset >= offset + size) {
+			continue;
+		}
+
+		s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, (char*)src->body + objOffset));
+		d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, dest + objOffset - offset));
+		obj = *s;
+
+		if(translateCache[i] == INVALID_OBJECT) {
+			translateCache[i] = Process_DupObjectRef(destProcess, srcProcess, obj);
+		}
+
+		*d = translateCache[i];
+	}
+}
+
+static void copyBuffer(struct Process *destProcess, struct MessageHeader *dest, struct Process *srcProcess, struct MessageHeader *src, int translateCache[])
+{
 	int size;
 
 	size = min(src->size, dest->size);
-	AddressSpace_Memcpy(destProcess->addressSpace, dest->body, srcProcess->addressSpace, src->body, size);
 
 	dest->objectsOffset = src->objectsOffset;
 	dest->objectsSize = src->objectsSize;
 	dest->size = size;
 
-	if(src->objectsSize > 0) {
-		int *srcObjects = (int*)((char*)src->body + src->objectsOffset);
-		int *destObjects = (int*)((char*)dest->body + src->objectsOffset);
-
-		for(i=0; i<src->objectsSize; i++) {
-			int *s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, srcObjects + i));
-			int *d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, destObjects + i));
-			int obj = *s;
-			if(translateCache[i] == INVALID_OBJECT) {
-				translateCache[i] = Process_DupObjectRef(destProcess, srcProcess, obj);
-			}
-
-			*d = translateCache[i];
-		}
-	}
+	readBuffer(destProcess, dest->body, srcProcess, src, 0, size, translateCache);
 }
 
 int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
@@ -102,10 +114,16 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 
 int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
 {
-	size = min(message->sendMsg.size, size);
-	AddressSpace_Memcpy(Current->process->addressSpace, buffer, message->sender->process->addressSpace, (char*)message->sendMsg.body + offset, size);
+	int s;
 
-	return size;
+	s = min(message->sendMsg.size - offset, size);
+	if(s < 0) {
+		return 0;
+	}
+
+	readBuffer(Current->process, buffer, message->sender->process, &message->sendMsg, offset, s, message->translateCache);
+
+	return s;
 }
 
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
