@@ -112,7 +112,7 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 	message.sendMsg = *sendMsg;
 	message.replyMsg = *replyMsg;
 
-	for(i=0; i<MESSAGE_MAX_OBJECTS; i++) {
+	for(i=0; i<sendMsg->objectsSize; i++) {
 		message.translateCache[i] = INVALID_OBJECT;
 	}
 
@@ -164,7 +164,7 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 	int i;
 	int translateCache[MESSAGE_MAX_OBJECTS];
 
-	for(i=0; i<MESSAGE_MAX_OBJECTS; i++) {
+	for(i=0; i<replyMsg->objectsSize; i++) {
 		translateCache[i] = INVALID_OBJECT;
 	}
 
