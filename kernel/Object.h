@@ -8,11 +8,6 @@
 
 #define INVALID_OBJECT 0x7fffffff
 
-struct ObjectTranslate {
-	unsigned int source;
-	unsigned int target;
-};
-
 struct Message {
 	struct Task *sender;
 	struct Task *receiver;
@@ -20,7 +15,7 @@ struct Message {
 	struct MessageHeader replyMsg;
 	int ret;
 	struct ListEntry list;
-	struct ObjectTranslate translateCache[MESSAGE_MAX_OBJECTS];
+	int translateCache[MESSAGE_MAX_OBJECTS];
 };
 
 struct Object {

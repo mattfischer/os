@@ -19,34 +19,32 @@ void Object_Init()
 	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
-static void translateObjects(struct Process *sourceProcess, struct Process *destProcess, char *buffer, int objectOffset, int numObjects, struct ObjectTranslate translateCache[])
+static void copyBuffer(struct Process *destProcess, struct MessageHeader *dest, struct Process *srcProcess, struct MessageHeader *src, int translateCache[])
 {
 	int i;
+	int size;
 
-	for(i=0; i<numObjects; i++) {
-		unsigned int *ptr;
-		struct Object *object;
+	size = min(src->size, dest->size);
+	AddressSpace_Memcpy(destProcess->addressSpace, dest->body, srcProcess->addressSpace, src->body, size);
 
-		if(translateCache[i].target != 0xffffffff) {
-			*ptr = translateCache[i].target;
-			continue;
+	dest->objectsOffset = src->objectsOffset;
+	dest->objectsSize = src->objectsSize;
+	dest->size = size;
+
+	if(src->objectsSize > 0) {
+		int *srcObjects = (int*)((char*)src->body + src->objectsOffset);
+		int *destObjects = (int*)((char*)dest->body + src->objectsOffset);
+
+		for(i=0; i<src->objectsSize; i++) {
+			int *s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, srcObjects + i));
+			int *d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, destObjects + i));
+			int obj = *s;
+			if(translateCache[i] == INVALID_OBJECT) {
+				translateCache[i] = Process_DupObjectRef(destProcess, srcProcess, obj);
+			}
+
+			*d = translateCache[i];
 		}
-
-		ptr = (int*)(buffer + objectOffset) + i;
-
-		if(sourceProcess == NULL) {
-			object = (struct Object*)translateCache[i].source;
-		} else {
-			object = sourceProcess->objects[translateCache[i].source];
-		}
-
-		if(destProcess == NULL) {
-			*ptr = (unsigned int)object;
-		} else {
-			*ptr = Process_RefObject(destProcess, object);
-		}
-
-		translateCache[i].target = *ptr;
 	}
 }
 
@@ -58,16 +56,10 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 
 	message.sender = Current;
 	message.sendMsg = *sendMsg;
+	message.replyMsg = *replyMsg;
 
-	if(replyMsg == NULL) {
-		memset(&message.replyMsg, 0, sizeof(message.replyMsg));
-	} else {
-		message.replyMsg = *replyMsg;
-	}
-	memset(message.translateCache, 0xff, sizeof(message.translateCache));
-
-	for(i=0; i<sendMsg->objectsSize; i++) {
-		message.translateCache[i].source = ((unsigned int*)((char*)sendMsg->body + sendMsg->objectsOffset))[i];
+	for(i=0; i<MESSAGE_MAX_OBJECTS; i++) {
+		message.translateCache[i] = INVALID_OBJECT;
 	}
 
 	LIST_ENTRY_CLEAR(message.list);
@@ -81,11 +73,6 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 		Sched_SwitchTo(task);
 	} else {
 		Sched_RunNext();
-	}
-
-	if(replyMsg != NULL) {
-		*replyMsg = message.replyMsg;
-		translateObjects(message.receiver->process, Current->process, replyMsg->body, replyMsg->objectsOffset, replyMsg->objectsSize, message.translateCache);
 	}
 
 	return message.ret;
@@ -105,16 +92,11 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	message = LIST_HEAD(object->messages, struct Message, list);
 	LIST_REMOVE(object->messages, message->list);
 
+	copyBuffer(Current->process, recvMsg, message->sender->process, &message->sendMsg, message->translateCache);
+
 	message->receiver = Current;
-
-	recvMsg->size = min(message->sendMsg.size, recvMsg->size);
-	recvMsg->objectsOffset = message->sendMsg.objectsOffset;
-	recvMsg->objectsSize = message->sendMsg.objectsSize;
-
-	AddressSpace_Memcpy(Current->process->addressSpace, recvMsg->body, message->sender->process->addressSpace, message->sendMsg.body, recvMsg->size);
-	translateObjects(message->sender->process, Current->process, recvMsg->body, recvMsg->objectsOffset, recvMsg->objectsSize, message->translateCache);
-
 	message->sender->state = TaskStateReplyBlock;
+
 	return message;
 }
 
@@ -128,29 +110,18 @@ int Object_ReadMessage(struct Message *message, void *buffer, int offset, int si
 
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
 {
-	struct Task *sender = message->sender;
-	struct MessageHeader replyMsgLocal;
-	struct AddressSpace *addressSpace;
 	int i;
+	int translateCache[MESSAGE_MAX_OBJECTS];
 
-	if(replyMsg != NULL) {
-		addressSpace = sender->process->addressSpace;
-		message->replyMsg.size = min(message->replyMsg.size, replyMsg->size);
-		message->replyMsg.objectsOffset = replyMsg->objectsOffset;
-		message->replyMsg.objectsSize = replyMsg->objectsSize;
-		memset(message->translateCache, 0xff, sizeof(message->translateCache));
-
-		for(i=0; i<replyMsg->objectsSize; i++) {
-			message->translateCache[i].source = ((unsigned int*)((char*)replyMsg->body + replyMsg->objectsOffset))[i];
-		}
-
-		AddressSpace_Memcpy(addressSpace, message->replyMsg.body, Current->process->addressSpace, replyMsg->body, message->replyMsg.size);
+	for(i=0; i<MESSAGE_MAX_OBJECTS; i++) {
+		translateCache[i] = INVALID_OBJECT;
 	}
 
+	copyBuffer(message->sender->process, &message->replyMsg, Current->process, replyMsg, translateCache);
 	message->ret = ret;
 
 	Sched_Add(Current);
-	Sched_SwitchTo(sender);
+	Sched_SwitchTo(message->sender);
 
 	return 0;
 }
