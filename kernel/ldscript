@@ -10,7 +10,13 @@ SECTIONS
 	.text __KernelStart + ADDR(.low) + SIZEOF(.low) : AT(LOADADDR(.low) + SIZEOF(.low))
 	{
 		*(.text)
+		*(.text.*)
 		*(.rodata)
+		. = ALIGN(4);
+		__ConstructorsStart = .;
+		*(.init_array)
+		*(.init_array.*)
+		__ConstructorsEnd = .;
 	}
 	
 	.data : AT(LOADADDR(.text) + SIZEOF(.text))

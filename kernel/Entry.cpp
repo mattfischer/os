@@ -23,11 +23,29 @@ SECTION_LOW void EntryLow()
 	PageTable_InitLow();
 }
 
+extern void *__ConstructorsStart[];
+extern void *__ConstructorsEnd[];
+typedef void (*ConstructorFunc)();
+
+static void Constructors_Init()
+{
+	int i;
+	int len;
+	ConstructorFunc *constructors;
+
+	constructors = (ConstructorFunc*)__ConstructorsStart;
+	len = (ConstructorFunc*)__ConstructorsEnd - (ConstructorFunc*)__ConstructorsStart;
+
+	for(i=0; i<len; i++) {
+		constructors[i]();
+	}
+}
+
 void Entry()
 {
+	Constructors_Init();
 	AddressSpace_Init();
 	Sched_Init();
-	Object_Init();
 	Process_Init();
 	Name_Init();
 

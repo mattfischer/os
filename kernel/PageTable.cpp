@@ -47,7 +47,7 @@
 #define PTE_L2_BASE_MASK 0xfffff000
 #define PTE_L2_BASE_SHIFT 12
 
-static struct SlabAllocator pageTableSlab;
+static struct SlabAllocator<struct PageTable> pageTableSlab;
 
 struct PageTable KernelPageTable;
 
@@ -58,7 +58,7 @@ struct PageTable *PageTable_Create()
 	unsigned *base;
 	unsigned *kernelTable;
 
-	pageTable = (struct PageTable*)Slab_Allocate(&pageTableSlab);
+	pageTable = pageTableSlab.Allocate();
 	pageTable->table = Page_AllocContig(4, 4);
 	pageTable->tablePAddr = PAGE_TO_PADDR(pageTable->table);
 
@@ -178,11 +178,6 @@ PAddr PageTable_TranslateVAddr(struct PageTable *pageTable, void *addr)
 	unsigned *L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
 	int l2idx = ((unsigned)addr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
 	return (L2Table[l2idx] & PTE_L2_BASE_MASK) | ((unsigned)addr & (~PTE_L2_BASE_MASK));
-}
-
-void PageTable_Init()
-{
-	Slab_Init(&pageTableSlab, sizeof(struct PageTable));
 }
 
 SECTION_LOW void PageTable_InitLow()

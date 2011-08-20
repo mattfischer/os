@@ -5,8 +5,8 @@
 
 struct AddressSpace *KernelSpace;
 
-static struct SlabAllocator mappingSlab;
-static struct SlabAllocator addressSpaceSlab;
+static struct SlabAllocator<struct Mapping> mappingSlab;
+static struct SlabAllocator<struct AddressSpace> addressSpaceSlab;
 
 extern char vectorStart[];
 extern char vectorEnd[];
@@ -17,7 +17,7 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 	struct Mapping *mappingCursor;
 	unsigned v;
 
-	mapping = (struct Mapping*)Slab_Allocate(&mappingSlab);
+	mapping = mappingSlab.Allocate();
 	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
 	mapping->offset = PAGE_ADDR_ROUND_DOWN(offset);
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
@@ -71,7 +71,7 @@ struct AddressSpace *AddressSpace_Create()
 	unsigned *kernelTable;
 	int kernel_nr;
 
-	space = (struct AddressSpace*)Slab_Allocate(&addressSpaceSlab);
+	space = addressSpaceSlab.Allocate();
 	LIST_INIT(space->mappings);
 
 	space->pageTable = PageTable_Create();
@@ -122,9 +122,6 @@ void AddressSpace_Init()
 	unsigned int n;
 	struct Page *vectorPage;
 	char *vector;
-
-	Slab_Init(&addressSpaceSlab, sizeof(struct AddressSpace));
-	Slab_Init(&mappingSlab, sizeof(struct Mapping));
 
 	KernelSpace = AddressSpace_Create();
 	KernelSpace->pageTable = &KernelPageTable;

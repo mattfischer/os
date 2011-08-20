@@ -3,20 +3,15 @@
 #include "Sched.h"
 #include "Util.h"
 
-static struct SlabAllocator objectSlab;
+static struct SlabAllocator<struct Object> objectSlab;
 
 struct Object *Object_Create()
 {
-	struct Object *object = (struct Object*)Slab_Allocate(&objectSlab);
+	struct Object *object = objectSlab.Allocate();
 	LIST_INIT(object->receivers);
 	LIST_INIT(object->messages);
 
 	return object;
-}
-
-void Object_Init()
-{
-	Slab_Init(&objectSlab, sizeof(struct Object));
 }
 
 static int readBuffer(struct Process *destProcess, void *dest, struct Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])

@@ -3,16 +3,28 @@
 
 #include "Page.h"
 
-struct SlabAllocator {
-	int order;
-	int numPerPage;
-	int bitfieldLen;
-	int dataStart;
-	LIST(struct Page) pages;
+class SlabBase {
+public:
+	SlabBase(int size);
+
+	void *AllocateBase();
+	void FreeBase(void *p);
+
+private:
+	int mOrder;
+	int mNumPerPage;
+	int mBitfieldLen;
+	int mDataStart;
+	LIST(struct Page) mPages;
 };
 
-void Slab_Init(struct SlabAllocator *slab, int size);
-void *Slab_Allocate(struct SlabAllocator *slab);
-void Slab_Free(struct SlabAllocator *slab, void *p);
+template<typename T>
+class SlabAllocator : public SlabBase {
+public:
+	SlabAllocator() : SlabBase(sizeof(T)) {}
+
+	T *Allocate() { return (T*)AllocateBase(); }
+	void Free(T *p) { FreeBase(p); }
+};
 
 #endif

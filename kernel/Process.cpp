@@ -2,13 +2,13 @@
 #include "Slab.h"
 #include "Util.h"
 
-static struct SlabAllocator processSlab;
+static struct SlabAllocator<struct Process> processSlab;
 
 struct Process *KernelProcess;
 
 struct Process *Process_Create(struct AddressSpace *addressSpace)
 {
-	struct Process *process = (struct Process*)Slab_Allocate(&processSlab);
+	struct Process *process = processSlab.Allocate();
 
 	process->addressSpace = addressSpace;
 	process->heap = NULL;
@@ -93,7 +93,5 @@ void Process_UnrefMessage(struct Process *process, int n)
 
 void Process_Init()
 {
-	Slab_Init(&processSlab, sizeof(struct Process));
-
 	KernelProcess = Process_Create(KernelSpace);
 }

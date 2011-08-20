@@ -10,7 +10,7 @@ struct NameEntry {
 	struct ListEntry list;
 };
 
-struct SlabAllocator nameSlab;
+struct SlabAllocator<struct NameEntry> nameSlab;
 LIST(struct NameEntry) nameList;
 
 struct NameEntry *findEntry(const char *name)
@@ -43,7 +43,7 @@ void Name_Set(const char *name, int object)
 	entry = findEntry(name);
 
 	if(entry == NULL) {
-		entry = (struct NameEntry*)Slab_Allocate(&nameSlab);
+		entry = nameSlab.Allocate();
 
 		strcpy(entry->name, name);
 		entry->object = object;
@@ -55,6 +55,5 @@ void Name_Set(const char *name, int object)
 
 void Name_Init()
 {
-	Slab_Init(&nameSlab, sizeof(struct NameEntry));
 	LIST_INIT(nameList);
 }

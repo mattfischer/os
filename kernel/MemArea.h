@@ -22,6 +22,4 @@ struct MemArea {
 struct MemArea *MemArea_CreatePages(int size);
 struct MemArea *MemArea_CreatePhys(int size, PAddr paddr);
 
-void MemArea_Init();
-
 #endif
