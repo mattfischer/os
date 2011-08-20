@@ -24,12 +24,12 @@ public:
 
 	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size);
 
-	LIST(struct Page)& pages() { return mPages; }
+	List2<Page, &Page::list>& pages() { return mPages; }
 
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
 private:
-	LIST(struct Page) mPages;
+	List2<Page, &Page::list> mPages;
 
 	static SlabAllocator<MemAreaPages> sSlab;
 };

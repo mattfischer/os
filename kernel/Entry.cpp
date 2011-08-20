@@ -19,7 +19,7 @@ extern "C" {
 
 SECTION_LOW void EntryLow()
 {
-	Page_InitLow();
+	Page::initLow();
 	PageTable::initLow();
 }
 

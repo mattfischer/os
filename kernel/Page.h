@@ -3,14 +3,6 @@
 
 #include "List.h"
 
-#define PAGE_FREE 0
-#define PAGE_INUSE 1
-
-struct Page {
-	unsigned int flags;
-	struct ListEntry list;
-};
-
 #define KB 1024
 #define MB (KB * 1024)
 
@@ -21,35 +13,63 @@ struct Page {
 #define RAM_SIZE (128 * MB)
 #define N_PAGES (RAM_SIZE >> PAGE_SHIFT)
 
-#define PADDR_TO_PAGE_NR(paddr) ((paddr) >> PAGE_SHIFT)
-#define VADDR_TO_PAGE_NR(vaddr) PADDR_TO_PAGE_NR(VADDR_TO_PADDR(vaddr))
+typedef unsigned int PAddr;
 
-#define PAGE(nr) (Pages + nr)
-#define PAGE_NR(page) (page - Pages)
+#define PADDR_TO_VADDR(paddr) ((char*)(paddr) + KERNEL_START)
+#define VADDR_TO_PADDR(vaddr) ((PAddr)(vaddr) - KERNEL_START)
 
-#define PADDR_TO_PAGE(paddr) PAGE(PADDR_TO_PAGE_NR(paddr))
-#define VADDR_TO_PAGE(vaddr) PAGE(VADDR_TO_PAGE_NR(vaddr))
+extern char __KernelStart[];
+extern char __KernelEnd[];
 
-#define PAGE_NR_TO_PADDR(nr) ((PAddr)(nr << PAGE_SHIFT))
-#define PAGE_NR_TO_VADDR(nr) PADDR_TO_VADDR(PAGE_NR_TO_PADDR(nr))
+#define KERNEL_START (unsigned int)__KernelStart
 
-#define PAGE_TO_PADDR(page) PAGE_NR_TO_PADDR(PAGE_NR(page))
-#define PAGE_TO_VADDR(page) PAGE_NR_TO_VADDR(PAGE_NR(page))
+class Page {
+public:
+	enum Flags {
+		FlagsFree,
+		FlagsInUse
+	};
+
+	Page() {}
+
+	Flags flags() { return mFlags; }
+	void setFlags(Flags flags) { mFlags = flags; }
+
+	int number() { return this - sPages; }
+	PAddr paddr() { return (PAddr)(number() << PAGE_SHIFT); }
+	void *vaddr() { return PADDR_TO_VADDR(paddr()); }
+	void free();
+
+	ListEntry2<Page> list;
+
+	static Page *allocContig(int align, int num);
+	static List2<Page, &Page::list> allocMulti(int num);
+	static Page *alloc();
+	static void freeList(List2<Page, &Page::list> list);
+
+	static Page *fromNumber(int n) { return &sPages[n]; }
+	static Page *fromPAddr(PAddr paddr) { return fromNumber(paddr >> PAGE_SHIFT); }
+	static Page *fromVAddr(void *vaddr) { return fromPAddr(VADDR_TO_PADDR(vaddr)); }
+
+	static void init();
+
+	Flags flagsLow();
+	void setFlagsLow(Flags flags);
+	int numberLow();
+	PAddr paddrLow();
+	static Page *allocContigLow(int align, int num);
+	static void initLow();
+	static Page *fromNumberLow(int n);
+	static Page *fromPAddrLow(PAddr paddr);
+	static Page *fromVAddrLow(void *vaddr);
+
+private:
+	Flags mFlags;
+
+	static Page sPages[N_PAGES];
+};
 
 #define PAGE_SIZE_ROUND_UP(size) ((size + PAGE_SIZE - 1) & PAGE_MASK)
 #define PAGE_ADDR_ROUND_DOWN(addr) ((unsigned)addr & PAGE_MASK)
-
-struct Page *Page_AllocContig(int align, int num);
-LIST(struct Page) Page_AllocMulti(int num);
-struct Page *Page_Alloc();
-void Page_Free(struct Page *page);
-void Page_FreeList(LIST(struct Page) list);
-
-void Page_Init();
-
-void Page_InitLow();
-struct Page *Page_AllocContigLow(int align, int num);
-
-extern struct Page Pages[N_PAGES];
 
 #endif

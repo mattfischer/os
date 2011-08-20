@@ -135,9 +135,9 @@ static void procManagerMain(void *param)
 
 						ret = (int)process->heapTop();
 						for(i=0; i<extraPages; i++) {
-							struct Page *page = Page_Alloc();
-							LIST_ADD_TAIL(process->heap()->pages(), page->list);
-							process->addressSpace()->pageTable()->mapPage(process->heapAreaTop(), PAGE_TO_PADDR(page), PageTable::PermissionRW);
+							Page *page = Page::alloc();
+							process->heap()->pages().addTail(page);
+							process->addressSpace()->pageTable()->mapPage(process->heapAreaTop(), page->paddr(), PageTable::PermissionRW);
 							process->setHeapAreaTop(process->heapAreaTop() + PAGE_SIZE);
 						}
 						process->setHeapTop(process->heapTop() + increment);

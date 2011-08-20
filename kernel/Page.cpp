@@ -2,17 +2,17 @@
 #include "AddressSpace.h"
 #include "Defs.h"
 
-struct Page Pages[N_PAGES];
+Page Page::sPages[N_PAGES];
 
-struct Page *Page_Alloc()
+Page *Page::alloc()
 {
 	int i;
 
 	for(i=0; i<N_PAGES; i++) {
-		struct Page *page = PAGE(i);
+		Page *page = fromNumber(i);
 
-		if(page->flags == PAGE_FREE) {
-			page->flags = PAGE_INUSE;
+		if(page->flags() == FlagsFree) {
+			page->setFlags(FlagsInUse);
 			return page;
 		}
 	}
@@ -20,100 +20,128 @@ struct Page *Page_Alloc()
 	return NULL;
 }
 
-LIST(struct Page) Page_AllocMulti(int num)
+List2<Page, &Page::list> Page::allocMulti(int num)
 {
-	LIST(struct Page) list;
+	List2<Page, &Page::list> list;
 	int n;
 
-	LIST_INIT(list);
-
 	for(n=0; n < num; n++) {
-		struct Page *page = Page_Alloc();
-		LIST_ADD_TAIL(list, page->list);
+		Page *page = alloc();
+		list.addTail(page);
 	}
 
 	return list;
 }
 
-struct Page *Page_AllocContig(int align, int num)
+Page *Page::allocContig(int align, int num)
 {
 	int i, j;
 
 	for(i=0; i<N_PAGES; i += align) {
 		for(j=0; j<num; j++) {
-			struct Page *page = PAGE(i + j);
+			Page *page = fromNumber(i + j);
 
-			if(page->flags == PAGE_INUSE) {
+			if(page->flags() == FlagsInUse) {
 				break;
 			}
 		}
 
 		if(j == num) {
 			for(j=0; j<num; j++) {
-				struct Page *page = PAGE(i + j);
+				Page *page = fromNumber(i + j);
 
-				page->flags = PAGE_INUSE;
+				page->setFlags(FlagsInUse);
 			}
-			return PAGE(i);
+			return fromNumber(i);
 		}
 	}
 
 	return NULL;
 }
 
-void Page_Free(struct Page *page)
+void Page::free()
 {
-	page->flags = PAGE_FREE;
+	mFlags = FlagsFree;
 }
 
-void Page_FreeList(LIST(struct Page) list)
+void Page::freeList(List2<Page, &Page::list> list)
 {
-	struct Page *page;
-	struct Page *extra;
+	Page *page;
+	Page *next;
 
-	LIST_FOREACH_CAN_REMOVE(list, page, extra, struct Page, list) {
-		LIST_REMOVE(list, page->list);
-		Page_Free(page);
+	for(page = list.head(); page != NULL; page = next)
+	{
+		next = list.next(page);
+		list.remove(page);
+		page->free();
 	}
 }
 
-SECTION_LOW void Page_InitLow()
+SECTION_LOW Page::Flags Page::flagsLow() {
+	return mFlags;
+}
+
+SECTION_LOW void Page::setFlagsLow(Flags flags) {
+	mFlags = flags;
+}
+
+SECTION_LOW int Page::numberLow() {
+	return this - sPages;
+}
+
+SECTION_LOW PAddr Page::paddrLow() {
+	return (PAddr)(numberLow() << PAGE_SHIFT);
+}
+
+SECTION_LOW void Page::initLow()
 {
-	struct Page *pages = (struct Page*)VADDR_TO_PADDR(Pages);
+	Page *pages = (Page*)VADDR_TO_PADDR(sPages);
 	int i;
 
 	for(i=0; i<N_PAGES; i++) {
-		pages[i].flags = PAGE_FREE;
-		LIST_ENTRY_CLEAR(pages[i].list);
+		pages[i].mFlags = FlagsFree;
 	}
 }
 
-SECTION_LOW struct Page *Page_AllocContigLow(int align, int num)
+SECTION_LOW Page *Page::allocContigLow(int align, int num)
 {
-	LIST(struct Page) list;
 	int i, j;
 
-	LIST_INIT(list);
 	for(i=0; i<N_PAGES; i += align) {
 		for(j=0; j<num; j++) {
-			struct Page *page = PAGE(i + j);
-			struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
+			Page *page = fromNumberLow(i + j);
+			Page *pageLow = (Page*)VADDR_TO_PADDR(page);
 
-			if(pageLow->flags == PAGE_INUSE) {
+			if(pageLow->flagsLow() == FlagsInUse) {
 				break;
 			}
 		}
 
 		if(j == num) {
 			for(j=0; j<num; j++) {
-				struct Page *page = PAGE(i + j);
-				struct Page *pageLow = (struct Page*)VADDR_TO_PADDR(page);
+				Page *page = fromNumberLow(i + j);
+				Page *pageLow = (Page*)VADDR_TO_PADDR(page);
 
-				pageLow->flags = PAGE_INUSE;
+				pageLow->setFlagsLow(FlagsInUse);
 			}
-			return PAGE(i);
+			return fromNumberLow(i);
 		}
 	}
 
 	return NULL;
+}
+
+SECTION_LOW Page *Page::fromNumberLow(int n)
+{
+	return &sPages[n];
+}
+
+SECTION_LOW Page *Page::fromPAddrLow(PAddr paddr)
+{
+	return fromNumberLow(paddr >> PAGE_SHIFT);
+}
+
+SECTION_LOW Page *Page::fromVAddrLow(void *vaddr)
+{
+	return fromPAddrLow(VADDR_TO_PADDR(vaddr));
 }

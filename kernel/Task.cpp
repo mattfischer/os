@@ -10,12 +10,12 @@ Task::Task(struct Process *process)
 	struct Task *task;
 	struct Page *stack;
 
-	stack = Page_Alloc();
+	stack = Page::alloc();
 
 	mStack = stack;
 	mState = StateInit;
 	memset(mRegs, 0, 16 * sizeof(unsigned int));
-	mRegs[R_SP] = (unsigned)PAGE_TO_VADDR(mStack) + PAGE_SIZE;
+	mRegs[R_SP] = (unsigned)mStack->vaddr() + PAGE_SIZE;
 
 	mProcess = process;
 	mEffectiveAddressSpace = NULL;

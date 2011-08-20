@@ -15,7 +15,7 @@ private:
 	int mNumPerPage;
 	int mBitfieldLen;
 	int mDataStart;
-	LIST(struct Page) mPages;
+	List2<Page, &Page::list> mPages;
 };
 
 template<typename T>

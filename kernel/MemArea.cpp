@@ -11,7 +11,7 @@ MemArea::MemArea(int size)
 MemAreaPages::MemAreaPages(int size)
  : MemArea(PAGE_SIZE_ROUND_UP(size))
 {
-	mPages = Page_AllocMulti(MemArea::size() >> PAGE_SHIFT);
+	mPages = Page::allocMulti(MemArea::size() >> PAGE_SHIFT);
 }
 
 void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size)
@@ -22,13 +22,13 @@ void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsig
 
 	v = (unsigned)vaddr;
 	skipPages = offset >> PAGE_SHIFT;
-	LIST_FOREACH(mPages, page, struct Page, list) {
+	for(page = mPages.head(); page != NULL; page = mPages.next(page)) {
 		if(skipPages > 0) {
 			skipPages--;
 			continue;
 		}
 
-		table->mapPage((void*)v, PAGE_TO_PADDR(page), PageTable::PermissionRW);
+		table->mapPage((void*)v, page->paddr(), PageTable::PermissionRW);
 		v += PAGE_SIZE;
 	}
 }

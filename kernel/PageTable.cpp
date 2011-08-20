@@ -60,8 +60,8 @@ PageTable::PageTable()
 	unsigned *base;
 	unsigned *kernelTable;
 
-	mPages = Page_AllocContig(4, 4);
-	mTablePAddr = PAGE_TO_PADDR(mPages);
+	mPages = Page::allocContig(4, 4);
+	mTablePAddr = mPages->paddr();
 
 	base = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
 
@@ -75,8 +75,7 @@ PageTable::PageTable()
 PageTable::PageTable(struct Page *pages)
 {
 	mPages = pages;
-	mTablePAddr = PAGE_TO_PADDR(mPages);
-	LIST_INIT(mL2Tables);
+	mTablePAddr = mPages->paddr();
 }
 
 void PageTable::allocL2Table(void *vaddr)
@@ -92,8 +91,8 @@ void PageTable::allocL2Table(void *vaddr)
 	table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
 	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 
-	LIST_FOREACH(mL2Tables, L2Page, struct Page, list) {
-		L2Table = (unsigned*)PAGE_TO_VADDR(L2Page);
+	for(L2Page = mL2Tables.head(); L2Page != NULL; L2Page = mL2Tables.next(L2Page)) {
+		L2Table = (unsigned*)L2Page->vaddr();
 		for(i=0; i<4; i++) {
 			l2idx = i*PAGE_L2_TABLE_SIZE;
 			l2pte = L2Table[l2idx];
@@ -109,9 +108,9 @@ void PageTable::allocL2Table(void *vaddr)
 		}
 	}
 
-	L2Page = Page_Alloc();
-	L2Table = (unsigned*)PAGE_TO_VADDR(L2Page);
-	LIST_ADD_TAIL(mL2Tables, L2Page->list);
+	L2Page = Page::alloc();
+	L2Table = (unsigned*)L2Page->vaddr();
+	mL2Tables.addTail(L2Page);
 
 	memset(L2Table, 0, PAGE_L2_TABLE_SIZE * sizeof(unsigned));
 	for(i=1; i<4; i++) {
@@ -179,24 +178,23 @@ SECTION_LOW void PageTable::initLow()
 	unsigned int vaddr;
 	PAddr paddr;
 	int i;
-	struct Page *pagesLow;
+	Page *pagesLow;
 	unsigned *table;
 	int idx;
 	unsigned int perm;
-	struct Page **kernelTablePagesLow;
+	Page **kernelTablePagesLow;
 	PAddr *kernelTablePAddrLow;
 
-	pagesLow = (struct Page*)VADDR_TO_PADDR(Pages);
-	for(i=0; i<VADDR_TO_PAGE_NR(__KernelEnd) + 1; i++) {
-		pagesLow[i].flags = PAGE_INUSE;
-		LIST_ENTRY_CLEAR(pagesLow[i].list);
+	pagesLow = (Page*)VADDR_TO_PADDR(Page::fromNumberLow(0));
+	for(i=0; i<Page::fromVAddrLow(__KernelEnd)->numberLow() + 1; i++) {
+		pagesLow[i].setFlagsLow(Page::FlagsInUse);
 	}
 
 	kernelTablePagesLow = (struct Page**)VADDR_TO_PADDR(&kernelTablePages);
-	*kernelTablePagesLow = Page_AllocContigLow(4, 4);
+	*kernelTablePagesLow = Page::allocContigLow(4, 4);
 
 	kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
-	*kernelTablePAddrLow = PAGE_TO_PADDR(*kernelTablePagesLow);
+	*kernelTablePAddrLow = (*kernelTablePagesLow)->paddrLow();
 
 	table = (unsigned*)*kernelTablePAddrLow;
 	perm = PTE_SECTION_AP_READ_WRITE_PRIV;

@@ -89,8 +89,8 @@ void AddressSpace::init()
 
 	Kernel = new AddressSpace(PageTable::Kernel);
 
-	vectorPage = Page_Alloc();
-	vector = PAGE_TO_VADDR(vectorPage);
-	Kernel->pageTable()->mapPage((void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTable::PermissionRWPriv);
+	vectorPage = Page::alloc();
+	vector = (char*)vectorPage->vaddr();
+	Kernel->pageTable()->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }

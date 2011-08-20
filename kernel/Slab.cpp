@@ -23,7 +23,6 @@ SlabBase::SlabBase(int size)
 	mNumPerPage = PAGE_SIZE >> mOrder;
 	mBitfieldLen = (mNumPerPage + 31) >> 5;
 	mDataStart = (mBitfieldLen * 4 + alignedSize - 1) >> mOrder;
-	LIST_INIT(mPages);
 }
 
 void *SlabBase::allocateBase()
@@ -32,8 +31,8 @@ void *SlabBase::allocateBase()
 	struct SlabHead *head;
 	int i, j;
 
-	LIST_FOREACH(mPages, page, struct Page, list) {
-		head = (struct SlabHead*)PAGE_TO_VADDR(page);
+	for(page = mPages.head(); page != NULL; page = mPages.next(page)) {
+		head = (struct SlabHead*)page->vaddr();
 
 		for(i=mDataStart; i<mNumPerPage; i++) {
 			int idx = i >> 5;
@@ -46,27 +45,27 @@ void *SlabBase::allocateBase()
 
 			head->bitfield[idx] |= val;
 
-			return PAGE_TO_VADDR(page) + (i << mOrder);
+			return (char*)page->vaddr() + (i << mOrder);
 		}
 	}
 
-	page = Page_Alloc();
-	LIST_ADD_TAIL(mPages, page->list);
+	page = Page::alloc();
+	mPages.addTail(page);
 
-	head = (struct SlabHead*)PAGE_TO_VADDR(page);
+	head = (struct SlabHead*)page->vaddr();
 	for(i=0; i<mBitfieldLen; i++) {
 		head->bitfield[i] = 0;
 	}
 	head->bitfield[0] = 1 << mDataStart;
-	return PAGE_TO_VADDR(page) + (mDataStart << mOrder);
+	return (char*)page->vaddr() + (mDataStart << mOrder);
 }
 
 void SlabBase::freeBase(void *p)
 {
-	struct Page *page = VADDR_TO_PAGE(p);
+	struct Page *page = Page::fromVAddr(p);
 	struct Page *cursor;
 	struct Page *prev;
-	char *addr = PAGE_TO_VADDR(page);
+	char *addr = (char*)page->vaddr();
 	struct SlabHead *head = (struct SlabHead*)addr;
 	int i = ((char*)p - addr) >> mOrder;
 	int idx = i >> 5;
@@ -81,6 +80,6 @@ void SlabBase::freeBase(void *p)
 		}
 	}
 
-	LIST_REMOVE(mPages, page->list);
-	Page_Free(page);
+	mPages.remove(page);
+	page->free();
 }
