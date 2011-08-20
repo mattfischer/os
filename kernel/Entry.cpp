@@ -1,12 +1,6 @@
-#include "Sched.h"
 #include "Page.h"
-#include "AddressSpace.h"
-#include "Defs.h"
-#include "ProcessManager.h"
-#include "Object.h"
-#include "Name.h"
-#include "Message.h"
 #include "Kernel.h"
+#include "ProcessManager.h"
 
 #include "include/Syscalls.h"
 
@@ -51,35 +45,5 @@ void Entry()
 
 int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
-	struct Object *object;
-	struct Message *message;
-	int ret;
-
-	switch(code) {
-		case SyscallYield:
-			Sched::runNext();
-			return 0;
-
-		case SyscallSendMessage:
-			return SendMessagex(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
-
-		case SyscallReceiveMessage:
-			return ReceiveMessagex(arg0, (struct MessageHeader*)arg1);
-
-		case SyscallReadMessage:
-			return ReadMessage(arg0, (void*)arg1, (int)arg2, (int)arg3);
-
-		case SyscallReplyMessage:
-			return ReplyMessagex(arg0, (int)arg1, (struct MessageHeader*)arg2);
-
-		case SyscallCreateObject:
-			return CreateObject();
-
-		case SyscallReleaseObject:
-			ReleaseObject(arg0);
-			return 0;
-
-		case SyscallGetProcessManager:
-			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager::object());
-	}
+	return Kernel::syscall(code, arg0, arg1, arg2, arg3);
 }

@@ -1,7 +1,9 @@
 #include "Kernel.h"
-#include "AddressSpace.h"
-#include "PageTable.h"
 #include "Util.h"
+#include "Sched.h"
+#include "Message.h"
+#include "Object.h"
+#include "ProcessManager.h"
 
 #include "Defs.h"
 
@@ -62,4 +64,40 @@ void Kernel::init()
 	vector = (char*)vectorPage->vaddr();
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
+}
+
+
+int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
+{
+	struct Object *object;
+	struct Message *message;
+	int ret;
+
+	switch(code) {
+		case SyscallYield:
+			Sched::runNext();
+			return 0;
+
+		case SyscallSendMessage:
+			return SendMessagex(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
+
+		case SyscallReceiveMessage:
+			return ReceiveMessagex(arg0, (struct MessageHeader*)arg1);
+
+		case SyscallReadMessage:
+			return ReadMessage(arg0, (void*)arg1, (int)arg2, (int)arg3);
+
+		case SyscallReplyMessage:
+			return ReplyMessagex(arg0, (int)arg1, (struct MessageHeader*)arg2);
+
+		case SyscallCreateObject:
+			return CreateObject();
+
+		case SyscallReleaseObject:
+			ReleaseObject(arg0);
+			return 0;
+
+		case SyscallGetProcessManager:
+			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager::object());
+	}
 }
