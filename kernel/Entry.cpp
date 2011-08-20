@@ -2,7 +2,7 @@
 #include "Page.h"
 #include "AddressSpace.h"
 #include "Defs.h"
-#include "ProcManager.h"
+#include "ProcessManager.h"
 #include "Object.h"
 #include "Name.h"
 #include "Message.h"
@@ -46,8 +46,7 @@ void Entry()
 {
 	initCtors();
 	Kernel::init();
-
-	ProcManager_Start();
+	ProcessManager::start();
 }
 
 int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
@@ -81,6 +80,6 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallGetProcessManager:
-			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager);
+			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager::object());
 	}
 }

@@ -1,4 +1,4 @@
-#include "ProcManager.h"
+#include "ProcessManager.h"
 #include "Sched.h"
 #include "InitFs.h"
 #include "AsmFuncs.h"
@@ -17,7 +17,7 @@ struct StartupInfo {
 	char name[16];
 };
 
-int ProcessManager;
+int ProcessManager::sObject;
 
 static void startUser(void *param)
 {
@@ -61,9 +61,9 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	task->start(startUser, startupInfo);
 }
 
-static void procManagerMain(void *param)
+void ProcessManager::main(void *param)
 {
-	ProcessManager = CreateObject();
+	sObject = CreateObject();
 
 	startUserProcess("init", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
 
@@ -76,7 +76,7 @@ static void procManagerMain(void *param)
 		header.segments = segments;
 		header.numSegments = 1;
 
-		msg = ReceiveMessagex(ProcessManager, &header);
+		msg = ReceiveMessagex(object(), &header);
 
 		switch(message.type) {
 			case ProcManagerNameLookup:
@@ -162,10 +162,10 @@ static void procManagerMain(void *param)
 	}
 }
 
-void ProcManager_Start()
+void ProcessManager::start()
 {
 	struct Task *task = new Task(Kernel::process());
-	task->start(procManagerMain, NULL);
+	task->start(main, NULL);
 
 	Sched::runFirst();
 }

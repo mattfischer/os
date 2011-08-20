@@ -14,7 +14,7 @@ kernel_SOURCES := \
 	Object.cpp \
 	Page.cpp \
 	PageTable.cpp \
-	ProcManager.cpp \
+	ProcessManager.cpp \
 	Process.cpp \
 	Sched.cpp \
 	Slab.cpp \
