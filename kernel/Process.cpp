@@ -4,7 +4,6 @@
 #include "Object.h"
 
 SlabAllocator<Process> Process::sSlab;
-Process *Process::Kernel;
 
 Process::Process(AddressSpace *addressSpace)
 {
@@ -103,9 +102,4 @@ int Process::refMessage(struct Message *message)
 void Process::unrefMessage(int msg)
 {
 	mMessages[msg] = NULL;
-}
-
-void Process::init()
-{
-	Kernel = new Process(AddressSpace::Kernel);
 }

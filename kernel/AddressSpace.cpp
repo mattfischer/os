@@ -1,19 +1,16 @@
 #include "AddressSpace.h"
 #include "AsmFuncs.h"
 #include "Util.h"
+#include "Kernel.h"
 
-AddressSpace *AddressSpace::Kernel;
 SlabAllocator<struct AddressSpace> AddressSpace::sSlab;
 
 static struct SlabAllocator<struct Mapping> mappingSlab;
 
-extern char vectorStart[];
-extern char vectorEnd[];
-
 AddressSpace::AddressSpace(struct PageTable *pageTable)
 {
 	if(pageTable == NULL) {
-		pageTable = new PageTable();
+		pageTable = new PageTable(Kernel::process()->addressSpace()->pageTable());
 	}
 
 	mPageTable = pageTable;
@@ -78,19 +75,4 @@ void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *src
 		destPtr += copySize;
 		size -= copySize;
 	}
-}
-
-void AddressSpace::init()
-{
-	int i;
-	unsigned int n;
-	struct Page *vectorPage;
-	char *vector;
-
-	Kernel = new AddressSpace(PageTable::Kernel);
-
-	vectorPage = Page::alloc();
-	vector = (char*)vectorPage->vaddr();
-	Kernel->pageTable()->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
-	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }

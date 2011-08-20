@@ -4,6 +4,7 @@
 #include "Elf.h"
 #include "Util.h"
 #include "AsmFuncs.h"
+#include "Kernel.h"
 
 List<Task> Sched::sRunList;
 Task *Sched::sCurrent = NULL;
@@ -14,15 +15,11 @@ void Sched::add(Task *task)
 	sRunList.addTail(task);
 }
 
-static void switchTo(Task *current, Task *next)
-{
-}
-
 void Sched::switchTo(Task *task)
 {
 	task->setState(Task::StateRunning);
 
-	if(task->process()->addressSpace() != AddressSpace::Kernel) {
+	if(task->process() != Kernel::process()) {
 		task->setEffectiveAddressSpace(task->process()->addressSpace());
 		SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
 	} else {

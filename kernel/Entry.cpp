@@ -6,6 +6,7 @@
 #include "Object.h"
 #include "Name.h"
 #include "Message.h"
+#include "Kernel.h"
 
 #include "include/Syscalls.h"
 
@@ -20,33 +21,31 @@ extern "C" {
 SECTION_LOW void EntryLow()
 {
 	Page::initLow();
-	PageTable::initLow();
+	Kernel::initLow();
 }
 
-extern void *__ConstructorsStart[];
-extern void *__ConstructorsEnd[];
-typedef void (*ConstructorFunc)();
+extern void *__CtorsStart[];
+extern void *__CtorsEnd[];
+typedef void (*CtorFunc)();
 
-static void Constructors_Init()
+static void initCtors()
 {
 	int i;
 	int len;
-	ConstructorFunc *constructors;
+	CtorFunc *ctors;
 
-	constructors = (ConstructorFunc*)__ConstructorsStart;
-	len = (ConstructorFunc*)__ConstructorsEnd - (ConstructorFunc*)__ConstructorsStart;
+	ctors = (CtorFunc*)__CtorsStart;
+	len = (CtorFunc*)__CtorsEnd - (CtorFunc*)__CtorsStart;
 
 	for(i=0; i<len; i++) {
-		constructors[i]();
+		ctors[i]();
 	}
 }
 
 void Entry()
 {
-	Constructors_Init();
-	PageTable::init();
-	AddressSpace::init();
-	Process::init();
+	initCtors();
+	Kernel::init();
 
 	ProcManager_Start();
 }
@@ -82,6 +81,6 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallGetProcessManager:
-			return Sched::current()->process()->dupObjectRef(Process::Kernel, ProcessManager);
+			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager);
 	}
 }

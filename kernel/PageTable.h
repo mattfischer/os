@@ -5,6 +5,8 @@
 #include "Page.h"
 #include "List.h"
 
+#define PAGE_TABLE_SECTION_SIZE (1024 * 1024)
+
 class PageTable {
 public:
 	enum Permission {
@@ -13,22 +15,21 @@ public:
 		PermissionRWPriv
 	};
 
-	PageTable();
-	PageTable(struct Page *pages);
+	PageTable(PageTable *copy);
+	PageTable(Page *pages);
 
 	static void init();
-	static void initLow();
 
 	PAddr tablePAddr() { return mTablePAddr; }
 
 	void mapPage(void *vaddr, PAddr paddr, Permission permission);
-	void mapSectionLow(void *vaddr, PAddr paddr, Permission permission);
 
 	PAddr translateVAddr(void *vaddr);
 
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
-	static PageTable *Kernel;
+	static void initLow();
+	static void mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permission permission);
 
 private:
 	struct Page *mPages;

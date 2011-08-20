@@ -9,6 +9,7 @@
 #include "Object.h"
 #include "Name.h"
 #include "Message.h"
+#include "Kernel.h"
 
 #include <kernel/include/ProcManagerFmt.h>
 
@@ -163,7 +164,7 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = new Task(Process::Kernel);
+	struct Task *task = new Task(Kernel::process());
 	task->start(procManagerMain, NULL);
 
 	Sched::runFirst();

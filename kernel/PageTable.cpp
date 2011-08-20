@@ -4,7 +4,6 @@
 
 #define PAGE_TABLE_SIZE 4096
 
-#define PAGE_TABLE_SECTION_SIZE (1024 * 1024)
 #define PAGE_TABLE_SECTION_MASK 0xfff00000
 #define PAGE_TABLE_SECTION_SHIFT 20
 
@@ -47,29 +46,19 @@
 #define PTE_L2_BASE_SHIFT 12
 
 struct SlabAllocator<struct PageTable> PageTable::sSlab;
-struct PageTable *PageTable::Kernel;
-static struct Page *kernelTablePages;
 
-extern "C" {
-	PAddr KernelTablePAddr;
-}
-
-PageTable::PageTable()
+PageTable::PageTable(PageTable *copy)
 {
-	int kernel_nr;
 	unsigned *base;
-	unsigned *kernelTable;
+	unsigned *copyBase;
 
 	mPages = Page::allocContig(4, 4);
 	mTablePAddr = mPages->paddr();
 
 	base = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	copyBase = (unsigned*)PADDR_TO_VADDR(copy->mTablePAddr);
 
-	kernel_nr = KERNEL_START >> PTE_SECTION_BASE_SHIFT;
-	memset(base, 0, kernel_nr * sizeof(unsigned));
-
-	kernelTable = (unsigned*)PADDR_TO_VADDR(Kernel->tablePAddr());
-	memcpy(base + kernel_nr, kernelTable + kernel_nr, (PAGE_TABLE_SIZE - kernel_nr) * sizeof(unsigned));
+	memcpy(base, copyBase, PAGE_TABLE_SIZE * sizeof(unsigned));
 }
 
 PageTable::PageTable(struct Page *pages)
@@ -168,44 +157,19 @@ PAddr PageTable::translateVAddr(void *addr)
 	return (L2Table[l2idx] & PTE_L2_BASE_MASK) | ((unsigned)addr & (~PTE_L2_BASE_MASK));
 }
 
-void PageTable::init()
+SECTION_LOW void PageTable::mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permission permission)
 {
-	Kernel = new PageTable(kernelTablePages);
-}
-
-SECTION_LOW void PageTable::initLow()
-{
-	unsigned int vaddr;
-	PAddr paddr;
-	int i;
-	Page *pagesLow;
 	unsigned *table;
 	int idx;
 	unsigned int perm;
-	Page **kernelTablePagesLow;
-	PAddr *kernelTablePAddrLow;
 
-	pagesLow = (Page*)VADDR_TO_PADDR(Page::fromNumberLow(0));
-	for(i=0; i<Page::fromVAddrLow(__KernelEnd)->numberLow() + 1; i++) {
-		pagesLow[i].setFlagsLow(Page::FlagsInUse);
+	switch(permission) {
+		case PermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
+		case PermissionRW: perm = PTE_L2_AP_ALL_READ_WRITE; break;
+		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
 	}
 
-	kernelTablePagesLow = (struct Page**)VADDR_TO_PADDR(&kernelTablePages);
-	*kernelTablePagesLow = Page::allocContigLow(4, 4);
-
-	kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
-	*kernelTablePAddrLow = (*kernelTablePagesLow)->paddrLow();
-
-	table = (unsigned*)*kernelTablePAddrLow;
-	perm = PTE_SECTION_AP_READ_WRITE_PRIV;
-
-	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
-		table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
-	}
-
-	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
-		idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
-		table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
-	}
+	table = (unsigned*)pageTable->paddrLow();
+	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
 }

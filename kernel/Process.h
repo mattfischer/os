@@ -10,7 +10,6 @@ public:
 	Process(AddressSpace *addressSpace = NULL);
 
 	static void init();
-	static Process *Kernel;
 
 	AddressSpace *addressSpace() { return mAddressSpace; }
 

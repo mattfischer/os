@@ -7,6 +7,7 @@ kernel_SOURCES := \
 	EntryAsm.s \
 	Entry.cpp \
 	InitFs.cpp \
+	Kernel.cpp \
 	MemArea.cpp \
 	Message.cpp \
 	Name.cpp \

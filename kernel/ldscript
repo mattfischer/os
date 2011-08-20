@@ -14,10 +14,10 @@ SECTIONS
 		*(.rodata)
 		*(.rodata.*)
 		. = ALIGN(4);
-		__ConstructorsStart = .;
+		__CtorsStart = .;
 		*(.init_array)
 		*(.init_array.*)
-		__ConstructorsEnd = .;
+		__CtorsEnd = .;
 	}
 	
 	.data : AT(LOADADDR(.text) + SIZEOF(.text))
