@@ -38,7 +38,7 @@ public:
 
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
-	ListEntry2<Task> list;
+	ListEntry<Task> list;
 
 private:
 	unsigned int mRegs[16];

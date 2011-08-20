@@ -7,11 +7,11 @@
 struct NameEntry {
 	char name[32];
 	int object;
-	ListEntry2<struct NameEntry> list;
+	ListEntry<struct NameEntry> list;
 };
 
 SlabAllocator<struct NameEntry> nameSlab;
-List2<NameEntry, &NameEntry::list> nameList;
+List<NameEntry, &NameEntry::list> nameList;
 
 struct NameEntry *findEntry(const char *name)
 {

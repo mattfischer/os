@@ -14,7 +14,7 @@ public:
 	static Task *current() { return sCurrent; }
 private:
 	static Task *sCurrent;
-	static List2<Task, &Task::list> sRunList;
+	static List<Task, &Task::list> sRunList;
 };
 
 #endif

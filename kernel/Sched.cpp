@@ -5,7 +5,7 @@
 #include "Util.h"
 #include "AsmFuncs.h"
 
-List2<Task, &Task::list> Sched::sRunList;
+List<Task, &Task::list> Sched::sRunList;
 Task *Sched::sCurrent = NULL;
 
 void Sched::add(Task *task)

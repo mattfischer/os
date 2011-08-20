@@ -34,7 +34,7 @@ private:
 	int mTranslateCache[MESSAGE_MAX_OBJECTS];
 
 public:
-	struct ListEntry2<struct Message> list;
+	struct ListEntry<struct Message> list;
 };
 
 class Object {
@@ -47,8 +47,8 @@ public:
 	void *operator new(size_t) { return sSlab.allocate(); }
 
 private:
-	List2<Task, &Task::list> mReceivers;
-	List2<struct Message, &Message::list> mMessages;
+	List<Task, &Task::list> mReceivers;
+	List<struct Message, &Message::list> mMessages;
 
 	static SlabAllocator<Object> sSlab;
 };

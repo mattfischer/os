@@ -3,6 +3,7 @@
 
 #include "Slab.h"
 #include "Page.h"
+#include "List.h"
 
 class PageTable {
 public:
@@ -32,7 +33,7 @@ public:
 private:
 	struct Page *mPages;
 	PAddr mTablePAddr;
-	List2<Page, &Page::list> mL2Tables;
+	List<Page, &Page::list> mL2Tables;
 
 	static SlabAllocator<PageTable> sSlab;
 

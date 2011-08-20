@@ -11,7 +11,7 @@ struct Mapping {
 	unsigned int offset;
 	unsigned int size;
 	MemArea *area;
-	ListEntry2<struct Mapping> list;
+	ListEntry<struct Mapping> list;
 };
 
 class AddressSpace {
@@ -31,7 +31,7 @@ public:
 
 private:
 	struct PageTable *mPageTable;
-	List2<struct Mapping, &Mapping::list> mMappings;
+	List<struct Mapping, &Mapping::list> mMappings;
 
 	static SlabAllocator<AddressSpace> sSlab;
 };
