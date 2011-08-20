@@ -34,7 +34,7 @@ public:
 	static const int SectionSize = (1024 * 1024);
 
 private:
-	struct Page *mPages;
+	Page *mPages;
 	PAddr mTablePAddr;
 	List<Page> mL2Tables;
 

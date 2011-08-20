@@ -15,7 +15,7 @@ struct Mapping : public ListEntry {
 
 class AddressSpace {
 public:
-	AddressSpace(struct PageTable *pageTable = NULL);
+	AddressSpace(PageTable *pageTable = NULL);
 
 	static void init();
 
@@ -29,7 +29,7 @@ public:
 	static AddressSpace *Kernel;
 
 private:
-	struct PageTable *mPageTable;
+	PageTable *mPageTable;
 	List<struct Mapping> mMappings;
 
 	static SlabAllocator<AddressSpace> sSlab;

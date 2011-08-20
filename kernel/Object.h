@@ -39,13 +39,13 @@ public:
 	Object();
 
 	int send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
-	struct Message *receive(struct MessageHeader *recvMsg);
+	Message *receive(struct MessageHeader *recvMsg);
 
 	void *operator new(size_t) { return sSlab.allocate(); }
 
 private:
 	List<Task> mReceivers;
-	List<struct Message> mMessages;
+	List<Message> mMessages;
 
 	static SlabAllocator<Object> sSlab;
 };

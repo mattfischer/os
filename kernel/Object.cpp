@@ -94,9 +94,8 @@ static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process 
 
 int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Message message(Sched::current(), *sendMsg, *replyMsg);
-	struct Task *task;
-	int i;
+	Task *task;
+	Message message(Sched::current(), *sendMsg, *replyMsg);
 
 	mMessages.addTail(&message);
 
@@ -113,9 +112,9 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 	return message.ret();
 }
 
-struct Message *Object::receive(struct MessageHeader *recvMsg)
+Message *Object::receive(struct MessageHeader *recvMsg)
 {
-	struct Message *message;
+	Message *message;
 	int size;
 
 	if(mMessages.empty()) {
@@ -173,7 +172,7 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 
 int CreateObject()
 {
-	struct Object *object = new Object();
+	Object *object = new Object();
 	return Sched::current()->process()->refObject(object);
 }
 

@@ -52,7 +52,7 @@ void Kernel::init()
 {
 	PageTable *pageTable;
 	AddressSpace *addressSpace;
-	struct Page *vectorPage;
+	Page *vectorPage;
 	char *vector;
 	unsigned vaddr;
 
@@ -73,8 +73,8 @@ void Kernel::init()
 
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
-	struct Object *object;
-	struct Message *message;
+	Object *object;
+	Message *message;
 	int ret;
 
 	switch(code) {

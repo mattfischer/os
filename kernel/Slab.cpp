@@ -27,7 +27,7 @@ SlabBase::SlabBase(int size)
 
 void *SlabBase::allocateBase()
 {
-	struct Page *page;
+	Page *page;
 	struct SlabHead *head;
 	int i, j;
 
@@ -62,9 +62,9 @@ void *SlabBase::allocateBase()
 
 void SlabBase::freeBase(void *p)
 {
-	struct Page *page = Page::fromVAddr(p);
-	struct Page *cursor;
-	struct Page *prev;
+	Page *page = Page::fromVAddr(p);
+	Page *cursor;
+	Page *prev;
 	char *addr = (char*)page->vaddr();
 	struct SlabHead *head = (struct SlabHead*)addr;
 	int i = ((char*)p - addr) >> mOrder;

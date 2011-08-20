@@ -22,7 +22,7 @@ int ProcessManager::sObject;
 static void startUser(void *param)
 {
 	struct StartupInfo *startupInfo;
-	struct Task *task;
+	Task *task;
 	int stackSize;
 	MemArea *stackArea;
 	char *stackVAddr;
@@ -46,7 +46,7 @@ static void startUser(void *param)
 static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
 	Process *process;
-	struct Task *task;
+	Task *task;
 	struct StartupInfo *startupInfo;
 
 	process = new Process();
@@ -104,7 +104,7 @@ void ProcessManager::main(void *param)
 
 			case ProcManagerMapPhys:
 			{
-				struct MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
+				MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
 				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size());
 
 				ReplyMessage(msg, 0, NULL, 0);
@@ -164,7 +164,7 @@ void ProcessManager::main(void *param)
 
 void ProcessManager::start()
 {
-	struct Task *task = new Task(Kernel::process());
+	Task *task = new Task(Kernel::process());
 	task->start(main, NULL);
 
 	Sched::runFirst();

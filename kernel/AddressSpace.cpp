@@ -3,11 +3,11 @@
 #include "Util.h"
 #include "Kernel.h"
 
-SlabAllocator<struct AddressSpace> AddressSpace::sSlab;
+SlabAllocator<AddressSpace> AddressSpace::sSlab;
 
-static struct SlabAllocator<struct Mapping> mappingSlab;
+static SlabAllocator<struct Mapping> mappingSlab;
 
-AddressSpace::AddressSpace(struct PageTable *pageTable)
+AddressSpace::AddressSpace(PageTable *pageTable)
 {
 	if(pageTable == NULL) {
 		pageTable = new PageTable(Kernel::process()->addressSpace()->pageTable());

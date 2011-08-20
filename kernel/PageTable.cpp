@@ -48,7 +48,7 @@
 #define PTE_L2_BASE_MASK 0xfffff000
 #define PTE_L2_BASE_SHIFT 12
 
-struct SlabAllocator<struct PageTable> PageTable::sSlab;
+struct SlabAllocator<PageTable> PageTable::sSlab;
 
 PageTable::PageTable(PageTable *copy)
 {
@@ -64,7 +64,7 @@ PageTable::PageTable(PageTable *copy)
 	memcpy(base, copyBase, PAGE_TABLE_SIZE * sizeof(unsigned));
 }
 
-PageTable::PageTable(struct Page *pages)
+PageTable::PageTable(Page *pages)
 {
 	mPages = pages;
 	mTablePAddr = mPages->paddr();
@@ -74,7 +74,7 @@ void PageTable::allocL2Table(void *vaddr)
 {
 	unsigned *table;
 	int idx;
-	struct Page *L2Page;
+	Page *L2Page;
 	unsigned *L2Table;
 	int l2idx;
 	unsigned l2pte;

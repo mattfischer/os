@@ -16,7 +16,7 @@ MemAreaPages::MemAreaPages(int size)
 
 void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size)
 {
-	struct Page *page;
+	Page *page;
 	unsigned int skipPages;
 	unsigned v;
 

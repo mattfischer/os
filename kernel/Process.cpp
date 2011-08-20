@@ -14,11 +14,11 @@ Process::Process(AddressSpace *addressSpace)
 	mAddressSpace = addressSpace;
 	mHeap = NULL;
 	mHeapTop = NULL;
-	memset(mObjects, 0, sizeof(struct Object*) * 16);
-	memset(mMessages, 0, sizeof(struct Message*) * 16);
+	memset(mObjects, 0, sizeof(Object*) * 16);
+	memset(mMessages, 0, sizeof(Message*) * 16);
 }
 
-struct Object *Process::object(int obj)
+Object *Process::object(int obj)
 {
 	if(obj == INVALID_OBJECT) {
 		return NULL;
@@ -27,7 +27,7 @@ struct Object *Process::object(int obj)
 	}
 }
 
-int Process::refObject(struct Object *object)
+int Process::refObject(Object *object)
 {
 	int i;
 
@@ -45,7 +45,7 @@ int Process::refObject(struct Object *object)
 	return INVALID_OBJECT;
 }
 
-int Process::refObjectTo(int obj, struct Object *object)
+int Process::refObjectTo(int obj, Object *object)
 {
 	if(mObjects[obj] != NULL || object == NULL) {
 		return INVALID_OBJECT;
@@ -85,7 +85,7 @@ struct Message *Process::message(int msg)
 	return mMessages[msg];
 }
 
-int Process::refMessage(struct Message *message)
+int Process::refMessage(Message *message)
 {
 	int i;
 

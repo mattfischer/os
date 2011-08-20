@@ -4,11 +4,11 @@
 
 SlabAllocator<Task> Task::sSlab;
 
-Task::Task(struct Process *process)
+Task::Task(Process *process)
 {
 	int i;
-	struct Task *task;
-	struct Page *stack;
+	Task *task;
+	Page *stack;
 
 	stack = Page::alloc();
 

@@ -41,7 +41,7 @@ public:
 private:
 	unsigned int mRegs[16];
 	State mState;
-	struct Page *mStack;
+	Page *mStack;
 	Process *mProcess;
 	AddressSpace *mEffectiveAddressSpace;
 
