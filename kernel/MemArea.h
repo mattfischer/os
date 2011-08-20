@@ -3,6 +3,7 @@
 
 #include "List.h"
 #include "Page.h"
+#include "PageTable.h"
 
 enum MemAreaType {
 	MemAreaTypePages,

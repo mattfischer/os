@@ -2,7 +2,6 @@
 #define PAGE_H
 
 #include "List.h"
-#include "PageTable.h"
 
 #define PAGE_FREE 0
 #define PAGE_INUSE 1

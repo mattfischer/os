@@ -10,10 +10,10 @@ EntryAsm:
 
 	bl EntryLow
 
-	ldr r0, =KernelPageTable
 	ldr r1, memOffset
+	ldr r0, =KernelTablePAddr
 	sub r0, r1
-	ldr r0, [r0, #PageTable_tablePAddr]
+	ldr r0, [r0]
 	mcr p15, 0, r0, c2, c0, 0
 
 	ldr r0, domainValue

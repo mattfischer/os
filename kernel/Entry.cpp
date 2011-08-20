@@ -20,7 +20,7 @@ extern "C" {
 SECTION_LOW void EntryLow()
 {
 	Page_InitLow();
-	PageTable_InitLow();
+	PageTable::initLow();
 }
 
 extern void *__ConstructorsStart[];
@@ -44,6 +44,7 @@ static void Constructors_Init()
 void Entry()
 {
 	Constructors_Init();
+	PageTable::init();
 	AddressSpace::init();
 	Sched_Init();
 	Process::init();

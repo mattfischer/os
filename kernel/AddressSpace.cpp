@@ -15,7 +15,7 @@ AddressSpace::AddressSpace(struct PageTable *pageTable)
 	LIST_INIT(mMappings);
 
 	if(pageTable == NULL) {
-		pageTable = PageTable_Create();
+		pageTable = new PageTable();
 	}
 
 	mPageTable = pageTable;
@@ -48,7 +48,7 @@ void AddressSpace::map(struct MemArea *area, void *vaddr, unsigned int offset, u
 					continue;
 				}
 
-				PageTable_MapPage(mPageTable, (void*)v, PAGE_TO_PADDR(page), PageTablePermissionRW);
+				mPageTable->mapPage((void*)v, PAGE_TO_PADDR(page), PageTable::PermissionRW);
 				v += PAGE_SIZE;
 			}
 			break;
@@ -58,7 +58,7 @@ void AddressSpace::map(struct MemArea *area, void *vaddr, unsigned int offset, u
 		{
 			PAddr paddr;
 			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
-				PageTable_MapPage(mPageTable, (void*)v, paddr, PageTablePermissionRW);
+				mPageTable->mapPage((void*)v, paddr, PageTable::PermissionRW);
 			}
 			break;
 		}
@@ -95,13 +95,13 @@ void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *src
 		if(srcSpace == NULL) {
 			srcKernel = (void*)srcPtr;
 		} else {
-			srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable(), (void*)srcPtr));
+			srcKernel = PADDR_TO_VADDR(srcSpace->pageTable()->translateVAddr((void*)srcPtr));
 		}
 
 		if(destSpace == NULL ) {
 			destKernel = (void*)destPtr;
 		} else {
-			destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable(), (void*)destPtr));
+			destKernel = PADDR_TO_VADDR(destSpace->pageTable()->translateVAddr((void*)destPtr));
 		}
 
 		::memcpy(destKernel, srcKernel, copySize);
@@ -118,10 +118,10 @@ void AddressSpace::init()
 	struct Page *vectorPage;
 	char *vector;
 
-	Kernel = new AddressSpace(&KernelPageTable);
+	Kernel = new AddressSpace(PageTable::Kernel);
 
 	vectorPage = Page_Alloc();
 	vector = PAGE_TO_VADDR(vectorPage);
-	PageTable_MapPage(Kernel->pageTable(), (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
+	Kernel->pageTable()->mapPage((void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }

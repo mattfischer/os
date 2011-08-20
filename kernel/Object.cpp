@@ -49,8 +49,8 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 				continue;
 			}
 
-			s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace()->pageTable(), (char*)segment.buffer + objOffset - srcOffset));
-			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace()->pageTable(), (char*)dest + objOffset - offset));
+			s = (int*)PADDR_TO_VADDR(srcProcess->addressSpace()->pageTable()->translateVAddr((char*)segment.buffer + objOffset - srcOffset));
+			d = (int*)PADDR_TO_VADDR(destProcess->addressSpace()->pageTable()->translateVAddr((char*)dest + objOffset - offset));
 			obj = *s;
 
 			if(translateCache[i] == INVALID_OBJECT) {
