@@ -2,7 +2,8 @@
 #define PROCESS_H
 
 #include "AddressSpace.h"
-#include "Object.h"
+
+class Object;
 
 class Process {
 public:

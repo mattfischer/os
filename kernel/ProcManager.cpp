@@ -34,10 +34,10 @@ static void startUser(void *param)
 	stackSize = PAGE_SIZE;
 	stackArea = MemArea_CreatePages(stackSize);
 	stackVAddr = (char*)(KERNEL_START - stackArea->size);
-	Current->process->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
+	Current->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(Current->process->addressSpace(), data, size);
+	entry = Elf_Load(Current->process()->addressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }
@@ -49,15 +49,15 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	struct StartupInfo *startupInfo;
 
 	process = new Process();
-	process->dupObjectRefTo(0, Current->process, stdinObject);
-	process->dupObjectRefTo(1, Current->process, stdoutObject);
-	process->dupObjectRefTo(2, Current->process, stdoutObject);
-	task = Task_Create(process);
+	process->dupObjectRefTo(0, Current->process(), stdinObject);
+	process->dupObjectRefTo(1, Current->process(), stdoutObject);
+	process->dupObjectRefTo(2, Current->process(), stdoutObject);
+	task = new Task(process);
 
-	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
+	startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
 	strcpy(startupInfo->name, name);
 
-	Task_Start(task, startUser, startupInfo);
+	task->start(startUser, startupInfo);
 }
 
 static void procManagerMain(void *param)
@@ -104,7 +104,7 @@ static void procManagerMain(void *param)
 			case ProcManagerMapPhys:
 			{
 				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				Current->process->message(msg)->sender->process->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				Current->process()->message(msg)->sender->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -112,7 +112,7 @@ static void procManagerMain(void *param)
 
 			case ProcManagerSbrk:
 			{
-				Process *process = Current->process->message(msg)->sender->process;
+				Process *process = Current->process()->message(msg)->sender->process();
 				int increment = message.u.sbrk.increment;
 				int ret;
 
@@ -163,8 +163,8 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = Task_Create(Process::Kernel);
-	Task_Start(task, procManagerMain, NULL);
+	struct Task *task = new Task(Process::Kernel);
+	task->start(procManagerMain, NULL);
 
 	Sched_RunFirst();
 }

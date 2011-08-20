@@ -5,58 +5,58 @@
 #include "Util.h"
 #include "AsmFuncs.h"
 
-LIST(struct Task) runList;
-struct Task *Current = NULL;
+List2<Task, &Task::list> runList;
+Task *Current = NULL;
 
-void Sched_Add(struct Task *task)
+void Sched_Add(Task *task)
 {
-	task->state = TaskStateReady;
-	LIST_ADD_TAIL(runList, task->list);
+	task->setState(Task::StateReady);
+	runList.addTail(task);
 }
 
-static void switchTo(struct Task *current, struct Task *next)
+static void switchTo(Task *current, Task *next)
 {
-	next->state = TaskStateRunning;
+	next->setState(Task::StateRunning);
 
-	if(next->process->addressSpace() != AddressSpace::Kernel) {
-		next->effectiveAddressSpace = next->process->addressSpace();
-		SetMMUBase(next->process->addressSpace()->pageTable()->tablePAddr());
+	if(next->process()->addressSpace() != AddressSpace::Kernel) {
+		next->setEffectiveAddressSpace(next->process()->addressSpace());
+		SetMMUBase(next->process()->addressSpace()->pageTable()->tablePAddr());
 	} else {
-		next->effectiveAddressSpace = Current->effectiveAddressSpace;
+		next->setEffectiveAddressSpace(Current->effectiveAddressSpace());
 	}
 
 	Current = next;
 	SwitchToAsm(current, next);
 }
 
-void Sched_SwitchTo(struct Task *task)
+void Sched_SwitchTo(Task *task)
 {
 	switchTo(Current, task);
 }
 
 void Sched_RunNext()
 {
-	struct Task *next;
-	struct Task *old;
+	Task *next;
+	Task *old;
 	
-	if(Current->state == TaskStateRunning) {
+	if(Current->state() == Task::StateRunning) {
 		Sched_Add(Current);
 	}
 
-	next = LIST_HEAD(runList, struct Task, list);
-    LIST_REMOVE(runList, next->list);
+	next = runList.head();
+	runList.remove(next);
 
 	if(next != Current) {
 		switchTo(Current, next);
 	}
 }
 
-static void runFirst(struct Task *task)
+static void runFirst(Task *task)
 {
-	task->state = TaskStateRunning;
+	task->setState(Task::StateRunning);
 
-	task->effectiveAddressSpace = task->process->addressSpace();
-	SetMMUBase(task->process->addressSpace()->pageTable()->tablePAddr());
+	task->setEffectiveAddressSpace(task->process()->addressSpace());
+	SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
 
 	Current = task;
 	RunFirstAsm(task);
@@ -64,13 +64,8 @@ static void runFirst(struct Task *task)
 
 void Sched_RunFirst()
 {
-	struct Task *task = LIST_HEAD(runList, struct Task, list);
-    LIST_REMOVE(runList, task->list);
+	Task *task = runList.head();
+    runList.remove(task);
 
 	runFirst(task);
-}
-
-void Sched_Init()
-{
-	LIST_INIT(runList);
 }

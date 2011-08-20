@@ -19,7 +19,7 @@ struct Message {
 };
 
 struct Object {
-	LIST(struct Task) receivers;
+	List2<Task, &Task::list> receivers;
 	LIST(struct Message) messages;
 };
 

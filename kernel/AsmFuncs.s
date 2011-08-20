@@ -1,6 +1,6 @@
 .section .text
 
-.equ Task_regs, 0
+.equ Task_regs, 8
 
 .globl RunFirstAsm
 .type RunFirstAsm,%function

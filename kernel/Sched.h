@@ -7,7 +7,6 @@ void Sched_RunFirst();
 void Sched_RunNext();
 void Sched_Add(struct Task *task);
 void Sched_SwitchTo(struct Task *task);
-void Sched_Init();
 
 extern struct Task *Current;
 

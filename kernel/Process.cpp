@@ -1,6 +1,7 @@
 #include "Process.h"
 #include "Slab.h"
 #include "Util.h"
+#include "Object.h"
 
 SlabAllocator<Process> Process::sSlab;
 Process *Process::Kernel;

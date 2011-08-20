@@ -46,7 +46,6 @@ void Entry()
 	Constructors_Init();
 	PageTable::init();
 	AddressSpace::init();
-	Sched_Init();
 	Process::init();
 	Name_Init();
 
@@ -84,6 +83,6 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallGetProcessManager:
-			return Current->process->dupObjectRef(Process::Kernel, ProcessManager);
+			return Current->process()->dupObjectRef(Process::Kernel, ProcessManager);
 	}
 }

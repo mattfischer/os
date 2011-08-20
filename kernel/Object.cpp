@@ -8,7 +8,7 @@ static struct SlabAllocator<struct Object> objectSlab;
 struct Object *Object_Create()
 {
 	struct Object *object = objectSlab.allocate();
-	LIST_INIT(object->receivers);
+	object->receivers.init();
 	LIST_INIT(object->messages);
 
 	return object;
@@ -114,11 +114,11 @@ int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, str
 	LIST_ENTRY_CLEAR(message.list);
 	LIST_ADD_TAIL(object->messages, message.list);
 
-	Current->state = TaskStateSendBlock;
+	Current->setState(Task::StateSendBlock);
 
-	if(!LIST_EMPTY(object->receivers)) {
-		task = LIST_HEAD(object->receivers, struct Task, list);
-		LIST_REMOVE(object->receivers, task->list);
+	if(!object->receivers.empty()) {
+		task = object->receivers.head();
+		object->receivers.remove(task);
 		Sched_SwitchTo(task);
 	} else {
 		Sched_RunNext();
@@ -133,25 +133,25 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 	int size;
 
 	if(LIST_EMPTY(object->messages)) {
-		LIST_ADD_TAIL(object->receivers, Current->list);
-		Current->state = TaskStateReceiveBlock;
+		object->receivers.addTail(Current);
+		Current->setState(Task::StateReceiveBlock);
 		Sched_RunNext();
 	}
 
 	message = LIST_HEAD(object->messages, struct Message, list);
 	LIST_REMOVE(object->messages, message->list);
 
-	copyBuffer(Current->process, recvMsg, message->sender->process, &message->sendMsg, message->translateCache);
+	copyBuffer(Current->process(), recvMsg, message->sender->process(), &message->sendMsg, message->translateCache);
 
 	message->receiver = Current;
-	message->sender->state = TaskStateReplyBlock;
+	message->sender->setState(Task::StateReplyBlock);
 
 	return message;
 }
 
 int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
 {
-	return readBuffer(Current->process, buffer, message->sender->process, &message->sendMsg, offset, size, message->translateCache);
+	return readBuffer(Current->process(), buffer, message->sender->process(), &message->sendMsg, offset, size, message->translateCache);
 }
 
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
@@ -163,7 +163,7 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 		translateCache[i] = INVALID_OBJECT;
 	}
 
-	copyBuffer(message->sender->process, &message->replyMsg, Current->process, replyMsg, translateCache);
+	copyBuffer(message->sender->process(), &message->replyMsg, Current->process(), replyMsg, translateCache);
 	message->ret = ret;
 
 	Sched_Add(Current);
@@ -175,10 +175,10 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 int CreateObject()
 {
 	struct Object *object = Object_Create();
-	return Current->process->refObject(object);
+	return Current->process()->refObject(object);
 }
 
 void ReleaseObject(int obj)
 {
-	Current->process->unrefObject(obj);
+	Current->process()->unrefObject(obj);
 }

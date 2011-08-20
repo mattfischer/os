@@ -6,30 +6,48 @@
 #include "Page.h"
 #include "List.h"
 #include "Process.h"
+#include "Slab.h"
 
 #define R_SP 13
 #define R_PC 15
 
-enum TaskState {
-	TaskStateInit,
-	TaskStateRunning,
-	TaskStateReady,
-	TaskStateReceiveBlock,
-	TaskStateSendBlock,
-	TaskStateReplyBlock
-};
+class Process;
 
-struct Task {
-	unsigned int regs[16];
-	enum TaskState state;
-	struct Page *stack;
-	struct Process *process;
-	struct AddressSpace *effectiveAddressSpace;
-	struct ListEntry list;
-};
+class Task {
+public:
+	enum State {
+		StateInit,
+		StateRunning,
+		StateReady,
+		StateReceiveBlock,
+		StateSendBlock,
+		StateReplyBlock
+	};
 
-struct Task *Task_Create(struct Process *process);
-void *Task_StackAllocate(struct Task *task, int size);
-void Task_Start(struct Task *task, void (*start)(void *), void *param);
+	Task(Process *process);
+
+	Process *process() { return mProcess; }
+	State state() { return mState; }
+	void setState(State state) { mState = state; }
+
+	AddressSpace *effectiveAddressSpace() { return mEffectiveAddressSpace; }
+	void setEffectiveAddressSpace(AddressSpace *addressSpace) { mEffectiveAddressSpace = addressSpace; }
+
+	void *stackAllocate(int size);
+	void start(void (*start)(void *), void *param);
+
+	void *operator new(size_t size) { return sSlab.allocate(); }
+
+	ListEntry2<Task> list;
+
+private:
+	unsigned int mRegs[16];
+	State mState;
+	struct Page *mStack;
+	Process *mProcess;
+	AddressSpace *mEffectiveAddressSpace;
+
+	static SlabAllocator<Task> sSlab;
+};
 
 #endif
