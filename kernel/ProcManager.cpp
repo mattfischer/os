@@ -34,10 +34,10 @@ static void startUser(void *param)
 	stackSize = PAGE_SIZE;
 	stackArea = MemArea_CreatePages(stackSize);
 	stackVAddr = (char*)(KERNEL_START - stackArea->size);
-	Current->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
+	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(Current->process()->addressSpace(), data, size);
+	entry = Elf_Load(Sched::current()->process()->addressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }
@@ -49,9 +49,9 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	struct StartupInfo *startupInfo;
 
 	process = new Process();
-	process->dupObjectRefTo(0, Current->process(), stdinObject);
-	process->dupObjectRefTo(1, Current->process(), stdoutObject);
-	process->dupObjectRefTo(2, Current->process(), stdoutObject);
+	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
+	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
 	task = new Task(process);
 
 	startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
@@ -104,7 +104,7 @@ static void procManagerMain(void *param)
 			case ProcManagerMapPhys:
 			{
 				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				Current->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -112,7 +112,7 @@ static void procManagerMain(void *param)
 
 			case ProcManagerSbrk:
 			{
-				Process *process = Current->process()->message(msg)->sender()->process();
+				Process *process = Sched::current()->process()->message(msg)->sender()->process();
 				int increment = message.u.sbrk.increment;
 				int ret;
 
@@ -166,5 +166,5 @@ void ProcManager_Start()
 	struct Task *task = new Task(Process::Kernel);
 	task->start(procManagerMain, NULL);
 
-	Sched_RunFirst();
+	Sched::runFirst();
 }

@@ -94,20 +94,20 @@ static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process 
 
 int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Message message(Current, *sendMsg, *replyMsg);
+	struct Message message(Sched::current(), *sendMsg, *replyMsg);
 	struct Task *task;
 	int i;
 
 	mMessages.addTail(&message);
 
-	Current->setState(Task::StateSendBlock);
+	Sched::current()->setState(Task::StateSendBlock);
 
 	if(!mReceivers.empty()) {
 		task = mReceivers.head();
 		mReceivers.remove(task);
-		Sched_SwitchTo(task);
+		Sched::switchTo(task);
 	} else {
-		Sched_RunNext();
+		Sched::runNext();
 	}
 
 	return message.ret();
@@ -119,17 +119,17 @@ struct Message *Object::receive(struct MessageHeader *recvMsg)
 	int size;
 
 	if(mMessages.empty()) {
-		mReceivers.addTail(Current);
-		Current->setState(Task::StateReceiveBlock);
-		Sched_RunNext();
+		mReceivers.addTail(Sched::current());
+		Sched::current()->setState(Task::StateReceiveBlock);
+		Sched::runNext();
 	}
 
 	message = mMessages.head();
 	mMessages.remove(message);
 
-	copyBuffer(Current->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
+	copyBuffer(Sched::current()->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
 
-	message->setReceiver(Current);
+	message->setReceiver(Sched::current());
 	message->sender()->setState(Task::StateReplyBlock);
 
 	return message;
@@ -150,7 +150,7 @@ Message::Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHead
 
 int Message::read(void *buffer, int offset, int size)
 {
-	return readBuffer(Current->process(), buffer, mSender->process(), &mSendMsg, offset, size, mTranslateCache);
+	return readBuffer(Sched::current()->process(), buffer, mSender->process(), &mSendMsg, offset, size, mTranslateCache);
 }
 
 int Message::reply(int ret, struct MessageHeader *replyMsg)
@@ -162,11 +162,11 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 		translateCache[i] = INVALID_OBJECT;
 	}
 
-	copyBuffer(mSender->process(), &mReplyMsg, Current->process(), replyMsg, translateCache);
+	copyBuffer(mSender->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
 	mRet = ret;
 
-	Sched_Add(Current);
-	Sched_SwitchTo(mSender);
+	Sched::add(Sched::current());
+	Sched::switchTo(mSender);
 
 	return 0;
 }
@@ -174,10 +174,10 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 int CreateObject()
 {
 	struct Object *object = new Object();
-	return Current->process()->refObject(object);
+	return Sched::current()->process()->refObject(object);
 }
 
 void ReleaseObject(int obj)
 {
-	Current->process()->unrefObject(obj);
+	Sched::current()->process()->unrefObject(obj);
 }

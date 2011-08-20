@@ -60,7 +60,7 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 
 	switch(code) {
 		case SyscallYield:
-			Sched_RunNext();
+			Sched::runNext();
 			return 0;
 
 		case SyscallSendMessage:
@@ -83,6 +83,6 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallGetProcessManager:
-			return Current->process()->dupObjectRef(Process::Kernel, ProcessManager);
+			return Sched::current()->process()->dupObjectRef(Process::Kernel, ProcessManager);
 	}
 }

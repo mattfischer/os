@@ -5,67 +5,62 @@
 #include "Util.h"
 #include "AsmFuncs.h"
 
-List2<Task, &Task::list> runList;
-Task *Current = NULL;
+List2<Task, &Task::list> Sched::sRunList;
+Task *Sched::sCurrent = NULL;
 
-void Sched_Add(Task *task)
+void Sched::add(Task *task)
 {
 	task->setState(Task::StateReady);
-	runList.addTail(task);
+	sRunList.addTail(task);
 }
 
 static void switchTo(Task *current, Task *next)
 {
-	next->setState(Task::StateRunning);
+}
 
-	if(next->process()->addressSpace() != AddressSpace::Kernel) {
-		next->setEffectiveAddressSpace(next->process()->addressSpace());
-		SetMMUBase(next->process()->addressSpace()->pageTable()->tablePAddr());
+void Sched::switchTo(Task *task)
+{
+	task->setState(Task::StateRunning);
+
+	if(task->process()->addressSpace() != AddressSpace::Kernel) {
+		task->setEffectiveAddressSpace(task->process()->addressSpace());
+		SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
 	} else {
-		next->setEffectiveAddressSpace(Current->effectiveAddressSpace());
+		task->setEffectiveAddressSpace(sCurrent->effectiveAddressSpace());
 	}
 
-	Current = next;
-	SwitchToAsm(current, next);
+	Task *old = sCurrent;
+	sCurrent = task;
+	SwitchToAsm(old, task);
 }
 
-void Sched_SwitchTo(Task *task)
-{
-	switchTo(Current, task);
-}
-
-void Sched_RunNext()
+void Sched::runNext()
 {
 	Task *next;
 	Task *old;
 	
-	if(Current->state() == Task::StateRunning) {
-		Sched_Add(Current);
+	if(sCurrent->state() == Task::StateRunning) {
+		add(sCurrent);
 	}
 
-	next = runList.head();
-	runList.remove(next);
+	next = sRunList.head();
+	sRunList.remove(next);
 
-	if(next != Current) {
-		switchTo(Current, next);
+	if(next != sCurrent) {
+		switchTo(next);
 	}
 }
 
-static void runFirst(Task *task)
+void Sched::runFirst()
 {
+	Task *task = sRunList.head();
+    sRunList.remove(task);
+
 	task->setState(Task::StateRunning);
 
 	task->setEffectiveAddressSpace(task->process()->addressSpace());
 	SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
 
-	Current = task;
+	sCurrent = task;
 	RunFirstAsm(task);
-}
-
-void Sched_RunFirst()
-{
-	Task *task = runList.head();
-    runList.remove(task);
-
-	runFirst(task);
 }

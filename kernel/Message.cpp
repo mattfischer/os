@@ -51,7 +51,7 @@ int SendMessagesx(int obj, void *msg, int msgSize, struct MessageHeader *replyMs
 
 int SendMessagex(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Object *object = Current->process()->object(obj);
+	struct Object *object = Sched::current()->process()->object(obj);
 	return object->send(sendMsg, replyMsg);
 }
 
@@ -70,14 +70,14 @@ int ReceiveMessage(int obj, void *recv, int recvSize)
 
 int ReceiveMessagex(int obj, struct MessageHeader *recvMsg)
 {
-	struct Object *object = Current->process()->object(obj);
+	struct Object *object = Sched::current()->process()->object(obj);
 	struct Message *message = object->receive(recvMsg);
-	return Current->process()->refMessage(message);
+	return Sched::current()->process()->refMessage(message);
 }
 
 int ReadMessage(int msg, void *buffer, int offset, int size)
 {
-	struct Message *message = Current->process()->message(msg);
+	struct Message *message = Sched::current()->process()->message(msg);
 
 	return message->read(buffer, offset, size);
 }
@@ -97,9 +97,9 @@ int ReplyMessage(int msg, int ret, void *reply, int replySize)
 
 int ReplyMessagex(int msg, int ret, struct MessageHeader *replyMsg)
 {
-	struct Message *message = Current->process()->message(msg);
+	struct Message *message = Sched::current()->process()->message(msg);
 	int r = message->reply(ret, replyMsg);
-	Current->process()->unrefMessage(msg);
+	Sched::current()->process()->unrefMessage(msg);
 
 	return r;
 }

@@ -33,5 +33,5 @@ void Task::start(void (*start)(void *), void *param)
 	mRegs[0]    = (unsigned int)param;
 	mRegs[R_PC] = (unsigned int)start;
 
-	Sched_Add(this);
+	Sched::add(this);
 }

@@ -2,12 +2,19 @@
 #define SCHED_H
 
 #include "Task.h"
+#include "List.h"
 
-void Sched_RunFirst();
-void Sched_RunNext();
-void Sched_Add(struct Task *task);
-void Sched_SwitchTo(struct Task *task);
+class Sched {
+public:
+	static void runFirst();
+	static void runNext();
+	static void add(Task *task);
+	static void switchTo(Task *task);
 
-extern struct Task *Current;
+	static Task *current() { return sCurrent; }
+private:
+	static Task *sCurrent;
+	static List2<Task, &Task::list> sRunList;
+};
 
 #endif
