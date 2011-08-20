@@ -10,6 +10,7 @@
 class PageTable {
 public:
 	enum Permission {
+		PermissionNone,
 		PermissionRO,
 		PermissionRW,
 		PermissionRWPriv
@@ -23,6 +24,7 @@ public:
 	PAddr tablePAddr() { return mTablePAddr; }
 
 	void mapPage(void *vaddr, PAddr paddr, Permission permission);
+	void mapSection(void *vaddr, PAddr paddr, Permission permission);
 
 	PAddr translateVAddr(void *vaddr);
 

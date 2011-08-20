@@ -4,8 +4,6 @@
 
 #include "include/Syscalls.h"
 
-char InitStack[256];
-
 extern "C" {
 	void EntryLow();
 	void Entry();

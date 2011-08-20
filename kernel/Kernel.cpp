@@ -8,6 +8,7 @@
 #include "Defs.h"
 
 extern "C" {
+	char InitStack[256];
 	PAddr KernelTablePAddr;
 }
 
@@ -49,14 +50,17 @@ SECTION_LOW void Kernel::initLow()
 
 void Kernel::init()
 {
-	Page *pages;
 	PageTable *pageTable;
 	AddressSpace *addressSpace;
 	struct Page *vectorPage;
 	char *vector;
+	unsigned vaddr;
 
-	pages = Page::fromPAddr(KernelTablePAddr);
-	pageTable = new PageTable(pages);
+	pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
+	for(vaddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE) {
+		pageTable->mapSection((void*)vaddr, 0, PageTable::PermissionNone);
+	}
+
 	addressSpace = new AddressSpace(pageTable);
 	sProcess = new Process(addressSpace);
 

@@ -38,9 +38,11 @@
 #define PTE_L2_AP_READ_WRITE 0x3
 #define PTE_L2_AP_READ_ONLY 0x2
 #define PTE_L2_AP_READ_WRITE_PRIV 0x1
+#define PTE_L2_AP_NONE 0x0
 #define PTE_L2_AP_ALL_READ_WRITE 0xff0
 #define PTE_L2_AP_ALL_READ_ONLY 0xCC0
 #define PTE_L2_AP_ALL_READ_WRITE_PRIV 0x550
+#define PTE_L2_AP_ALL_NONE 0x0
 
 #define PTE_L2_BASE_MASK 0xfffff000
 #define PTE_L2_BASE_SHIFT 12
@@ -130,6 +132,7 @@ void PageTable::mapPage(void *vaddr, PAddr paddr, Permission permission)
 	pte = table[idx];
 
 	switch(permission) {
+		case PermissionNone: perm = PTE_L2_AP_ALL_NONE; break;
 		case PermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
 		case PermissionRW: perm = PTE_L2_AP_ALL_READ_WRITE; break;
 		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
@@ -140,6 +143,24 @@ void PageTable::mapPage(void *vaddr, PAddr paddr, Permission permission)
 		l2idx = ((unsigned)vaddr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
 		L2Table[l2idx] = (paddr & PTE_COARSE_BASE_MASK) | perm | PTE_L2_TYPE_SMALL;
 	}
+}
+
+void PageTable::mapSection(void *vaddr, PAddr paddr, Permission permission)
+{
+	unsigned *table;
+	int idx;
+	unsigned int perm;
+
+	switch(permission) {
+		case PermissionNone: perm = PTE_L2_AP_ALL_NONE; break;
+		case PermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
+		case PermissionRW: perm = PTE_L2_AP_ALL_READ_WRITE; break;
+		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
+	}
+
+	table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
 }
 
 PAddr PageTable::translateVAddr(void *addr)
@@ -164,6 +185,7 @@ SECTION_LOW void PageTable::mapSectionLow(Page *pageTable, void *vaddr, PAddr pa
 	unsigned int perm;
 
 	switch(permission) {
+		case PermissionNone: perm = PTE_L2_AP_ALL_NONE; break;
 		case PermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
 		case PermissionRW: perm = PTE_L2_AP_ALL_READ_WRITE; break;
 		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
