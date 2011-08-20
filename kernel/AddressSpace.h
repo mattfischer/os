@@ -4,6 +4,7 @@
 #include "List.h"
 #include "PageTable.h"
 #include "MemArea.h"
+#include "Slab.h"
 
 struct Mapping {
 	void *vaddr;
@@ -13,18 +14,25 @@ struct Mapping {
 	struct ListEntry list;
 };
 
-struct AddressSpace {
-	struct PageTable *pageTable;
-	LIST(struct Mapping) mappings;
+class AddressSpace {
+public:
+	AddressSpace(struct PageTable *pageTable = NULL);
+
+	static void init();
+
+	struct PageTable *pageTable() { return mPageTable; }
+
+	void map(struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
+	static void memcpy(AddressSpace *destSpace, void *dest, AddressSpace *srcSpace, void *src, int size);
+
+	void *operator new(size_t size) { return sSlab.allocate(); }
+
+	static AddressSpace *Kernel;
+
+private:
+	struct PageTable *mPageTable;
+	LIST(struct Mapping) mMappings;
+
+	static SlabAllocator<AddressSpace> sSlab;
 };
-
-struct AddressSpace *AddressSpace_Create();
-
-void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
-void AddressSpace_Memcpy(struct AddressSpace *destSpace, void *dest, struct AddressSpace *srcSpace, void *src, int size);
-
-void AddressSpace_Init();
-
-extern struct AddressSpace *KernelSpace;
-
 #endif

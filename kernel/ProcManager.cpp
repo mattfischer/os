@@ -34,26 +34,24 @@ static void startUser(void *param)
 	stackSize = PAGE_SIZE;
 	stackArea = MemArea_CreatePages(stackSize);
 	stackVAddr = (char*)(KERNEL_START - stackArea->size);
-	AddressSpace_Map(Current->process->AddressSpace(), stackArea, stackVAddr, 0, stackArea->size);
+	Current->process->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(Current->process->AddressSpace(), data, size);
+	entry = Elf_Load(Current->process->addressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }
 
 static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
-	struct AddressSpace *addressSpace;
 	Process *process;
 	struct Task *task;
 	struct StartupInfo *startupInfo;
 
-	addressSpace = AddressSpace_Create();
-	process = new Process(addressSpace);
-	process->DupObjectRefTo(0, Current->process, stdinObject);
-	process->DupObjectRefTo(1, Current->process, stdoutObject);
-	process->DupObjectRefTo(2, Current->process, stdoutObject);
+	process = new Process();
+	process->dupObjectRefTo(0, Current->process, stdinObject);
+	process->dupObjectRefTo(1, Current->process, stdoutObject);
+	process->dupObjectRefTo(2, Current->process, stdoutObject);
 	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
@@ -106,7 +104,7 @@ static void procManagerMain(void *param)
 			case ProcManagerMapPhys:
 			{
 				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				AddressSpace_Map(Current->process->Message(msg)->sender->process->AddressSpace(), area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				Current->process->message(msg)->sender->process->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -114,35 +112,35 @@ static void procManagerMain(void *param)
 
 			case ProcManagerSbrk:
 			{
-				struct Process *process = Current->process->Message(msg)->sender->process;
+				Process *process = Current->process->message(msg)->sender->process;
 				int increment = message.u.sbrk.increment;
 				int ret;
 
-				if(process->HeapTop() == NULL) {
+				if(process->heapTop() == NULL) {
 					int size = PAGE_SIZE_ROUND_UP(increment);
 
-					process->SetHeap(MemArea_CreatePages(size));
-					process->SetHeapTop((char*)(0x10000000 + increment));
-					process->SetHeapAreaTop((char*)(0x10000000 + size));
-					AddressSpace_Map(process->AddressSpace(), process->Heap(), (void*)0x10000000, 0, size);
+					process->setHeap(MemArea_CreatePages(size));
+					process->setHeapTop((char*)(0x10000000 + increment));
+					process->setHeapAreaTop((char*)(0x10000000 + size));
+					process->addressSpace()->map(process->heap(), (void*)0x10000000, 0, size);
 					ret = 0x10000000;
 				} else {
-					if(process->HeapTop() + increment < process->HeapAreaTop()) {
-						ret = (int)process->HeapTop();
-						process->SetHeapTop(process->HeapTop() + increment);
+					if(process->heapTop() + increment < process->heapAreaTop()) {
+						ret = (int)process->heapTop();
+						process->setHeapTop(process->heapTop() + increment);
 					} else {
 						int size = PAGE_SIZE_ROUND_UP(increment);
 						int extraPages = size >> PAGE_SHIFT;
 						int i;
 
-						ret = (int)process->HeapTop();
+						ret = (int)process->heapTop();
 						for(i=0; i<extraPages; i++) {
 							struct Page *page = Page_Alloc();
-							LIST_ADD_TAIL(process->Heap()->u.pages, page->list);
-							PageTable_MapPage(process->AddressSpace()->pageTable, process->HeapAreaTop(), PAGE_TO_PADDR(page), PageTablePermissionRW);
-							process->SetHeapAreaTop(process->HeapAreaTop() + PAGE_SIZE);
+							LIST_ADD_TAIL(process->heap()->u.pages, page->list);
+							PageTable_MapPage(process->addressSpace()->pageTable(), process->heapAreaTop(), PAGE_TO_PADDR(page), PageTablePermissionRW);
+							process->setHeapAreaTop(process->heapAreaTop() + PAGE_SIZE);
 						}
-						process->SetHeapTop(process->HeapTop() + increment);
+						process->setHeapTop(process->heapTop() + increment);
 					}
 				}
 

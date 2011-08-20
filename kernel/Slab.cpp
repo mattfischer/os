@@ -26,7 +26,7 @@ SlabBase::SlabBase(int size)
 	LIST_INIT(mPages);
 }
 
-void *SlabBase::AllocateBase()
+void *SlabBase::allocateBase()
 {
 	struct Page *page;
 	struct SlabHead *head;
@@ -61,7 +61,7 @@ void *SlabBase::AllocateBase()
 	return PAGE_TO_VADDR(page) + (mDataStart << mOrder);
 }
 
-void SlabBase::FreeBase(void *p)
+void SlabBase::freeBase(void *p)
 {
 	struct Page *page = VADDR_TO_PAGE(p);
 	struct Page *cursor;

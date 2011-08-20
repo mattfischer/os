@@ -2,12 +2,15 @@
 #include "Slab.h"
 #include "Util.h"
 
-static struct SlabAllocator<struct Process> processSlab;
-
+SlabAllocator<Process> Process::sSlab;
 Process *Process::Kernel;
 
-Process::Process(struct AddressSpace *addressSpace)
+Process::Process(AddressSpace *addressSpace)
 {
+	if(addressSpace == NULL) {
+		addressSpace = new AddressSpace();
+	}
+
 	mAddressSpace = addressSpace;
 	mHeap = NULL;
 	mHeapTop = NULL;
@@ -15,7 +18,7 @@ Process::Process(struct AddressSpace *addressSpace)
 	memset(mMessages, 0, sizeof(struct Message*) * 16);
 }
 
-struct Object *Process::Object(int obj)
+struct Object *Process::object(int obj)
 {
 	if(obj == INVALID_OBJECT) {
 		return NULL;
@@ -24,7 +27,7 @@ struct Object *Process::Object(int obj)
 	}
 }
 
-int Process::RefObject(struct Object *object)
+int Process::refObject(struct Object *object)
 {
 	int i;
 
@@ -42,7 +45,7 @@ int Process::RefObject(struct Object *object)
 	return INVALID_OBJECT;
 }
 
-int Process::RefObjectTo(int obj, struct Object *object)
+int Process::refObjectTo(int obj, struct Object *object)
 {
 	if(mObjects[obj] != NULL || object == NULL) {
 		return INVALID_OBJECT;
@@ -52,37 +55,37 @@ int Process::RefObjectTo(int obj, struct Object *object)
 	return obj;
 }
 
-void Process::UnrefObject(int obj)
+void Process::unrefObject(int obj)
 {
 	if(obj != INVALID_OBJECT) {
 		mObjects[obj] = NULL;
 	}
 }
 
-int Process::DupObjectRef(Process *sourceProcess, int sourceObj)
+int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
 {
 	if(sourceObj == INVALID_OBJECT) {
 		return INVALID_OBJECT;
 	}
 
-	return RefObject(sourceProcess->Object(sourceObj));
+	return refObject(sourceProcess->object(sourceObj));
 }
 
-int Process::DupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
+int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
 {
 	if(sourceObj == INVALID_OBJECT) {
 		return INVALID_OBJECT;
 	}
 
-	return RefObjectTo(obj, sourceProcess->Object(sourceObj));
+	return refObjectTo(obj, sourceProcess->object(sourceObj));
 }
 
-struct Message *Process::Message(int msg)
+struct Message *Process::message(int msg)
 {
 	return mMessages[msg];
 }
 
-int Process::RefMessage(struct Message *message)
+int Process::refMessage(struct Message *message)
 {
 	int i;
 
@@ -96,17 +99,12 @@ int Process::RefMessage(struct Message *message)
 	return -1;
 }
 
-void Process::UnrefMessage(int msg)
+void Process::unrefMessage(int msg)
 {
 	mMessages[msg] = NULL;
 }
 
-void Process::Init()
+void Process::init()
 {
-	Kernel = new Process(KernelSpace);
-}
-
-void *Process::operator new(size_t size)
-{
-	return processSlab.Allocate();
+	Kernel = new Process(AddressSpace::Kernel);
 }

@@ -62,6 +62,6 @@ typedef struct {
 } Elf32_Phdr;
 
 typedef void (*ElfEntry)();
-ElfEntry Elf_Load(struct AddressSpace *space, void *data, int size);
+ElfEntry Elf_Load(AddressSpace *space, void *data, int size);
 
 #endif

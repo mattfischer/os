@@ -6,43 +6,45 @@
 
 class Process {
 public:
-	Process(struct AddressSpace *addressSpace);
+	Process(AddressSpace *addressSpace = NULL);
 
-	static void Init();
+	static void init();
 	static Process *Kernel;
 
-	struct AddressSpace *AddressSpace() { return mAddressSpace; }
+	AddressSpace *addressSpace() { return mAddressSpace; }
 
-	struct MemArea *Heap() { return mHeap; }
-	void SetHeap(struct MemArea *heap) { mHeap = heap; }
+	struct MemArea *heap() { return mHeap; }
+	void setHeap(struct MemArea *heap) { mHeap = heap; }
 
-	char *HeapTop() { return mHeapTop; }
-	void SetHeapTop(char *heapTop) { mHeapTop = heapTop; }
+	char *heapTop() { return mHeapTop; }
+	void setHeapTop(char *heapTop) { mHeapTop = heapTop; }
 
-	char *HeapAreaTop() { return mHeapAreaTop; }
-	void SetHeapAreaTop(char *heapAreaTop) { mHeapAreaTop = heapAreaTop; }
+	char *heapAreaTop() { return mHeapAreaTop; }
+	void setHeapAreaTop(char *heapAreaTop) { mHeapAreaTop = heapAreaTop; }
 
-	struct Object *Object(int obj);
-	int RefObject(struct Object *object);
-	int RefObjectTo(int obj, struct Object *object);
-	void UnrefObject(int obj);
+	struct Object *object(int obj);
+	int refObject(struct Object *object);
+	int refObjectTo(int obj, struct Object *object);
+	void unrefObject(int obj);
 
-	int DupObjectRef(Process *sourceProcess, int sourceObj);
-	int DupObjectRefTo(int obj, Process *sourceProcess, int sourceObj);
+	int dupObjectRef(Process *sourceProcess, int sourceObj);
+	int dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj);
 
-	struct Message *Message(int msg);
-	int RefMessage(struct Message *message);
-	void UnrefMessage(int msg);
+	struct Message *message(int msg);
+	int refMessage(struct Message *message);
+	void unrefMessage(int msg);
 
-	static void *operator new(size_t size);
+	void *operator new(size_t size) { return sSlab.allocate(); }
 
 private:
-	struct AddressSpace *mAddressSpace;
+	AddressSpace *mAddressSpace;
 	struct MemArea *mHeap;
 	char *mHeapTop;
 	char *mHeapAreaTop;
 	struct Object *mObjects[16];
 	struct Message *mMessages[16];
+
+	static SlabAllocator<Process> sSlab;
 };
 
 #endif

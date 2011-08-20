@@ -7,7 +7,7 @@ static struct SlabAllocator<struct Object> objectSlab;
 
 struct Object *Object_Create()
 {
-	struct Object *object = objectSlab.Allocate();
+	struct Object *object = objectSlab.allocate();
 	LIST_INIT(object->receivers);
 	LIST_INIT(object->messages);
 
@@ -27,7 +27,7 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 		int segmentSize;
 		int segmentStart;
 
-		AddressSpace_Memcpy(NULL, &segment, srcProcess->AddressSpace(), src->segments + i, sizeof(struct BufferSegment));
+		AddressSpace::memcpy(NULL, &segment, srcProcess->addressSpace(), src->segments + i, sizeof(struct BufferSegment));
 
 		if(srcOffset + segment.size < offset) {
 			srcOffset += segment.size;
@@ -37,7 +37,7 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 		segmentStart = offset + copied - srcOffset;
 		segmentSize = min(size - copied, segment.size - segmentStart);
 
-		AddressSpace_Memcpy(destProcess->AddressSpace(), (char*)dest + copied, srcProcess->AddressSpace(), (char*)segment.buffer + segmentStart, segmentSize);
+		AddressSpace::memcpy(destProcess->addressSpace(), (char*)dest + copied, srcProcess->addressSpace(), (char*)segment.buffer + segmentStart, segmentSize);
 
 		for(j=0; j<src->objectsSize; j++) {
 			int *s, *d;
@@ -49,12 +49,12 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 				continue;
 			}
 
-			s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->AddressSpace()->pageTable, (char*)segment.buffer + objOffset - srcOffset));
-			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->AddressSpace()->pageTable, (char*)dest + objOffset - offset));
+			s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace()->pageTable(), (char*)segment.buffer + objOffset - srcOffset));
+			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace()->pageTable(), (char*)dest + objOffset - offset));
 			obj = *s;
 
 			if(translateCache[i] == INVALID_OBJECT) {
-				translateCache[i] = destProcess->DupObjectRef(srcProcess, obj);
+				translateCache[i] = destProcess->dupObjectRef(srcProcess, obj);
 			}
 
 			*d = translateCache[i];
@@ -85,7 +85,7 @@ static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process 
 		struct BufferSegment segment;
 		int segmentCopied;
 
-		AddressSpace_Memcpy(NULL, &segment, destProcess->AddressSpace(), dest->segments + i, sizeof(struct BufferSegment));
+		AddressSpace::memcpy(NULL, &segment, destProcess->addressSpace(), dest->segments + i, sizeof(struct BufferSegment));
 
 		segmentCopied = readBuffer(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
 		copied += segmentCopied;
@@ -175,10 +175,10 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 int CreateObject()
 {
 	struct Object *object = Object_Create();
-	return Current->process->RefObject(object);
+	return Current->process->refObject(object);
 }
 
 void ReleaseObject(int obj)
 {
-	Current->process->UnrefObject(obj);
+	Current->process->unrefObject(obj);
 }

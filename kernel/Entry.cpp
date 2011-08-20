@@ -44,9 +44,9 @@ static void Constructors_Init()
 void Entry()
 {
 	Constructors_Init();
-	AddressSpace_Init();
+	AddressSpace::init();
 	Sched_Init();
-	Process::Init();
+	Process::init();
 	Name_Init();
 
 	ProcManager_Start();
@@ -83,6 +83,6 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 			return 0;
 
 		case SyscallGetProcessManager:
-			return Current->process->DupObjectRef(Process::Kernel, ProcessManager);
+			return Current->process->dupObjectRef(Process::Kernel, ProcessManager);
 	}
 }

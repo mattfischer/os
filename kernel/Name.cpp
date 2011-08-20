@@ -43,7 +43,7 @@ void Name_Set(const char *name, int object)
 	entry = findEntry(name);
 
 	if(entry == NULL) {
-		entry = nameSlab.Allocate();
+		entry = nameSlab.allocate();
 
 		strcpy(entry->name, name);
 		entry->object = object;

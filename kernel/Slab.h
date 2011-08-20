@@ -7,8 +7,8 @@ class SlabBase {
 public:
 	SlabBase(int size);
 
-	void *AllocateBase();
-	void FreeBase(void *p);
+	void *allocateBase();
+	void freeBase(void *p);
 
 private:
 	int mOrder;
@@ -23,8 +23,8 @@ class SlabAllocator : public SlabBase {
 public:
 	SlabAllocator() : SlabBase(sizeof(T)) {}
 
-	T *Allocate() { return (T*)AllocateBase(); }
-	void Free(T *p) { FreeBase(p); }
+	T *allocate() { return (T*)allocateBase(); }
+	void free(T *p) { freeBase(p); }
 };
 
 #endif

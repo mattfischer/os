@@ -8,7 +8,7 @@ struct MemArea *MemArea_CreatePages(int size)
 {
 	struct MemArea *area;
 
-	area = memAreaSlab.Allocate();
+	area = memAreaSlab.allocate();
 	area->type = MemAreaTypePages;
 	area->size = PAGE_SIZE_ROUND_UP(size);
 	area->u.pages = Page_AllocMulti(area->size >> PAGE_SHIFT);
@@ -20,7 +20,7 @@ struct MemArea *MemArea_CreatePhys(int size, PAddr paddr)
 {
 	struct MemArea *area;
 
-	area = memAreaSlab.Allocate();
+	area = memAreaSlab.allocate();
 	area->type = MemAreaTypePhys;
 	area->size = PAGE_SIZE_ROUND_UP(size);
 	area->u.paddr = paddr;

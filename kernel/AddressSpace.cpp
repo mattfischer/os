@@ -1,23 +1,33 @@
 #include "AddressSpace.h"
-#include "Slab.h"
 #include "AsmFuncs.h"
 #include "Util.h"
 
-struct AddressSpace *KernelSpace;
+AddressSpace *AddressSpace::Kernel;
+SlabAllocator<struct AddressSpace> AddressSpace::sSlab;
 
 static struct SlabAllocator<struct Mapping> mappingSlab;
-static struct SlabAllocator<struct AddressSpace> addressSpaceSlab;
 
 extern char vectorStart[];
 extern char vectorEnd[];
 
-void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
+AddressSpace::AddressSpace(struct PageTable *pageTable)
+{
+	LIST_INIT(mMappings);
+
+	if(pageTable == NULL) {
+		pageTable = PageTable_Create();
+	}
+
+	mPageTable = pageTable;
+}
+
+void AddressSpace::map(struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
 {
 	struct Mapping *mapping;
 	struct Mapping *mappingCursor;
 	unsigned v;
 
-	mapping = mappingSlab.Allocate();
+	mapping = mappingSlab.allocate();
 	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
 	mapping->offset = PAGE_ADDR_ROUND_DOWN(offset);
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
@@ -38,7 +48,7 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 					continue;
 				}
 
-				PageTable_MapPage(space->pageTable, (void*)v, PAGE_TO_PADDR(page), PageTablePermissionRW);
+				PageTable_MapPage(mPageTable, (void*)v, PAGE_TO_PADDR(page), PageTablePermissionRW);
 				v += PAGE_SIZE;
 			}
 			break;
@@ -48,15 +58,15 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 		{
 			PAddr paddr;
 			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
-				PageTable_MapPage(space->pageTable, (void*)v, paddr, PageTablePermissionRW);
+				PageTable_MapPage(mPageTable, (void*)v, paddr, PageTablePermissionRW);
 			}
 			break;
 		}
 	}
 
-	LIST_FOREACH(space->mappings, mappingCursor, struct Mapping, list) {
+	LIST_FOREACH(mMappings, mappingCursor, struct Mapping, list) {
 		if(mappingCursor->vaddr > mapping->vaddr) {
-			LIST_ADD_AFTER(space->mappings, mapping->list, mappingCursor->list);
+			LIST_ADD_AFTER(mMappings, mapping->list, mappingCursor->list);
 			break;
 		}
 	}
@@ -64,27 +74,12 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 	FlushTLB();
 }
 
-struct AddressSpace *AddressSpace_Create()
-{
-	struct AddressSpace *space;
-	unsigned *base;
-	unsigned *kernelTable;
-	int kernel_nr;
-
-	space = addressSpaceSlab.Allocate();
-	LIST_INIT(space->mappings);
-
-	space->pageTable = PageTable_Create();
-
-	return space;
-}
-
 static unsigned nextPageBoundary(unsigned addr)
 {
 	return (addr & PAGE_MASK) + PAGE_SIZE;
 }
 
-void AddressSpace_Memcpy(struct AddressSpace *destSpace, void *dest, struct AddressSpace *srcSpace, void *src, int size)
+void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *srcSpace, void *src, int size)
 {
 	unsigned srcPtr = (unsigned)src;
 	unsigned destPtr = (unsigned)dest;
@@ -100,35 +95,33 @@ void AddressSpace_Memcpy(struct AddressSpace *destSpace, void *dest, struct Addr
 		if(srcSpace == NULL) {
 			srcKernel = (void*)srcPtr;
 		} else {
-			srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable, (void*)srcPtr));
+			srcKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(srcSpace->pageTable(), (void*)srcPtr));
 		}
 
 		if(destSpace == NULL ) {
 			destKernel = (void*)destPtr;
 		} else {
-			destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable, (void*)destPtr));
+			destKernel = PADDR_TO_VADDR(PageTable_TranslateVAddr(destSpace->pageTable(), (void*)destPtr));
 		}
 
-		memcpy(destKernel, srcKernel, copySize);
+		::memcpy(destKernel, srcKernel, copySize);
 		srcPtr += copySize;
 		destPtr += copySize;
 		size -= copySize;
 	}
 }
 
-void AddressSpace_Init()
+void AddressSpace::init()
 {
 	int i;
 	unsigned int n;
 	struct Page *vectorPage;
 	char *vector;
 
-	KernelSpace = AddressSpace_Create();
-	KernelSpace->pageTable = &KernelPageTable;
-	LIST_INIT(KernelSpace->mappings);
+	Kernel = new AddressSpace(&KernelPageTable);
 
 	vectorPage = Page_Alloc();
 	vector = PAGE_TO_VADDR(vectorPage);
-	PageTable_MapPage(KernelSpace->pageTable, (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
-	memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
+	PageTable_MapPage(Kernel->pageTable(), (void*)0xffff0000, PAGE_TO_PADDR(vectorPage), PageTablePermissionRWPriv);
+	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }

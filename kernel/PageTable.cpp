@@ -58,7 +58,7 @@ struct PageTable *PageTable_Create()
 	unsigned *base;
 	unsigned *kernelTable;
 
-	pageTable = pageTableSlab.Allocate();
+	pageTable = pageTableSlab.allocate();
 	pageTable->table = Page_AllocContig(4, 4);
 	pageTable->tablePAddr = PAGE_TO_PADDR(pageTable->table);
 
