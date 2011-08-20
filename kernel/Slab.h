@@ -15,7 +15,7 @@ private:
 	int mNumPerPage;
 	int mBitfieldLen;
 	int mDataStart;
-	List<Page, &Page::list> mPages;
+	List<Page> mPages;
 };
 
 template<typename T>

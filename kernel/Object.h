@@ -8,7 +8,7 @@
 
 #define INVALID_OBJECT 0x7fffffff
 
-class Message {
+class Message : public ListEntry {
 public:
 	Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
 
@@ -32,9 +32,6 @@ private:
 	struct MessageHeader mReplyMsg;
 	int mRet;
 	int mTranslateCache[MESSAGE_MAX_OBJECTS];
-
-public:
-	struct ListEntry<struct Message> list;
 };
 
 class Object {
@@ -47,8 +44,8 @@ public:
 	void *operator new(size_t) { return sSlab.allocate(); }
 
 private:
-	List<Task, &Task::list> mReceivers;
-	List<struct Message, &Message::list> mMessages;
+	List<Task> mReceivers;
+	List<struct Message> mMessages;
 
 	static SlabAllocator<Object> sSlab;
 };

@@ -4,15 +4,15 @@
 #include <stddef.h>
 
 template<typename T>
-struct ListEntry {
+struct ListEntryAux {
 	T *prev;
 	T *next;
 };
 
-template<typename T, ListEntry<T> T::*member>
-class List {
+template<typename T, ListEntryAux<T> T::*member = NULL>
+class ListAux {
 public:
-	List() {
+	ListAux() {
 		mHead = NULL;
 		mTail = NULL;
 	}
@@ -96,6 +96,100 @@ public:
 private:
 	T *mHead;
 	T *mTail;
+};
+
+struct ListEntry {
+	ListEntry *prev;
+	ListEntry *next;
+};
+
+template<typename T>
+class List {
+public:
+	List() {
+		mHead = NULL;
+		mTail = NULL;
+	}
+
+	void init() {
+		mHead = NULL;
+		mTail = NULL;
+	}
+
+	T *head() { return static_cast<T*>(mHead); }
+	T *tail() { return static_cast<T*>(mTail); }
+
+	T *next(ListEntry *entry) { return static_cast<T*>(entry->next); }
+	T *prev(ListEntry *entry) { return static_cast<T*>(entry->prev); }
+
+	void addHead(ListEntry *entry) {
+		entry->prev = NULL;
+		entry->next = mHead;
+		if(mHead == NULL) {
+			mHead = entry;
+			mTail = entry;
+		} else {
+			mHead->prev = entry;
+			mHead = entry;
+		}
+	}
+
+	void addTail(ListEntry *entry) {
+		entry->prev = mTail;
+		entry->next = NULL;
+		if(mHead == NULL) {
+			mHead = entry;
+			mTail = entry;
+		} else {
+			mTail->next = entry;
+			mTail = entry;
+		}
+	}
+
+	void addBefore(ListEntry *entry, ListEntry *target) {
+		entry->prev = target->prev;
+		entry->next = target;
+		if(mHead == target) {
+			mHead->prev = entry;
+			mHead = entry;
+		} else {
+			target->prev->next = entry;
+			target->prev = entry;
+		}
+	}
+
+	void addAfter(ListEntry *entry, ListEntry *target) {
+		entry->prev = target;
+		entry->next = target->next;
+		if(mTail == target) {
+			mTail->next = entry;
+			mTail = entry;
+		} else {
+			target->next->prev = entry;
+			target->next = entry;
+		}
+	}
+
+	void remove(ListEntry *entry) {
+		if(entry->prev) {
+			entry->prev->next = entry->next;
+		}
+		if(entry->next) {
+			entry->next->prev = entry->prev;
+		}
+		if(mHead == entry) {
+			mHead = entry->next;
+		}
+		if(mTail == entry) {
+			mTail = entry->prev;
+		}
+	}
+
+	bool empty() { return mHead == NULL; }
+
+private:
+	ListEntry *mHead;
+	ListEntry *mTail;
 };
 
 #endif

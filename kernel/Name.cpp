@@ -4,14 +4,13 @@
 #include "Slab.h"
 #include "Util.h"
 
-struct NameEntry {
+struct NameEntry : public ListEntry {
 	char name[32];
 	int object;
-	ListEntry<struct NameEntry> list;
 };
 
 SlabAllocator<struct NameEntry> nameSlab;
-List<NameEntry, &NameEntry::list> nameList;
+List<NameEntry> nameList;
 
 struct NameEntry *findEntry(const char *name)
 {

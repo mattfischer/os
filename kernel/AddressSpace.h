@@ -6,12 +6,11 @@
 #include "MemArea.h"
 #include "Slab.h"
 
-struct Mapping {
+struct Mapping : public ListEntry {
 	void *vaddr;
 	unsigned int offset;
 	unsigned int size;
 	MemArea *area;
-	ListEntry<struct Mapping> list;
 };
 
 class AddressSpace {
@@ -31,7 +30,7 @@ public:
 
 private:
 	struct PageTable *mPageTable;
-	List<struct Mapping, &Mapping::list> mMappings;
+	List<struct Mapping> mMappings;
 
 	static SlabAllocator<AddressSpace> sSlab;
 };

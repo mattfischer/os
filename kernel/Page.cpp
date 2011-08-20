@@ -20,9 +20,9 @@ Page *Page::alloc()
 	return NULL;
 }
 
-List<Page, &Page::list> Page::allocMulti(int num)
+List<Page> Page::allocMulti(int num)
 {
-	List<Page, &Page::list> list;
+	List<Page> list;
 	int n;
 
 	for(n=0; n < num; n++) {
@@ -64,7 +64,7 @@ void Page::free()
 	mFlags = FlagsFree;
 }
 
-void Page::freeList(List<Page, &Page::list> list)
+void Page::freeList(List<Page> list)
 {
 	Page *page;
 	Page *next;

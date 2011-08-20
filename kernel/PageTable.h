@@ -33,7 +33,7 @@ public:
 private:
 	struct Page *mPages;
 	PAddr mTablePAddr;
-	List<Page, &Page::list> mL2Tables;
+	List<Page> mL2Tables;
 
 	static SlabAllocator<PageTable> sSlab;
 

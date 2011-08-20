@@ -23,7 +23,7 @@ extern char __KernelEnd[];
 
 #define KERNEL_START (unsigned int)__KernelStart
 
-class Page {
+class Page : public ListEntry {
 public:
 	enum Flags {
 		FlagsFree,
@@ -40,12 +40,10 @@ public:
 	void *vaddr() { return PADDR_TO_VADDR(paddr()); }
 	void free();
 
-	ListEntry<Page> list;
-
 	static Page *allocContig(int align, int num);
-	static List<Page, &Page::list> allocMulti(int num);
+	static List<Page> allocMulti(int num);
 	static Page *alloc();
-	static void freeList(List<Page, &Page::list> list);
+	static void freeList(List<Page> list);
 
 	static Page *fromNumber(int n) { return &sPages[n]; }
 	static Page *fromPAddr(PAddr paddr) { return fromNumber(paddr >> PAGE_SHIFT); }

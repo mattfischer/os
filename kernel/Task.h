@@ -13,7 +13,7 @@
 
 class Process;
 
-class Task {
+class Task : public ListEntry {
 public:
 	enum State {
 		StateInit,
@@ -37,8 +37,6 @@ public:
 	void start(void (*start)(void *), void *param);
 
 	void *operator new(size_t size) { return sSlab.allocate(); }
-
-	ListEntry<Task> list;
 
 private:
 	unsigned int mRegs[16];
