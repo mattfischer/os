@@ -5,6 +5,6 @@
 
 void ProcManager_Start();
 
-int ProcessManager;
+extern int ProcessManager;
 
 #endif

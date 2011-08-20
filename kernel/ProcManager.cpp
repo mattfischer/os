@@ -27,7 +27,7 @@ static void startUser(void *param)
 	char *stackVAddr;
 	int size;
 	void *data;
-	void *entry;
+	ElfEntry entry;
 
 	startupInfo = (struct StartupInfo*)param;
 
@@ -122,8 +122,8 @@ static void procManagerMain(void *param)
 					int size = PAGE_SIZE_ROUND_UP(increment);
 
 					process->heap = MemArea_CreatePages(size);
-					process->heapTop = (void*)(0x10000000 + increment);
-					process->heapAreaTop = (void*)(0x10000000 + size);
+					process->heapTop = (char*)(0x10000000 + increment);
+					process->heapAreaTop = (char*)(0x10000000 + size);
 					AddressSpace_Map(process->addressSpace, process->heap, (void*)0x10000000, 0, size);
 					ret = 0x10000000;
 				} else {

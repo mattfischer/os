@@ -7,8 +7,8 @@
 struct Process {
 	struct AddressSpace *addressSpace;
 	struct MemArea *heap;
-	void *heapTop;
-	void *heapAreaTop;
+	char *heapTop;
+	char *heapAreaTop;
 	struct Object *objects[16];
 	struct Message *messages[16];
 };

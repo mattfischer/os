@@ -20,6 +20,8 @@ ifeq ($$($$(target)_PLATFORM),HOST)
 
   $$(binary): cc := $(HOST_GCC)
   $$(binary): cc_desc := HOST_CC  #
+  $$(binary): cxx := $(HOST_GXX)
+  $$(binary): cxx_desc := HOST_CXX  #
   $$(binary): as := $(HOST_AS)
   $$(binary): as_desc := HOST_AS  #
   $$(binary): ld := $(HOST_LD)
@@ -30,6 +32,7 @@ ifeq ($$($$(target)_PLATFORM),HOST)
   objdir := $$(HOST_OBJDIR)$$(target)
   depdir := $$(HOST_DEPDIR)$$(target)
   cflags := $(HOST_CFLAGS) $$($$(target)_CFLAGS)
+  cxxflags := $(HOST_CXXFLAGS) $$($$(target)_CXXFLAGS)
   aflags := $(HOST_AFLAGS) $$($$(target)_AFLAGS)
   ldflags := $(HOST_LDFLAGS) $$($$(target)_LDFLAGS)
   extra_deps := $$($$(target)_EXTRA_DEPS)
@@ -46,6 +49,8 @@ else
 
   $$(binary): cc := $(CROSS_GCC)
   $$(binary): cc_desc := CC       #
+  $$(binary): cxx := $(CROSS_GXX)
+  $$(binary): cxx_desc := CXX     #
   $$(binary): as := $(CROSS_AS)
   $$(binary): as_desc := AS       #
   $$(binary): ld := $(CROSS_LD)
@@ -56,6 +61,7 @@ else
   objdir := $$(CROSS_OBJDIR)$$(target)
   depdir := $$(CROSS_DEPDIR)$$(target)
   cflags := $(CROSS_CFLAGS) $$($$(target)_CFLAGS)
+  cxxflags := $(CROSS_CXXFLAGS) $$($$(target)_CXXFLAGS)
   aflags := $(CROSS_AFLAGS) $$($$(target)_AFLAGS)
   ldflags := $(CROSS_LDFLAGS) $$($$(target)_LDFLAGS)
   libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)%$$(CROSS_LIB_EXT))
@@ -77,12 +83,14 @@ endif
 
 sources := $$($$(target)_SOURCES)
 c_sources := $$(filter %.c,$$(sources))
+cxx_sources := $$(filter %.cpp,$$(sources))
 s_sources := $$(filter %.s,$$(sources))
-objects := $$(c_sources:%.c=$$(objdir)/%.o) $$(s_sources:%.s=$$(objdir)/%.o)
+objects := $$(c_sources:%.c=$$(objdir)/%.o) $$(s_sources:%.s=$$(objdir)/%.o) $$(cxx_sources:%.cpp=$$(objdir)/%.o)
 
 $$(binary): CWD := $$(CWD)
 $$(binary): makefile := $$(makefile)
 $$(binary): cflags := $$(cflags)
+$$(binary): cxxflags := $$(cxxflags)
 $$(binary): aflags := $$(aflags)
 $$(binary): ldflags := $$(ldflags)
 $$(binary): objects := $$(objects)
@@ -118,6 +126,12 @@ $$(objdir)/%.o: $$(CWD)%.c $$(makefile)
 	@mkdir -p $$(depdir)
 	@$$(cc) $$(cflags) -MP -MMD -MF $$(<:$$(CWD)%.c=$$(depdir)/%.d) -c -o $$@ $$<
 
+$$(objdir)/%.o: $$(CWD)%.cpp $$(makefile)
+	@echo "  $$(cxx_desc) $$<"
+	@mkdir -p $$(objdir)
+	@mkdir -p $$(depdir)
+	@$$(cxx) $$(cxxflags) $$(cflags) -MP -MMD -MF $$(<:$$(CWD)%.cpp=$$(depdir)/%.d) -c -o $$@ $$<
+
 $$(objdir)/%.o: $$(CWD)%.s $$(makefile)
 	@echo "  $$(as_desc) $$<"
 	@mkdir -p $$(objdir)
@@ -130,5 +144,5 @@ clean-$$(target):
 	@rm -rf $$(depdir)
 
 ALL_TARGETS += $$(binary)
-ALL_DEPS += $$(c_sources:%.c=$$(depdir)/%.d)
+ALL_DEPS += $$(c_sources:%.c=$$(depdir)/%.d) $$(cxx_sources:%.cpp=$$(depdir)/%.d)
 endef

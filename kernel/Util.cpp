@@ -3,8 +3,8 @@
 void *memcpy(void *dest, const void *src, unsigned n)
 {
 	int i;
-	char *d = dest;
-	const char *s = src;
+	char *d = (char*)dest;
+	const char *s = (const char*)src;
 
 	for(i=0; i<n; i++) {
 		d[i] = s[i];
@@ -16,7 +16,7 @@ void *memcpy(void *dest, const void *src, unsigned n)
 void *memset(void *dest, int c, unsigned int n)
 {
 	int i;
-	char *d = dest;
+	char *d = (char*)dest;
 
 	for(i=0; i<n; i++) {
 		d[i] = c;

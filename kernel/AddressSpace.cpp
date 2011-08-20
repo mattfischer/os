@@ -15,12 +15,15 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 {
 	struct Mapping *mapping;
 	struct Mapping *mappingCursor;
+	unsigned v;
 
 	mapping = (struct Mapping*)Slab_Allocate(&mappingSlab);
 	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
 	mapping->offset = PAGE_ADDR_ROUND_DOWN(offset);
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
 	mapping->area = area;
+
+	v = (unsigned)vaddr;
 
 	switch(area->type) {
 		case MemAreaTypePages:
@@ -35,8 +38,8 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 					continue;
 				}
 
-				PageTable_MapPage(space->pageTable, vaddr, PAGE_TO_PADDR(page), PageTablePermissionRW);
-				vaddr += PAGE_SIZE;
+				PageTable_MapPage(space->pageTable, (void*)v, PAGE_TO_PADDR(page), PageTablePermissionRW);
+				v += PAGE_SIZE;
 			}
 			break;
 		}
@@ -44,8 +47,8 @@ void AddressSpace_Map(struct AddressSpace *space, struct MemArea *area, void *va
 		case MemAreaTypePhys:
 		{
 			PAddr paddr;
-			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, vaddr += PAGE_SIZE) {
-				PageTable_MapPage(space->pageTable, vaddr, paddr, PageTablePermissionRW);
+			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
+				PageTable_MapPage(space->pageTable, (void*)v, paddr, PageTablePermissionRW);
 			}
 			break;
 		}

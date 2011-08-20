@@ -1,5 +1,6 @@
 #include "Task.h"
 #include "Util.h"
+#include "Sched.h"
 
 struct Task *Task_Create(struct Process *process)
 {

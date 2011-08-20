@@ -55,7 +55,7 @@ static int readBuffer(struct Process *destProcess, void *dest, struct Process *s
 			}
 
 			s = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(srcProcess->addressSpace->pageTable, (char*)segment.buffer + objOffset - srcOffset));
-			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, dest + objOffset - offset));
+			d = (int*)PADDR_TO_VADDR(PageTable_TranslateVAddr(destProcess->addressSpace->pageTable, (char*)dest + objOffset - offset));
 			obj = *s;
 
 			if(translateCache[i] == INVALID_OBJECT) {

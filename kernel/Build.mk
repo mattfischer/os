@@ -1,24 +1,24 @@
 TARGETS := kernel
 
 kernel_SOURCES := \
-	AddressSpace.c \
+	AddressSpace.cpp \
 	AsmFuncs.s \
-	Elf.c \
+	Elf.cpp \
 	EntryAsm.s \
-	Entry.c \
-	InitFs.c \
-	MemArea.c \
-	Message.c \
-	Name.c \
-	Object.c \
-	Page.c \
-	PageTable.c \
-	ProcManager.c \
-	Process.c \
-	Sched.c \
-	Slab.c \
-	Task.c \
-	Util.c
+	Entry.cpp \
+	InitFs.cpp \
+	MemArea.cpp \
+	Message.cpp \
+	Name.cpp \
+	Object.cpp \
+	Page.cpp \
+	PageTable.cpp \
+	ProcManager.cpp \
+	Process.cpp \
+	Sched.cpp \
+	Slab.cpp \
+	Task.cpp \
+	Util.cpp
 kernel_LDFLAGS := -T $(CWD)ldscript
 kernel_CFLAGS := -g
 kernel_AFLAGS := -g

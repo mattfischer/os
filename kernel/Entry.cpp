@@ -11,6 +11,12 @@
 
 char InitStack[256];
 
+extern "C" {
+	void EntryLow();
+	void Entry();
+	int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3);
+}
+
 SECTION_LOW void EntryLow()
 {
 	Page_InitLow();

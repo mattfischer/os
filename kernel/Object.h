@@ -30,6 +30,8 @@ struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeade
 int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size);
 int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg);
 
+void Object_Init();
+
 int CreateObject();
 void ReleaseObject(int obj);
 

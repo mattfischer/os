@@ -2,7 +2,7 @@
 #include "Page.h"
 #include "Util.h"
 
-void *Elf_Load(struct AddressSpace *space, void *data, int size)
+ElfEntry Elf_Load(struct AddressSpace *space, void *data, int size)
 {
 	Elf32_Ehdr *hdr = (Elf32_Ehdr*)data;
 	int i;
@@ -24,5 +24,5 @@ void *Elf_Load(struct AddressSpace *space, void *data, int size)
 		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
 	}
 
-	return (void*)hdr->e_entry;
+	return (ElfEntry)hdr->e_entry;
 }

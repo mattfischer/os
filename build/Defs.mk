@@ -1,11 +1,13 @@
 CROSS_COMPILE := arm-none-eabi
 CROSS_GCC := $(CROSS_COMPILE)-gcc
+CROSS_GXX := $(CROSS_COMPILE)-g++
 CROSS_AS := $(CROSS_COMPILE)-as
 CROSS_LD := $(CROSS_COMPILE)-ld
 CROSS_AR := $(CROSS_COMPILE)-ar
 CROSS_GDB := $(CROSS_COMPILE)-gdb
 CROSS_OBJCOPY := $(CROSS_COMPILE)-objcopy
 HOST_GCC := gcc
+HOST_GXX := g++
 HOST_AS := as
 HOST_LD := gcc
 HOST_AR := ar
@@ -23,6 +25,9 @@ HOST_LIBDIR  := $(HOST_OUTDIR)libs/
 
 CROSS_CFLAGS := -I . -g
 HOST_CFLAGS := -I . -g
+
+CROSS_CXXFLAGS := -fno-exceptions
+HOST_CXXFLAGS := -fno-exceptions
 
 CROSS_EXE_EXT :=
 CROSS_LIB_EXT := .a

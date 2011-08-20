@@ -8,7 +8,7 @@ struct Process *KernelProcess;
 
 struct Process *Process_Create(struct AddressSpace *addressSpace)
 {
-	struct Process *process = Slab_Allocate(&processSlab);
+	struct Process *process = (struct Process*)Slab_Allocate(&processSlab);
 
 	process->addressSpace = addressSpace;
 	process->heap = NULL;
