@@ -5,8 +5,6 @@
 #include "Page.h"
 #include "List.h"
 
-#define PAGE_TABLE_SECTION_SIZE (1024 * 1024)
-
 class PageTable {
 public:
 	enum Permission {
@@ -32,6 +30,8 @@ public:
 
 	static void initLow();
 	static void mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permission permission);
+
+	static const int SectionSize = (1024 * 1024);
 
 private:
 	struct Page *mPages;

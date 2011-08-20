@@ -39,11 +39,11 @@ SECTION_LOW void Kernel::initLow()
 	kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
 	*kernelTablePAddrLow = kernelTablePages->paddrLow();
 
-	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
+	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
 		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
 	}
 
-	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PAGE_TABLE_SECTION_SIZE, paddr += PAGE_TABLE_SECTION_SIZE) {
+	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
 		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
 	}
 }
@@ -57,7 +57,7 @@ void Kernel::init()
 	unsigned vaddr;
 
 	pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
-	for(vaddr = 0; vaddr < KERNEL_START; vaddr += PAGE_TABLE_SECTION_SIZE) {
+	for(vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
 		pageTable->mapSection((void*)vaddr, 0, PageTable::PermissionNone);
 	}
 
