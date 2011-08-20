@@ -47,7 +47,6 @@ void Entry()
 	PageTable::init();
 	AddressSpace::init();
 	Process::init();
-	Name_Init();
 
 	ProcManager_Start();
 }

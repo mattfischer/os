@@ -3,9 +3,10 @@
 
 #include "Object.h"
 
-int Name_Lookup(const char *name);
-void Name_Set(const char *name, int object);
-
-void Name_Init();
+class Name {
+public:
+	static int lookup(const char *name);
+	static void set(const char *name, int object);
+};
 
 #endif

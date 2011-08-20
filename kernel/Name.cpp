@@ -7,17 +7,17 @@
 struct NameEntry {
 	char name[32];
 	int object;
-	struct ListEntry list;
+	ListEntry2<struct NameEntry> list;
 };
 
-struct SlabAllocator<struct NameEntry> nameSlab;
-LIST(struct NameEntry) nameList;
+SlabAllocator<struct NameEntry> nameSlab;
+List2<NameEntry, &NameEntry::list> nameList;
 
 struct NameEntry *findEntry(const char *name)
 {
 	struct NameEntry *entry;
 
-	LIST_FOREACH(nameList, entry, struct NameEntry, list) {
+	for(entry = nameList.head(); entry != NULL; entry = nameList.next(entry)) {
 		if(!strcmp(name, entry->name)) {
 			return entry;
 		}
@@ -25,7 +25,7 @@ struct NameEntry *findEntry(const char *name)
 
 	return NULL;
 }
-int Name_Lookup(const char *name)
+int Name::lookup(const char *name)
 {
 	struct NameEntry *entry = findEntry(name);
 
@@ -36,7 +36,7 @@ int Name_Lookup(const char *name)
 	}
 }
 
-void Name_Set(const char *name, int object)
+void Name::set(const char *name, int object)
 {
 	struct NameEntry *entry;
 
@@ -47,13 +47,8 @@ void Name_Set(const char *name, int object)
 
 		strcpy(entry->name, name);
 		entry->object = object;
-		LIST_ADD_TAIL(nameList, entry->list);
+		nameList.addTail(entry);
 	} else {
 		entry->object = object;
 	}
-}
-
-void Name_Init()
-{
-	LIST_INIT(nameList);
 }

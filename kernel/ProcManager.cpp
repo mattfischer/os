@@ -80,7 +80,7 @@ static void procManagerMain(void *param)
 		switch(message.type) {
 			case ProcManagerNameLookup:
 			{
-				int object = Name_Lookup(message.u.lookup.name);
+				int object = Name::lookup(message.u.lookup.name);
 
 				segments[0].buffer = &object;
 				segments[0].size = sizeof(object);
@@ -95,7 +95,7 @@ static void procManagerMain(void *param)
 
 			case ProcManagerNameSet:
 			{
-				Name_Set(message.u.set.name, message.u.set.obj);
+				Name::set(message.u.set.name, message.u.set.obj);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;

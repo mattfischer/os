@@ -12,8 +12,6 @@ extern char vectorEnd[];
 
 AddressSpace::AddressSpace(struct PageTable *pageTable)
 {
-	LIST_INIT(mMappings);
-
 	if(pageTable == NULL) {
 		pageTable = new PageTable();
 	}
@@ -35,9 +33,9 @@ void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned
 
 	area->map(mPageTable, vaddr, mapping->offset, mapping->size);
 
-	LIST_FOREACH(mMappings, mappingCursor, struct Mapping, list) {
+	for(mappingCursor = mMappings.head(); mappingCursor != NULL; mappingCursor = mMappings.next(mappingCursor)) {
 		if(mappingCursor->vaddr > mapping->vaddr) {
-			LIST_ADD_AFTER(mMappings, mapping->list, mappingCursor->list);
+			mMappings.addAfter(mapping, mappingCursor);
 			break;
 		}
 	}
