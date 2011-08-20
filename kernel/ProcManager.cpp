@@ -34,10 +34,10 @@ static void startUser(void *param)
 	stackSize = PAGE_SIZE;
 	stackArea = MemArea_CreatePages(stackSize);
 	stackVAddr = (char*)(KERNEL_START - stackArea->size);
-	AddressSpace_Map(Current->process->addressSpace, stackArea, stackVAddr, 0, stackArea->size);
+	AddressSpace_Map(Current->process->AddressSpace(), stackArea, stackVAddr, 0, stackArea->size);
 
 	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(Current->process->addressSpace, data, size);
+	entry = Elf_Load(Current->process->AddressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }
@@ -45,15 +45,15 @@ static void startUser(void *param)
 static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
 	struct AddressSpace *addressSpace;
-	struct Process *process;
+	Process *process;
 	struct Task *task;
 	struct StartupInfo *startupInfo;
 
 	addressSpace = AddressSpace_Create();
-	process = Process_Create(addressSpace);
-	Process_DupObjectRefTo(process, 0, Current->process, stdinObject);
-	Process_DupObjectRefTo(process, 1, Current->process, stdoutObject);
-	Process_DupObjectRefTo(process, 2, Current->process, stdoutObject);
+	process = new Process(addressSpace);
+	process->DupObjectRefTo(0, Current->process, stdinObject);
+	process->DupObjectRefTo(1, Current->process, stdoutObject);
+	process->DupObjectRefTo(2, Current->process, stdoutObject);
 	task = Task_Create(process);
 
 	startupInfo = (struct StartupInfo *)Task_StackAllocate(task, sizeof(struct StartupInfo));
@@ -106,7 +106,7 @@ static void procManagerMain(void *param)
 			case ProcManagerMapPhys:
 			{
 				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				AddressSpace_Map(Current->process->messages[msg]->sender->process->addressSpace, area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				AddressSpace_Map(Current->process->Message(msg)->sender->process->AddressSpace(), area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -114,35 +114,35 @@ static void procManagerMain(void *param)
 
 			case ProcManagerSbrk:
 			{
-				struct Process *process = Current->process->messages[msg]->sender->process;
+				struct Process *process = Current->process->Message(msg)->sender->process;
 				int increment = message.u.sbrk.increment;
 				int ret;
 
-				if(process->heapTop == NULL) {
+				if(process->HeapTop() == NULL) {
 					int size = PAGE_SIZE_ROUND_UP(increment);
 
-					process->heap = MemArea_CreatePages(size);
-					process->heapTop = (char*)(0x10000000 + increment);
-					process->heapAreaTop = (char*)(0x10000000 + size);
-					AddressSpace_Map(process->addressSpace, process->heap, (void*)0x10000000, 0, size);
+					process->SetHeap(MemArea_CreatePages(size));
+					process->SetHeapTop((char*)(0x10000000 + increment));
+					process->SetHeapAreaTop((char*)(0x10000000 + size));
+					AddressSpace_Map(process->AddressSpace(), process->Heap(), (void*)0x10000000, 0, size);
 					ret = 0x10000000;
 				} else {
-					if(process->heapTop + increment < process->heapAreaTop) {
-						ret = (int)process->heapTop;
-						process->heapTop += increment;
+					if(process->HeapTop() + increment < process->HeapAreaTop()) {
+						ret = (int)process->HeapTop();
+						process->SetHeapTop(process->HeapTop() + increment);
 					} else {
 						int size = PAGE_SIZE_ROUND_UP(increment);
 						int extraPages = size >> PAGE_SHIFT;
 						int i;
 
-						ret = (int)process->heapTop;
+						ret = (int)process->HeapTop();
 						for(i=0; i<extraPages; i++) {
 							struct Page *page = Page_Alloc();
-							LIST_ADD_TAIL(process->heap->u.pages, page->list);
-							PageTable_MapPage(process->addressSpace->pageTable, process->heapAreaTop, PAGE_TO_PADDR(page), PageTablePermissionRW);
-							process->heapAreaTop += PAGE_SIZE;
+							LIST_ADD_TAIL(process->Heap()->u.pages, page->list);
+							PageTable_MapPage(process->AddressSpace()->pageTable, process->HeapAreaTop(), PAGE_TO_PADDR(page), PageTablePermissionRW);
+							process->SetHeapAreaTop(process->HeapAreaTop() + PAGE_SIZE);
 						}
-						process->heapTop += increment;
+						process->SetHeapTop(process->HeapTop() + increment);
 					}
 				}
 
@@ -165,7 +165,7 @@ static void procManagerMain(void *param)
 
 void ProcManager_Start()
 {
-	struct Task *task = Task_Create(KernelProcess);
+	struct Task *task = Task_Create(Process::Kernel);
 	Task_Start(task, procManagerMain, NULL);
 
 	Sched_RunFirst();

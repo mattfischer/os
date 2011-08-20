@@ -51,7 +51,7 @@ int SendMessagesx(int obj, void *msg, int msgSize, struct MessageHeader *replyMs
 
 int SendMessagex(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Object *object = Current->process->objects[obj];
+	struct Object *object = Current->process->Object(obj);
 	return Object_SendMessage(object, sendMsg, replyMsg);
 }
 
@@ -70,14 +70,14 @@ int ReceiveMessage(int obj, void *recv, int recvSize)
 
 int ReceiveMessagex(int obj, struct MessageHeader *recvMsg)
 {
-	struct Object *object = Current->process->objects[obj];
+	struct Object *object = Current->process->Object(obj);
 	struct Message *message = Object_ReceiveMessage(object, recvMsg);
-	return Process_RefMessage(Current->process, message);
+	return Current->process->RefMessage(message);
 }
 
 int ReadMessage(int msg, void *buffer, int offset, int size)
 {
-	struct Message *message = Current->process->messages[msg];
+	struct Message *message = Current->process->Message(msg);
 
 	return Object_ReadMessage(message, buffer, offset, size);
 }
@@ -97,9 +97,9 @@ int ReplyMessage(int msg, int ret, void *reply, int replySize)
 
 int ReplyMessagex(int msg, int ret, struct MessageHeader *replyMsg)
 {
-	struct Message *message = Current->process->messages[msg];
+	struct Message *message = Current->process->Message(msg);
 	int r = Object_ReplyMessage(message, ret, replyMsg);
-	Process_UnrefMessage(Current->process, msg);
+	Current->process->UnrefMessage(msg);
 
 	return r;
 }

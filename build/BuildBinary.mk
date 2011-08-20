@@ -21,7 +21,7 @@ ifeq ($$($$(target)_PLATFORM),HOST)
   $$(binary): cc := $(HOST_GCC)
   $$(binary): cc_desc := HOST_CC  #
   $$(binary): cxx := $(HOST_GXX)
-  $$(binary): cxx_desc := HOST_CXX  #
+  $$(binary): cxx_desc := HOST_CXX   #
   $$(binary): as := $(HOST_AS)
   $$(binary): as_desc := HOST_AS  #
   $$(binary): ld := $(HOST_LD)
@@ -50,7 +50,7 @@ else
   $$(binary): cc := $(CROSS_GCC)
   $$(binary): cc_desc := CC       #
   $$(binary): cxx := $(CROSS_GXX)
-  $$(binary): cxx_desc := CXX     #
+  $$(binary): cxx_desc := CXX      #
   $$(binary): as := $(CROSS_AS)
   $$(binary): as_desc := AS       #
   $$(binary): ld := $(CROSS_LD)

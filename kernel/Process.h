@@ -4,28 +4,45 @@
 #include "AddressSpace.h"
 #include "Object.h"
 
-struct Process {
-	struct AddressSpace *addressSpace;
-	struct MemArea *heap;
-	char *heapTop;
-	char *heapAreaTop;
-	struct Object *objects[16];
-	struct Message *messages[16];
+class Process {
+public:
+	Process(struct AddressSpace *addressSpace);
+
+	static void Init();
+	static Process *Kernel;
+
+	struct AddressSpace *AddressSpace() { return mAddressSpace; }
+
+	struct MemArea *Heap() { return mHeap; }
+	void SetHeap(struct MemArea *heap) { mHeap = heap; }
+
+	char *HeapTop() { return mHeapTop; }
+	void SetHeapTop(char *heapTop) { mHeapTop = heapTop; }
+
+	char *HeapAreaTop() { return mHeapAreaTop; }
+	void SetHeapAreaTop(char *heapAreaTop) { mHeapAreaTop = heapAreaTop; }
+
+	struct Object *Object(int obj);
+	int RefObject(struct Object *object);
+	int RefObjectTo(int obj, struct Object *object);
+	void UnrefObject(int obj);
+
+	int DupObjectRef(Process *sourceProcess, int sourceObj);
+	int DupObjectRefTo(int obj, Process *sourceProcess, int sourceObj);
+
+	struct Message *Message(int msg);
+	int RefMessage(struct Message *message);
+	void UnrefMessage(int msg);
+
+	static void *operator new(size_t size);
+
+private:
+	struct AddressSpace *mAddressSpace;
+	struct MemArea *mHeap;
+	char *mHeapTop;
+	char *mHeapAreaTop;
+	struct Object *mObjects[16];
+	struct Message *mMessages[16];
 };
 
-struct Process *Process_Create(struct AddressSpace *addressSpace);
-
-int Process_RefObject(struct Process *process, struct Object *object);
-int Process_RefObjectTo(struct Process *process, int obj, struct Object *object);
-void Process_UnrefObject(struct Process *process, int n);
-
-int Process_DupObjectRef(struct Process *process, struct Process *sourceProcess, int sourceObject);
-int Process_DupObjectRefTo(struct Process *process, int obj, struct Process *sourceProcess, int sourceObject);
-
-int Process_RefMessage(struct Process *process, struct Message *message);
-void Process_UnrefMessage(struct Process *process, int n);
-
-void Process_Init();
-
-extern struct Process *KernelProcess;
 #endif
