@@ -4,23 +4,48 @@
 #include "List.h"
 #include "Page.h"
 #include "PageTable.h"
+#include "Slab.h"
 
-enum MemAreaType {
-	MemAreaTypePages,
-	MemAreaTypePhys
+class MemArea {
+public:
+	MemArea(int size);
+
+	int size() { return mSize; }
+
+	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size) {}
+
+private:
+	int mSize;
 };
 
-struct MemArea {
-	enum MemAreaType type;
-	int size;
+class MemAreaPages : public MemArea {
+public:
+	MemAreaPages(int size);
 
-	union {
-		LIST(struct Page) pages;
-		PAddr paddr;
-	} u;
+	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size);
+
+	LIST(struct Page)& pages() { return mPages; }
+
+	void *operator new(size_t size) { return sSlab.allocate(); }
+
+private:
+	LIST(struct Page) mPages;
+
+	static SlabAllocator<MemAreaPages> sSlab;
 };
 
-struct MemArea *MemArea_CreatePages(int size);
-struct MemArea *MemArea_CreatePhys(int size, PAddr paddr);
+class MemAreaPhys : public MemArea {
+public:
+	MemAreaPhys(int size, PAddr paddr);
+
+	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size);
+
+	void *operator new(size_t size) { return sSlab.allocate(); }
+
+private:
+	PAddr mPAddr;
+
+	static SlabAllocator<MemAreaPhys> sSlab;
+};
 
 #endif

@@ -26,8 +26,8 @@ HOST_LIBDIR  := $(HOST_OUTDIR)libs/
 CROSS_CFLAGS := -I . -g
 HOST_CFLAGS := -I . -g
 
-CROSS_CXXFLAGS := -fno-exceptions
-HOST_CXXFLAGS := -fno-exceptions
+CROSS_CXXFLAGS := -fno-exceptions -fno-rtti
+HOST_CXXFLAGS := -fno-exceptions -fno-rtti
 
 CROSS_EXE_EXT :=
 CROSS_LIB_EXT := .a

@@ -14,8 +14,8 @@ public:
 
 	AddressSpace *addressSpace() { return mAddressSpace; }
 
-	struct MemArea *heap() { return mHeap; }
-	void setHeap(struct MemArea *heap) { mHeap = heap; }
+	struct MemAreaPages *heap() { return mHeap; }
+	void setHeap(struct MemAreaPages *heap) { mHeap = heap; }
 
 	char *heapTop() { return mHeapTop; }
 	void setHeapTop(char *heapTop) { mHeapTop = heapTop; }
@@ -39,7 +39,7 @@ public:
 
 private:
 	AddressSpace *mAddressSpace;
-	struct MemArea *mHeap;
+	struct MemAreaPages *mHeap;
 	char *mHeapTop;
 	char *mHeapAreaTop;
 	struct Object *mObjects[16];

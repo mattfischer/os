@@ -12,6 +12,7 @@ SECTIONS
 		*(.text)
 		*(.text.*)
 		*(.rodata)
+		*(.rodata.*)
 		. = ALIGN(4);
 		__ConstructorsStart = .;
 		*(.init_array)
@@ -22,6 +23,7 @@ SECTIONS
 	.data : AT(LOADADDR(.text) + SIZEOF(.text))
 	{
 		*(.data)
+		*(.data.*)
 	}
 
 	__InitFsStart = .;

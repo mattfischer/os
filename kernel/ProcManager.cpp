@@ -23,7 +23,7 @@ static void startUser(void *param)
 	struct StartupInfo *startupInfo;
 	struct Task *task;
 	int stackSize;
-	struct MemArea *stackArea;
+	MemArea *stackArea;
 	char *stackVAddr;
 	int size;
 	void *data;
@@ -32,9 +32,9 @@ static void startUser(void *param)
 	startupInfo = (struct StartupInfo*)param;
 
 	stackSize = PAGE_SIZE;
-	stackArea = MemArea_CreatePages(stackSize);
-	stackVAddr = (char*)(KERNEL_START - stackArea->size);
-	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size);
+	stackArea = new MemAreaPages(stackSize);
+	stackVAddr = (char*)(KERNEL_START - stackArea->size());
+	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
 
 	data = InitFs_Lookup(startupInfo->name, &size);
 	entry = Elf_Load(Sched::current()->process()->addressSpace(), data, size);
@@ -103,8 +103,8 @@ static void procManagerMain(void *param)
 
 			case ProcManagerMapPhys:
 			{
-				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				struct MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
+				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size());
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -119,7 +119,7 @@ static void procManagerMain(void *param)
 				if(process->heapTop() == NULL) {
 					int size = PAGE_SIZE_ROUND_UP(increment);
 
-					process->setHeap(MemArea_CreatePages(size));
+					process->setHeap(new MemAreaPages(size));
 					process->setHeapTop((char*)(0x10000000 + increment));
 					process->setHeapAreaTop((char*)(0x10000000 + size));
 					process->addressSpace()->map(process->heap(), (void*)0x10000000, 0, size);
@@ -136,7 +136,7 @@ static void procManagerMain(void *param)
 						ret = (int)process->heapTop();
 						for(i=0; i<extraPages; i++) {
 							struct Page *page = Page_Alloc();
-							LIST_ADD_TAIL(process->heap()->u.pages, page->list);
+							LIST_ADD_TAIL(process->heap()->pages(), page->list);
 							process->addressSpace()->pageTable()->mapPage(process->heapAreaTop(), PAGE_TO_PADDR(page), PageTable::PermissionRW);
 							process->setHeapAreaTop(process->heapAreaTop() + PAGE_SIZE);
 						}

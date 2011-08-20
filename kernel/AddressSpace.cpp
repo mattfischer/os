@@ -21,7 +21,7 @@ AddressSpace::AddressSpace(struct PageTable *pageTable)
 	mPageTable = pageTable;
 }
 
-void AddressSpace::map(struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
+void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
 {
 	struct Mapping *mapping;
 	struct Mapping *mappingCursor;
@@ -33,36 +33,7 @@ void AddressSpace::map(struct MemArea *area, void *vaddr, unsigned int offset, u
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
 	mapping->area = area;
 
-	v = (unsigned)vaddr;
-
-	switch(area->type) {
-		case MemAreaTypePages:
-		{
-			struct Page *page;
-			unsigned int skipPages;
-
-			skipPages = mapping->offset >> PAGE_SHIFT;
-			LIST_FOREACH(area->u.pages, page, struct Page, list) {
-				if(skipPages > 0) {
-					skipPages--;
-					continue;
-				}
-
-				mPageTable->mapPage((void*)v, PAGE_TO_PADDR(page), PageTable::PermissionRW);
-				v += PAGE_SIZE;
-			}
-			break;
-		}
-
-		case MemAreaTypePhys:
-		{
-			PAddr paddr;
-			for(paddr = area->u.paddr; paddr < area->u.paddr + mapping->size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
-				mPageTable->mapPage((void*)v, paddr, PageTable::PermissionRW);
-			}
-			break;
-		}
-	}
+	area->map(mPageTable, vaddr, mapping->offset, mapping->size);
 
 	LIST_FOREACH(mMappings, mappingCursor, struct Mapping, list) {
 		if(mappingCursor->vaddr > mapping->vaddr) {

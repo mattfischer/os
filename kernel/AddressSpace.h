@@ -10,7 +10,7 @@ struct Mapping {
 	void *vaddr;
 	unsigned int offset;
 	unsigned int size;
-	struct MemArea *area;
+	MemArea *area;
 	struct ListEntry list;
 };
 
@@ -22,7 +22,7 @@ public:
 
 	struct PageTable *pageTable() { return mPageTable; }
 
-	void map(struct MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
+	void map(MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
 	static void memcpy(AddressSpace *destSpace, void *dest, AddressSpace *srcSpace, void *src, int size);
 
 	void *operator new(size_t size) { return sSlab.allocate(); }
