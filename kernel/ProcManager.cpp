@@ -104,7 +104,7 @@ static void procManagerMain(void *param)
 			case ProcManagerMapPhys:
 			{
 				struct MemArea *area = MemArea_CreatePhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				Current->process()->message(msg)->sender->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
+				Current->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size);
 
 				ReplyMessage(msg, 0, NULL, 0);
 				break;
@@ -112,7 +112,7 @@ static void procManagerMain(void *param)
 
 			case ProcManagerSbrk:
 			{
-				Process *process = Current->process()->message(msg)->sender->process();
+				Process *process = Current->process()->message(msg)->sender()->process();
 				int increment = message.u.sbrk.increment;
 				int ret;
 

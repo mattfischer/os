@@ -8,27 +8,50 @@
 
 #define INVALID_OBJECT 0x7fffffff
 
-struct Message {
-	struct Task *sender;
-	struct Task *receiver;
-	struct MessageHeader sendMsg;
-	struct MessageHeader replyMsg;
-	int ret;
-	struct ListEntry list;
-	int translateCache[MESSAGE_MAX_OBJECTS];
+class Message {
+public:
+	Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
+
+	Task *sender() { return mSender; }
+	Task *receiver() { return mReceiver; }
+	void setReceiver(Task *receiver) { mReceiver = receiver; }
+
+	struct MessageHeader &sendMsg() { return mSendMsg; }
+	struct MessageHeader &replyMsg() { return mReplyMsg; }
+
+	int ret() { return mRet; }
+	int *translateCache() { return mTranslateCache; }
+
+	int read(void *buffer, int offset, int size);
+	int reply(int ret, struct MessageHeader *replyMsg);
+
+private:
+	Task *mSender;
+	Task *mReceiver;
+	struct MessageHeader mSendMsg;
+	struct MessageHeader mReplyMsg;
+	int mRet;
+	int mTranslateCache[MESSAGE_MAX_OBJECTS];
+
+public:
+	struct ListEntry2<struct Message> list;
 };
 
-struct Object {
-	List2<Task, &Task::list> receivers;
-	LIST(struct Message) messages;
+class Object {
+public:
+	Object();
+
+	int send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
+	struct Message *receive(struct MessageHeader *recvMsg);
+
+	void *operator new(size_t) { return sSlab.allocate(); }
+
+private:
+	List2<Task, &Task::list> mReceivers;
+	List2<struct Message, &Message::list> mMessages;
+
+	static SlabAllocator<Object> sSlab;
 };
-
-struct Object *Object_Create();
-
-int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
-struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg);
-int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size);
-int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg);
 
 int CreateObject();
 void ReleaseObject(int obj);

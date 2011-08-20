@@ -3,15 +3,10 @@
 #include "Sched.h"
 #include "Util.h"
 
-static struct SlabAllocator<struct Object> objectSlab;
+SlabAllocator<Object> Object::sSlab;
 
-struct Object *Object_Create()
+Object::Object()
 {
-	struct Object *object = objectSlab.allocate();
-	object->receivers.init();
-	LIST_INIT(object->messages);
-
-	return object;
 }
 
 static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
@@ -97,64 +92,68 @@ static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process 
 	return copied;
 }
 
-int Object_SendMessage(struct Object *object, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Message message;
+	struct Message message(Current, *sendMsg, *replyMsg);
 	struct Task *task;
 	int i;
 
-	message.sender = Current;
-	message.sendMsg = *sendMsg;
-	message.replyMsg = *replyMsg;
-
-	for(i=0; i<sendMsg->objectsSize; i++) {
-		message.translateCache[i] = INVALID_OBJECT;
-	}
-
-	LIST_ENTRY_CLEAR(message.list);
-	LIST_ADD_TAIL(object->messages, message.list);
+	mMessages.addTail(&message);
 
 	Current->setState(Task::StateSendBlock);
 
-	if(!object->receivers.empty()) {
-		task = object->receivers.head();
-		object->receivers.remove(task);
+	if(!mReceivers.empty()) {
+		task = mReceivers.head();
+		mReceivers.remove(task);
 		Sched_SwitchTo(task);
 	} else {
 		Sched_RunNext();
 	}
 
-	return message.ret;
+	return message.ret();
 }
 
-struct Message *Object_ReceiveMessage(struct Object *object, struct MessageHeader *recvMsg)
+struct Message *Object::receive(struct MessageHeader *recvMsg)
 {
 	struct Message *message;
 	int size;
 
-	if(LIST_EMPTY(object->messages)) {
-		object->receivers.addTail(Current);
+	if(mMessages.empty()) {
+		mReceivers.addTail(Current);
 		Current->setState(Task::StateReceiveBlock);
 		Sched_RunNext();
 	}
 
-	message = LIST_HEAD(object->messages, struct Message, list);
-	LIST_REMOVE(object->messages, message->list);
+	message = mMessages.head();
+	mMessages.remove(message);
 
-	copyBuffer(Current->process(), recvMsg, message->sender->process(), &message->sendMsg, message->translateCache);
+	copyBuffer(Current->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
 
-	message->receiver = Current;
-	message->sender->setState(Task::StateReplyBlock);
+	message->setReceiver(Current);
+	message->sender()->setState(Task::StateReplyBlock);
 
 	return message;
 }
 
-int Object_ReadMessage(struct Message *message, void *buffer, int offset, int size)
+Message::Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
 {
-	return readBuffer(Current->process(), buffer, message->sender->process(), &message->sendMsg, offset, size, message->translateCache);
+	mSender = sender;
+	mReceiver = NULL;
+	mSendMsg = sendMsg;
+	mReplyMsg = replyMsg;
+	mRet = 0;
+
+	for(int i=0; i<mSendMsg.objectsSize; i++) {
+		mTranslateCache[i] = INVALID_OBJECT;
+	}
 }
 
-int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *replyMsg)
+int Message::read(void *buffer, int offset, int size)
+{
+	return readBuffer(Current->process(), buffer, mSender->process(), &mSendMsg, offset, size, mTranslateCache);
+}
+
+int Message::reply(int ret, struct MessageHeader *replyMsg)
 {
 	int i;
 	int translateCache[MESSAGE_MAX_OBJECTS];
@@ -163,18 +162,18 @@ int Object_ReplyMessage(struct Message *message, int ret, struct MessageHeader *
 		translateCache[i] = INVALID_OBJECT;
 	}
 
-	copyBuffer(message->sender->process(), &message->replyMsg, Current->process(), replyMsg, translateCache);
-	message->ret = ret;
+	copyBuffer(mSender->process(), &mReplyMsg, Current->process(), replyMsg, translateCache);
+	mRet = ret;
 
 	Sched_Add(Current);
-	Sched_SwitchTo(message->sender);
+	Sched_SwitchTo(mSender);
 
 	return 0;
 }
 
 int CreateObject()
 {
-	struct Object *object = Object_Create();
+	struct Object *object = new Object();
 	return Current->process()->refObject(object);
 }
 
