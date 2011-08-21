@@ -2,7 +2,6 @@
 #define TASK_H
 
 #include "AddressSpace.h"
-#include "Defs.h"
 #include "Page.h"
 #include "List.h"
 #include "Process.h"

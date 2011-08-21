@@ -5,8 +5,6 @@
 #include "Object.h"
 #include "ProcessManager.h"
 
-#include "Defs.h"
-
 extern "C" {
 	char InitStack[256];
 	PAddr KernelTablePAddr;
@@ -16,37 +14,6 @@ Process *Kernel::sProcess;
 
 extern char vectorStart[];
 extern char vectorEnd[];
-
-SECTION_LOW void Kernel::initLow()
-{
-	unsigned int vaddr;
-	PAddr paddr;
-	int i;
-	Page *pagesLow;
-	unsigned *table;
-	int idx;
-	unsigned int perm;
-	Page *kernelTablePages;
-	PAddr *kernelTablePAddrLow;
-
-	pagesLow = (Page*)VADDR_TO_PADDR(Page::fromNumberLow(0));
-	for(i=0; i<Page::fromVAddrLow(__KernelEnd)->numberLow() + 1; i++) {
-		pagesLow[i].setFlagsLow(Page::FlagsInUse);
-	}
-
-	kernelTablePages = Page::allocContigLow(4, 4);
-
-	kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
-	*kernelTablePAddrLow = kernelTablePages->paddrLow();
-
-	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
-		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
-	}
-
-	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
-		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
-	}
-}
 
 void Kernel::init()
 {

@@ -1,6 +1,5 @@
 #include "InitFs.h"
 #include "Util.h"
-#include "Defs.h"
 
 #include <kernel/include/InitFsFmt.h>
 

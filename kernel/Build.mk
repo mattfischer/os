@@ -8,6 +8,7 @@ kernel_SOURCES := \
 	Entry.cpp \
 	InitFs.cpp \
 	Kernel.cpp \
+	Low.cpp \
 	MemArea.cpp \
 	Message.cpp \
 	Name.cpp \
@@ -21,7 +22,7 @@ kernel_SOURCES := \
 	Task.cpp \
 	Util.cpp
 kernel_LDFLAGS := -T $(CWD)ldscript
-kernel_CFLAGS := -g
+kernel_CFLAGS := -g -O2
 kernel_AFLAGS := -g
 kernel_EXTRA_DEPS := $(CWD)ldscript
 kernel_PLATFORM := TARGET_BARE

@@ -4,26 +4,23 @@ SECTIONS
 	.low 0x4000 :
 	{
 		*(.low)
+		out/obj/kernel/Low.o(.text .text.* .rodata .rodata.* .data .data.* .bss COMMON)
 	}
 	__KernelStart = 0xC0000000;
 
 	.text __KernelStart + ADDR(.low) + SIZEOF(.low) : AT(LOADADDR(.low) + SIZEOF(.low))
 	{
-		*(.text)
-		*(.text.*)
-		*(.rodata)
-		*(.rodata.*)
+		*(.text .text.*)
+		*(.rodata .rodata.*)
 		. = ALIGN(4);
 		__CtorsStart = .;
-		*(.init_array)
-		*(.init_array.*)
+		*(.init_array .init_array.*)
 		__CtorsEnd = .;
 	}
 	
 	.data : AT(LOADADDR(.text) + SIZEOF(.text))
 	{
-		*(.data)
-		*(.data.*)
+		*(.data .data.*)
 	}
 
 	__InitFsStart = .;

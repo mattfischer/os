@@ -1,7 +1,6 @@
 #include "Slab.h"
 #include "AddressSpace.h"
 #include "Page.h"
-#include "Defs.h"
 
 struct SlabHead {
 	unsigned int bitfield[1];
