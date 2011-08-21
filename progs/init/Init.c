@@ -1,6 +1,4 @@
-#include <Yield.h>
-#include <Spawn.h>
-#include <Name.h>
+#include <System.h>
 #include <Object.h>
 
 int main(int argc, char *argv[])

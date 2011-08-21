@@ -1,7 +1,6 @@
 #include <Object.h>
 #include <Message.h>
-#include <Name.h>
-#include <Map.h>
+#include <System.h>
 
 #include <stddef.h>
 
