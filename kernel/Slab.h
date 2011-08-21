@@ -8,8 +8,8 @@ class SlabBase {
 public:
 	SlabBase(int size);
 
-	void *allocateBase();
-	void freeBase(void *p);
+	void *allocate();
+	void free(void *p);
 
 private:
 	int mOrder;
@@ -20,12 +20,12 @@ private:
 };
 
 template<typename T>
-class SlabAllocator : public SlabBase {
+class Slab : public SlabBase {
 public:
-	SlabAllocator() : SlabBase(sizeof(T)) {}
+	Slab() : SlabBase(sizeof(T)) {}
 
-	T *allocate() { return (T*)allocateBase(); }
-	void free(T *p) { freeBase(p); }
+	T *allocate() { return (T*)SlabBase::allocate(); }
+	void free(T *p) { SlabBase::free(p); }
 };
 
 #endif

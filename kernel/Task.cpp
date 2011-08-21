@@ -2,7 +2,7 @@
 #include "Util.h"
 #include "Sched.h"
 
-SlabAllocator<Task> Task::sSlab;
+Slab<Task> Task::sSlab;
 
 Task::Task(Process *process)
 {

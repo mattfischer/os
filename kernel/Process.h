@@ -45,7 +45,7 @@ private:
 	Object *mObjects[16];
 	Message *mMessages[16];
 
-	static SlabAllocator<Process> sSlab;
+	static Slab<Process> sSlab;
 };
 
 #endif

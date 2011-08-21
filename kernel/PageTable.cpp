@@ -3,7 +3,7 @@
 #include "Util.h"
 #include "Pte.h"
 
-struct SlabAllocator<PageTable> PageTable::sSlab;
+struct Slab<PageTable> PageTable::sSlab;
 
 PageTable::PageTable(PageTable *copy)
 {

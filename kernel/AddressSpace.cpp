@@ -3,9 +3,9 @@
 #include "Kernel.h"
 #include "AsmFuncs.h"
 
-SlabAllocator<AddressSpace> AddressSpace::sSlab;
+Slab<AddressSpace> AddressSpace::sSlab;
 
-static SlabAllocator<struct Mapping> mappingSlab;
+static Slab<struct Mapping> mappingSlab;
 
 AddressSpace::AddressSpace(PageTable *pageTable)
 {

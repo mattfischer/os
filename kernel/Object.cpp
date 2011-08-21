@@ -3,7 +3,7 @@
 #include "Sched.h"
 #include "Util.h"
 
-SlabAllocator<Object> Object::sSlab;
+Slab<Object> Object::sSlab;
 
 Object::Object()
 {

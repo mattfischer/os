@@ -22,7 +22,7 @@ private:
 	List<Task> mReceivers;
 	List<Message> mMessages;
 
-	static SlabAllocator<Object> sSlab;
+	static Slab<Object> sSlab;
 };
 
 int CreateObject();

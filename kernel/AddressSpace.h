@@ -32,6 +32,6 @@ private:
 	PageTable *mPageTable;
 	List<struct Mapping> mMappings;
 
-	static SlabAllocator<AddressSpace> sSlab;
+	static Slab<AddressSpace> sSlab;
 };
 #endif

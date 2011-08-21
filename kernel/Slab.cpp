@@ -22,7 +22,7 @@ SlabBase::SlabBase(int size)
 	mDataStart = (mBitfieldLen * 4 + alignedSize - 1) >> mOrder;
 }
 
-void *SlabBase::allocateBase()
+void *SlabBase::allocate()
 {
 	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
 		struct SlabHead *head = (struct SlabHead*)page->vaddr();
@@ -53,7 +53,7 @@ void *SlabBase::allocateBase()
 	return (char*)page->vaddr() + (mDataStart << mOrder);
 }
 
-void SlabBase::freeBase(void *p)
+void SlabBase::free(void *p)
 {
 	Page *page = Page::fromVAddr(p);
 	char *addr = (char*)page->vaddr();

@@ -1,7 +1,7 @@
 #include "MemArea.h"
 
-SlabAllocator<MemAreaPages> MemAreaPages::sSlab;
-SlabAllocator<MemAreaPhys> MemAreaPhys::sSlab;
+Slab<MemAreaPages> MemAreaPages::sSlab;
+Slab<MemAreaPhys> MemAreaPhys::sSlab;
 
 MemArea::MemArea(int size)
 {

@@ -31,7 +31,7 @@ public:
 private:
 	List<Page> mPages;
 
-	static SlabAllocator<MemAreaPages> sSlab;
+	static Slab<MemAreaPages> sSlab;
 };
 
 class MemAreaPhys : public MemArea {
@@ -45,7 +45,7 @@ public:
 private:
 	PAddr mPAddr;
 
-	static SlabAllocator<MemAreaPhys> sSlab;
+	static Slab<MemAreaPhys> sSlab;
 };
 
 #endif

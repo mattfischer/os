@@ -10,7 +10,7 @@ struct NameEntry : public ListEntry {
 	int object;
 };
 
-SlabAllocator<struct NameEntry> nameSlab;
+Slab<struct NameEntry> nameSlab;
 List<NameEntry> nameList;
 
 struct NameEntry *findEntry(const char *name)

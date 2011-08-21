@@ -45,7 +45,7 @@ private:
 	Process *mProcess;
 	AddressSpace *mEffectiveAddressSpace;
 
-	static SlabAllocator<Task> sSlab;
+	static Slab<Task> sSlab;
 };
 
 #endif

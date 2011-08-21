@@ -3,7 +3,7 @@
 #include "Util.h"
 #include "Object.h"
 
-SlabAllocator<Process> Process::sSlab;
+Slab<Process> Process::sSlab;
 
 Process::Process(AddressSpace *addressSpace)
 {

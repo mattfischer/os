@@ -38,7 +38,7 @@ private:
 	PAddr mTablePAddr;
 	List<Page> mL2Tables;
 
-	static SlabAllocator<PageTable> sSlab;
+	static Slab<PageTable> sSlab;
 
 	void allocL2Table(void *vaddr);
 };
