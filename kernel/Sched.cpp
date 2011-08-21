@@ -26,7 +26,7 @@ void Sched::switchTo(Task *task)
 
 	Task *old = sCurrent;
 	sCurrent = task;
-	SwitchToAsm(old, task);
+	SwitchToAsm(old->regs(), task->regs());
 }
 
 void Sched::runNext()
@@ -55,5 +55,5 @@ void Sched::runFirst()
 	SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
 
 	sCurrent = task;
-	RunFirstAsm(task);
+	RunFirstAsm(task->regs());
 }

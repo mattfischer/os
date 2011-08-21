@@ -28,6 +28,7 @@ public:
 	Process *process() { return mProcess; }
 	State state() { return mState; }
 	void setState(State state) { mState = state; }
+	unsigned *regs() { return mRegs; }
 
 	AddressSpace *effectiveAddressSpace() { return mEffectiveAddressSpace; }
 	void setEffectiveAddressSpace(AddressSpace *addressSpace) { mEffectiveAddressSpace = addressSpace; }

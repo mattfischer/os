@@ -1,23 +1,18 @@
 .section .text
 
-.equ Task_regs, 8
-
 .globl RunFirstAsm
 .type RunFirstAsm,%function
 RunFirstAsm:
-	add r0, #Task_regs
 	ldm r0, {r0-r15}
 .size RunFirstAsm, . - RunFirstAsm
 
 .globl SwitchToAsm
 .type SwitchToAsm,%function
 SwitchToAsm:
-	add r0, #Task_regs
 	stm r0, {r0-r15}
 	adr r2, finish
 	str r2, [r0, #60]
 
-	add r1, #Task_regs
 	ldm r1, {r0-r15}
 	
 finish:
