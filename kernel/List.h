@@ -25,8 +25,8 @@ public:
 	T *head() { return mHead; }
 	T *tail() { return mTail; }
 
-	T *next(T *entry) { return (entry->*member).next; }
-	T *prev(T *entry) { return (entry->*member).prev; }
+	T *next(T *entry) { return (entry->*member).next ? (entry->*member).next : NULL; }
+	T *prev(T *entry) { return (entry->*member).prev ? (entry->*member).prev : NULL; }
 
 	void addHead(T *entry) {
 		(entry->*member).prev = NULL;
@@ -116,11 +116,11 @@ public:
 		mTail = NULL;
 	}
 
-	T *head() { return static_cast<T*>(mHead); }
-	T *tail() { return static_cast<T*>(mTail); }
+	T *head() { return mHead ? static_cast<T*>(mHead) : NULL; }
+	T *tail() { return mTail ? static_cast<T*>(mTail) : NULL; }
 
-	T *next(ListEntry *entry) { return static_cast<T*>(entry->next); }
-	T *prev(ListEntry *entry) { return static_cast<T*>(entry->prev); }
+	T *next(ListEntry *entry) { return entry->next ? static_cast<T*>(entry->next) : NULL; }
+	T *prev(ListEntry *entry) { return entry->prev ? static_cast<T*>(entry->prev) : NULL; }
 
 	void addHead(ListEntry *entry) {
 		entry->prev = NULL;
@@ -183,6 +183,26 @@ public:
 		if(mTail == entry) {
 			mTail = entry->prev;
 		}
+	}
+
+	T *removeHead() {
+		T *ret = head();
+
+		if(ret) {
+			remove(ret);
+		}
+
+		return ret;
+	}
+
+	T *removeTail() {
+		T *ret = tail();
+
+		if(ret) {
+			remove(ret);
+		}
+
+		return ret;
 	}
 
 	bool empty() { return mHead == NULL; }

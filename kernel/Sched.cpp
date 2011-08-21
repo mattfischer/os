@@ -40,8 +40,7 @@ void Sched::runNext()
 		add(sCurrent);
 	}
 
-	next = sRunList.head();
-	sRunList.remove(next);
+	next = sRunList.removeHead();
 
 	if(next != sCurrent) {
 		switchTo(next);
@@ -50,8 +49,7 @@ void Sched::runNext()
 
 void Sched::runFirst()
 {
-	Task *task = sRunList.head();
-    sRunList.remove(task);
+	Task *task = sRunList.removeHead();
 
 	task->setState(Task::StateRunning);
 

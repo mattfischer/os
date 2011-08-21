@@ -102,8 +102,7 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 	Sched::current()->setState(Task::StateSendBlock);
 
 	if(!mReceivers.empty()) {
-		task = mReceivers.head();
-		mReceivers.remove(task);
+		task = mReceivers.removeHead();
 		Sched::switchTo(task);
 	} else {
 		Sched::runNext();
@@ -123,8 +122,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 		Sched::runNext();
 	}
 
-	message = mMessages.head();
-	mMessages.remove(message);
+	message = mMessages.removeHead();
 
 	copyBuffer(Sched::current()->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
 
