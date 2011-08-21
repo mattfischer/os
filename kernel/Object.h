@@ -3,33 +3,11 @@
 
 #include "List.h"
 #include "Task.h"
+#include "Message.h"
 
 #include <kernel/include/MessageFmt.h>
 
 #define INVALID_OBJECT 0x7fffffff
-
-class Message : public ListEntry {
-public:
-	Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
-
-	Task *sender() { return mSender; }
-
-	struct MessageHeader &sendMsg() { return mSendMsg; }
-	struct MessageHeader &replyMsg() { return mReplyMsg; }
-
-	int ret() { return mRet; }
-	int *translateCache() { return mTranslateCache; }
-
-	int read(void *buffer, int offset, int size);
-	int reply(int ret, struct MessageHeader *replyMsg);
-
-private:
-	Task *mSender;
-	struct MessageHeader mSendMsg;
-	struct MessageHeader mReplyMsg;
-	int mRet;
-	int mTranslateCache[MESSAGE_MAX_OBJECTS];
-};
 
 class Object {
 public:
