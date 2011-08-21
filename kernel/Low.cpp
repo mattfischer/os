@@ -26,7 +26,7 @@ void Kernel::initLow()
 	}
 
 	paddr = 0;
-	for(unsigned vaddr = KERNEL_START; vaddr > 0; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
+	for(unsigned vaddr = KERNEL_START; vaddr > 0; vaddr += PageTable::SectionSize) {
 		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
 		paddr += PageTable::SectionSize;
 	}

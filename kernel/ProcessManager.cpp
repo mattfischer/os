@@ -30,7 +30,7 @@ static void startUser(void *param)
 
 	int size;
 	void *data = InitFs_Lookup(startupInfo->name, &size);
-	ElfEntry entry = Elf_Load(Sched::current()->process()->addressSpace(), data, size);
+	Elf::Entry entry = Elf::load(Sched::current()->process()->addressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }

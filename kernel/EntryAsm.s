@@ -1,7 +1,6 @@
 .section .low
 .globl EntryAsm
 
-.equ PageTable_tablePAddr, 0x4
 EntryAsm:
 	ldr r1, memOffset
 	ldr sp, =InitStack

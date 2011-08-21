@@ -12,7 +12,7 @@ extern void *__CtorsStart[];
 extern void *__CtorsEnd[];
 typedef void (*CtorFunc)();
 
-static void initCtors()
+static void runCtors()
 {
 	CtorFunc *ctors = (CtorFunc*)__CtorsStart;
 	int len = (CtorFunc*)__CtorsEnd - (CtorFunc*)__CtorsStart;
@@ -24,7 +24,7 @@ static void initCtors()
 
 void Entry()
 {
-	initCtors();
+	runCtors();
 	Kernel::init();
 	ProcessManager::start();
 }

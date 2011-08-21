@@ -104,7 +104,6 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 
 	copyBuffer(Sched::current()->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
 
-	message->setReceiver(Sched::current());
 	message->sender()->setState(Task::StateReplyBlock);
 
 	return message;
@@ -113,7 +112,6 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 Message::Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
 {
 	mSender = sender;
-	mReceiver = NULL;
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
 	mRet = 0;

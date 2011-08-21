@@ -13,8 +13,6 @@ public:
 	Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
 
 	Task *sender() { return mSender; }
-	Task *receiver() { return mReceiver; }
-	void setReceiver(Task *receiver) { mReceiver = receiver; }
 
 	struct MessageHeader &sendMsg() { return mSendMsg; }
 	struct MessageHeader &replyMsg() { return mReplyMsg; }
@@ -27,7 +25,6 @@ public:
 
 private:
 	Task *mSender;
-	Task *mReceiver;
 	struct MessageHeader mSendMsg;
 	struct MessageHeader mReplyMsg;
 	int mRet;
