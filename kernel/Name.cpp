@@ -3,6 +3,7 @@
 #include "List.h"
 #include "Slab.h"
 #include "Util.h"
+#include "Object.h"
 
 struct NameEntry : public ListEntry {
 	char name[32];

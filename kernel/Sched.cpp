@@ -1,7 +1,5 @@
 #include "Sched.h"
 #include "Slab.h"
-#include "InitFs.h"
-#include "Elf.h"
 #include "Util.h"
 #include "AsmFuncs.h"
 #include "Kernel.h"

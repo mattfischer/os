@@ -1,6 +1,7 @@
 #ifndef SLAB_H
 #define SLAB_H
 
+#include "List.h"
 #include "Page.h"
 
 class SlabBase {

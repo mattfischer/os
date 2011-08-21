@@ -1,8 +1,7 @@
 #ifndef ASM_FUNCS_H
 #define ASM_FUNCS_H
 
-#include "Sched.h"
-#include "AddressSpace.h"
+#include "Task.h"
 
 extern "C" {
 	void EnterUser(void (*userStart)(), void* userStack);

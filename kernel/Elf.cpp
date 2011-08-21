@@ -1,5 +1,5 @@
 #include "Elf.h"
-#include "Page.h"
+#include "MemArea.h"
 #include "Util.h"
 
 ElfEntry Elf_Load(AddressSpace *space, void *data, int size)
