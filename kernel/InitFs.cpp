@@ -7,9 +7,7 @@ extern char __InitFsStart[];
 extern char __InitFsEnd[];
 void *InitFs_Lookup(const char *name, int *size)
 {
-	struct InitFsFileHeader *header;
-
-	header = (struct InitFsFileHeader*)__InitFsStart;
+	struct InitFsFileHeader *header = (struct InitFsFileHeader*)__InitFsStart;
 	while((void*)header < (void*)__InitFsEnd) {
 		if(!strcmp(header->name, name)) {
 			if(size) {

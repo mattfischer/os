@@ -21,41 +21,29 @@ int ProcessManager::sObject;
 
 static void startUser(void *param)
 {
-	struct StartupInfo *startupInfo;
-	Task *task;
-	int stackSize;
-	MemArea *stackArea;
-	char *stackVAddr;
-	int size;
-	void *data;
-	ElfEntry entry;
+	struct StartupInfo *startupInfo = (struct StartupInfo*)param;
 
-	startupInfo = (struct StartupInfo*)param;
-
-	stackSize = PAGE_SIZE;
-	stackArea = new MemAreaPages(stackSize);
-	stackVAddr = (char*)(KERNEL_START - stackArea->size());
+	int stackSize = PAGE_SIZE;
+	MemArea *stackArea = new MemAreaPages(stackSize);
+	char *stackVAddr = (char*)(KERNEL_START - stackArea->size());
 	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
 
-	data = InitFs_Lookup(startupInfo->name, &size);
-	entry = Elf_Load(Sched::current()->process()->addressSpace(), data, size);
+	int size;
+	void *data = InitFs_Lookup(startupInfo->name, &size);
+	ElfEntry entry = Elf_Load(Sched::current()->process()->addressSpace(), data, size);
 
 	EnterUser(entry, stackVAddr + stackSize);
 }
 
 static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
-	Process *process;
-	Task *task;
-	struct StartupInfo *startupInfo;
-
-	process = new Process();
+	Process *process = new Process();
 	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
 	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
 	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
-	task = new Task(process);
+	Task *task = new Task(process);
 
-	startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
+	struct StartupInfo *startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
 	strcpy(startupInfo->name, name);
 
 	task->start(startUser, startupInfo);
@@ -69,28 +57,18 @@ void ProcessManager::main(void *param)
 
 	while(1) {
 		struct ProcManagerMsg message;
-		struct MessageHeader header;
-		struct BufferSegment segments[] = { &message, sizeof(message) };
-		int msg;
-
-		header.segments = segments;
-		header.numSegments = 1;
-
-		msg = ReceiveMessagex(object(), &header);
+		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
+		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
+		int msg = ReceiveMessagex(object(), &recvHdr);
 
 		switch(message.type) {
 			case ProcManagerNameLookup:
 			{
 				int object = Name::lookup(message.u.lookup.name);
+				struct BufferSegment replySegs[] = { &object, sizeof(object) };
+				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
 
-				segments[0].buffer = &object;
-				segments[0].size = sizeof(object);
-				header.segments = segments;
-				header.numSegments = 1;
-				header.objectsSize = 1;
-				header.objectsOffset = 0;
-
-				ReplyMessagex(msg, 0, &header);
+				ReplyMessagex(msg, 0, &replyHdr);
 				break;
 			}
 
@@ -132,10 +110,9 @@ void ProcessManager::main(void *param)
 					} else {
 						int size = PAGE_SIZE_ROUND_UP(increment);
 						int extraPages = size >> PAGE_SHIFT;
-						int i;
 
 						ret = (int)process->heapTop();
-						for(i=0; i<extraPages; i++) {
+						for(int i=0; i<extraPages; i++) {
 							Page *page = Page::alloc();
 							process->heap()->pages().addTail(page);
 							process->addressSpace()->pageTable()->mapPage(process->heapAreaTop(), page->paddr(), PageTable::PermissionRW);

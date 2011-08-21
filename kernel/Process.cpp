@@ -29,13 +29,11 @@ Object *Process::object(int obj)
 
 int Process::refObject(Object *object)
 {
-	int i;
-
 	if(object == NULL) {
 		return INVALID_OBJECT;
 	}
 
-	for(i=0; i<16; i++) {
+	for(int i=0; i<16; i++) {
 		if(mObjects[i] == NULL) {
 			mObjects[i] = object;
 			return i;
@@ -87,9 +85,7 @@ struct Message *Process::message(int msg)
 
 int Process::refMessage(Message *message)
 {
-	int i;
-
-	for(i=0; i<16; i++) {
+	for(int i=0; i<16; i++) {
 		if(mMessages[i] == NULL) {
 			mMessages[i] = message;
 			return i;

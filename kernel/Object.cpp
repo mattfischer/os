@@ -11,16 +11,10 @@ Object::Object()
 
 static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
 {
-	int i, j;
-	int copied;
-	int srcOffset;
-
-	copied = 0;
-	srcOffset = 0;
-	for(i=0; i<src->numSegments; i++) {
+	int copied = 0;
+	int srcOffset = 0;
+	for(int i=0; i<src->numSegments; i++) {
 		struct BufferSegment segment;
-		int segmentSize;
-		int segmentStart;
 
 		AddressSpace::memcpy(NULL, &segment, srcProcess->addressSpace(), src->segments + i, sizeof(struct BufferSegment));
 
@@ -29,24 +23,20 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 			continue;
 		}
 
-		segmentStart = offset + copied - srcOffset;
-		segmentSize = min(size - copied, segment.size - segmentStart);
+		int segmentStart = offset + copied - srcOffset;
+		int segmentSize = min(size - copied, segment.size - segmentStart);
 
 		AddressSpace::memcpy(destProcess->addressSpace(), (char*)dest + copied, srcProcess->addressSpace(), (char*)segment.buffer + segmentStart, segmentSize);
 
-		for(j=0; j<src->objectsSize; j++) {
-			int *s, *d;
-			int objOffset;
-			int obj;
-
-			objOffset = src->objectsOffset + j * sizeof(int);
+		for(int j=0; j<src->objectsSize; j++) {
+			int objOffset = src->objectsOffset + j * sizeof(int);
 			if(objOffset < srcOffset + segmentStart || objOffset >= srcOffset + segmentSize) {
 				continue;
 			}
 
-			s = (int*)PADDR_TO_VADDR(srcProcess->addressSpace()->pageTable()->translateVAddr((char*)segment.buffer + objOffset - srcOffset));
-			d = (int*)PADDR_TO_VADDR(destProcess->addressSpace()->pageTable()->translateVAddr((char*)dest + objOffset - offset));
-			obj = *s;
+			int *s = (int*)PADDR_TO_VADDR(srcProcess->addressSpace()->pageTable()->translateVAddr((char*)segment.buffer + objOffset - srcOffset));
+			int *d = (int*)PADDR_TO_VADDR(destProcess->addressSpace()->pageTable()->translateVAddr((char*)dest + objOffset - offset));
+			int obj = *s;
 
 			if(translateCache[i] == INVALID_OBJECT) {
 				translateCache[i] = destProcess->dupObjectRef(srcProcess, obj);
@@ -68,21 +58,15 @@ static int readBuffer(Process *destProcess, void *dest, Process *srcProcess, str
 
 static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process *srcProcess, struct MessageHeader *src, int translateCache[])
 {
-	int size;
-	int copied;
-	int i;
-
 	dest->objectsOffset = src->objectsOffset;
 	dest->objectsSize = src->objectsSize;
 
-	copied = 0;
-	for(i=0; i<dest->numSegments; i++) {
+	int copied = 0;
+	for(int i=0; i<dest->numSegments; i++) {
 		struct BufferSegment segment;
-		int segmentCopied;
-
 		AddressSpace::memcpy(NULL, &segment, destProcess->addressSpace(), dest->segments + i, sizeof(struct BufferSegment));
 
-		segmentCopied = readBuffer(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
+		int segmentCopied = readBuffer(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
 		copied += segmentCopied;
 		if(segmentCopied < segment.size) {
 			break;
@@ -94,15 +78,12 @@ static int copyBuffer(Process *destProcess, struct MessageHeader *dest, Process 
 
 int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	Task *task;
 	Message message(Sched::current(), *sendMsg, *replyMsg);
-
 	mMessages.addTail(&message);
 
 	Sched::current()->setState(Task::StateSendBlock);
-
 	if(!mReceivers.empty()) {
-		task = mReceivers.removeHead();
+		Task *task = mReceivers.removeHead();
 		Sched::switchTo(task);
 	} else {
 		Sched::runNext();
@@ -113,16 +94,13 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 
 Message *Object::receive(struct MessageHeader *recvMsg)
 {
-	Message *message;
-	int size;
-
 	if(mMessages.empty()) {
 		mReceivers.addTail(Sched::current());
 		Sched::current()->setState(Task::StateReceiveBlock);
 		Sched::runNext();
 	}
 
-	message = mMessages.removeHead();
+	Message *message = mMessages.removeHead();
 
 	copyBuffer(Sched::current()->process(), recvMsg, message->sender()->process(), &message->sendMsg(), message->translateCache());
 
@@ -152,10 +130,8 @@ int Message::read(void *buffer, int offset, int size)
 
 int Message::reply(int ret, struct MessageHeader *replyMsg)
 {
-	int i;
 	int translateCache[MESSAGE_MAX_OBJECTS];
-
-	for(i=0; i<replyMsg->objectsSize; i++) {
+	for(int i=0; i<replyMsg->objectsSize; i++) {
 		translateCache[i] = INVALID_OBJECT;
 	}
 

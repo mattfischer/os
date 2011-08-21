@@ -9,39 +9,31 @@ extern "C" {
 
 void Kernel::initLow()
 {
-	unsigned int vaddr;
-	PAddr paddr;
-	int i;
-	Page *pagesLow;
-	unsigned *table;
-	int idx;
-	unsigned int perm;
-	Page *kernelTablePages;
-	PAddr *kernelTablePAddrLow;
-
-	pagesLow = (Page*)VADDR_TO_PADDR(Page::fromNumberLow(0));
-	for(i=0; i<Page::fromVAddrLow(__KernelEnd)->numberLow() + 1; i++) {
+	Page *pagesLow = (Page*)VADDR_TO_PADDR(Page::fromNumberLow(0));
+	for(int i=0; i<Page::fromVAddrLow(__KernelEnd)->numberLow() + 1; i++) {
 		pagesLow[i].setFlagsLow(Page::FlagsInUse);
 	}
 
-	kernelTablePages = Page::allocContigLow(4, 4);
+	Page *kernelTablePages = Page::allocContigLow(4, 4);
 
-	kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
+	PAddr *kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
 	*kernelTablePAddrLow = kernelTablePages->paddrLow();
 
-	for(vaddr = 0, paddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
+	PAddr paddr = 0;
+	for(unsigned vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
 		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
+		paddr += PageTable::SectionSize;
 	}
 
-	for(vaddr = KERNEL_START, paddr = 0; vaddr > 0; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
+	paddr = 0;
+	for(unsigned vaddr = KERNEL_START; vaddr > 0; vaddr += PageTable::SectionSize, paddr += PageTable::SectionSize) {
 		PageTable::mapSectionLow(kernelTablePages, (void*)vaddr, paddr, PageTable::PermissionRWPriv);
+		paddr += PageTable::SectionSize;
 	}
 }
 
 void PageTable::mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permission permission)
 {
-	unsigned *table;
-	int idx;
 	unsigned int perm;
 
 	switch(permission) {
@@ -51,8 +43,8 @@ void PageTable::mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permiss
 		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
 	}
 
-	table = (unsigned*)pageTable->paddrLow();
-	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	unsigned *table = (unsigned*)pageTable->paddrLow();
+	int idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
 }
 
@@ -75,18 +67,17 @@ PAddr Page::paddrLow() {
 void Page::initLow()
 {
 	Page *pages = (Page*)VADDR_TO_PADDR(sPages);
-	int i;
 
-	for(i=0; i<N_PAGES; i++) {
+	for(int i=0; i<N_PAGES; i++) {
 		pages[i].mFlags = FlagsFree;
 	}
 }
 
 Page *Page::allocContigLow(int align, int num)
 {
-	int i, j;
+	for(int i=0; i<N_PAGES; i += align) {
+		int j;
 
-	for(i=0; i<N_PAGES; i += align) {
 		for(j=0; j<num; j++) {
 			Page *page = fromNumberLow(i + j);
 			Page *pageLow = (Page*)VADDR_TO_PADDR(page);

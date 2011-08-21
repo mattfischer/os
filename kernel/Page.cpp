@@ -4,9 +4,7 @@ Page Page::sPages[N_PAGES];
 
 Page *Page::alloc()
 {
-	int i;
-
-	for(i=0; i<N_PAGES; i++) {
+	for(int i=0; i<N_PAGES; i++) {
 		Page *page = fromNumber(i);
 
 		if(page->flags() == FlagsFree) {
@@ -21,9 +19,8 @@ Page *Page::alloc()
 List<Page> Page::allocMulti(int num)
 {
 	List<Page> list;
-	int n;
 
-	for(n=0; n < num; n++) {
+	for(int n=0; n < num; n++) {
 		Page *page = alloc();
 		list.addTail(page);
 	}
@@ -33,9 +30,8 @@ List<Page> Page::allocMulti(int num)
 
 Page *Page::allocContig(int align, int num)
 {
-	int i, j;
-
-	for(i=0; i<N_PAGES; i += align) {
+	for(int i=0; i<N_PAGES; i += align) {
+		int j;
 		for(j=0; j<num; j++) {
 			Page *page = fromNumber(i + j);
 
@@ -64,10 +60,8 @@ void Page::free()
 
 void Page::freeList(List<Page> list)
 {
-	Page *page;
 	Page *next;
-
-	for(page = list.head(); page != NULL; page = next)
+	for(Page *page = list.head(); page != NULL; page = next)
 	{
 		next = list.next(page);
 		list.remove(page);

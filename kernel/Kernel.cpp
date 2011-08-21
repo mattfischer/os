@@ -17,22 +17,16 @@ extern char vectorEnd[];
 
 void Kernel::init()
 {
-	PageTable *pageTable;
-	AddressSpace *addressSpace;
-	Page *vectorPage;
-	char *vector;
-	unsigned vaddr;
-
-	pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
-	for(vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
+	PageTable *pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
+	for(unsigned vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
 		pageTable->mapSection((void*)vaddr, 0, PageTable::PermissionNone);
 	}
 
-	addressSpace = new AddressSpace(pageTable);
+	AddressSpace *addressSpace = new AddressSpace(pageTable);
 	sProcess = new Process(addressSpace);
 
-	vectorPage = Page::alloc();
-	vector = (char*)vectorPage->vaddr();
+	Page *vectorPage = Page::alloc();
+	char *vector = (char*)vectorPage->vaddr();
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 }
@@ -40,10 +34,6 @@ void Kernel::init()
 
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
-	Object *object;
-	Message *message;
-	int ret;
-
 	switch(code) {
 		case SyscallYield:
 			Sched::runNext();

@@ -14,14 +14,10 @@ typedef void (*CtorFunc)();
 
 static void initCtors()
 {
-	int i;
-	int len;
-	CtorFunc *ctors;
+	CtorFunc *ctors = (CtorFunc*)__CtorsStart;
+	int len = (CtorFunc*)__CtorsEnd - (CtorFunc*)__CtorsStart;
 
-	ctors = (CtorFunc*)__CtorsStart;
-	len = (CtorFunc*)__CtorsEnd - (CtorFunc*)__CtorsStart;
-
-	for(i=0; i<len; i++) {
+	for(int i=0; i<len; i++) {
 		ctors[i]();
 	}
 }

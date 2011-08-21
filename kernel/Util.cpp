@@ -2,11 +2,10 @@
 
 void *memcpy(void *dest, const void *src, unsigned n)
 {
-	int i;
 	char *d = (char*)dest;
 	const char *s = (const char*)src;
 
-	for(i=0; i<n; i++) {
+	for(int i=0; i<n; i++) {
 		d[i] = s[i];
 	}
 
@@ -15,10 +14,9 @@ void *memcpy(void *dest, const void *src, unsigned n)
 
 void *memset(void *dest, int c, unsigned int n)
 {
-	int i;
 	char *d = (char*)dest;
 
-	for(i=0; i<n; i++) {
+	for(int i=0; i<n; i++) {
 		d[i] = c;
 	}
 
@@ -27,9 +25,7 @@ void *memset(void *dest, int c, unsigned int n)
 
 char *strcpy(char *dest, const char *src)
 {
-	int i;
-
-	for(i=0; src[i] != '\0'; i++) {
+	for(int i=0; src[i] != '\0'; i++) {
 		dest[i] = src[i];
 	}
 
@@ -38,9 +34,7 @@ char *strcpy(char *dest, const char *src)
 
 int strcmp(const char *str1, const char *str2)
 {
-	int i;
-
-	for(i=0; ; i++) {
+	for(int i=0; ; i++) {
 		if(str1[i] == str2[i]) {
 			if(str1[i] == 0) {
 				return 0;

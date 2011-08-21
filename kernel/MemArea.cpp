@@ -16,13 +16,9 @@ MemAreaPages::MemAreaPages(int size)
 
 void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size)
 {
-	Page *page;
-	unsigned int skipPages;
-	unsigned v;
-
-	v = (unsigned)vaddr;
-	skipPages = offset >> PAGE_SHIFT;
-	for(page = mPages.head(); page != NULL; page = mPages.next(page)) {
+	unsigned v = (unsigned)vaddr;
+	unsigned int skipPages = offset >> PAGE_SHIFT;
+	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
 		if(skipPages > 0) {
 			skipPages--;
 			continue;
@@ -41,11 +37,8 @@ MemAreaPhys::MemAreaPhys(int size, PAddr paddr)
 
 void MemAreaPhys::map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size)
 {
-	PAddr paddr;
-	unsigned v;
-
-	v = (unsigned)vaddr;
-	for(paddr = mPAddr; paddr < mPAddr + size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
+	unsigned v = (unsigned)vaddr;
+	for(PAddr paddr = mPAddr; paddr < mPAddr + size; paddr += PAGE_SIZE, v += PAGE_SIZE) {
 		table->mapPage((void*)v, paddr, PageTable::PermissionRW);
 	}
 }

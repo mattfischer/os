@@ -7,14 +7,11 @@ struct SlabAllocator<PageTable> PageTable::sSlab;
 
 PageTable::PageTable(PageTable *copy)
 {
-	unsigned *base;
-	unsigned *copyBase;
-
 	mPages = Page::allocContig(4, 4);
 	mTablePAddr = mPages->paddr();
 
-	base = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
-	copyBase = (unsigned*)PADDR_TO_VADDR(copy->mTablePAddr);
+	unsigned *base = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	unsigned *copyBase = (unsigned*)PADDR_TO_VADDR(copy->mTablePAddr);
 
 	memcpy(base, copyBase, PAGE_TABLE_SIZE * sizeof(unsigned));
 }
@@ -27,27 +24,19 @@ PageTable::PageTable(Page *pages)
 
 void PageTable::allocL2Table(void *vaddr)
 {
-	unsigned *table;
-	int idx;
-	Page *L2Page;
-	unsigned *L2Table;
-	int l2idx;
-	unsigned l2pte;
-	int i, j;
+	unsigned *table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	int idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 
-	table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
-	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
-
-	for(L2Page = mL2Tables.head(); L2Page != NULL; L2Page = mL2Tables.next(L2Page)) {
-		L2Table = (unsigned*)L2Page->vaddr();
-		for(i=0; i<4; i++) {
-			l2idx = i*PAGE_L2_TABLE_SIZE;
-			l2pte = L2Table[l2idx];
+	for(Page *L2Page = mL2Tables.head(); L2Page != NULL; L2Page = mL2Tables.next(L2Page)) {
+		unsigned *L2Table = (unsigned*)L2Page->vaddr();
+		for(int i=0; i<4; i++) {
+			int l2idx = i*PAGE_L2_TABLE_SIZE;
+			unsigned l2pte = L2Table[l2idx];
 			if((l2pte & PTE_L2_TYPE_MASK) != PTE_L2_TYPE_DISABLED || (l2pte & 0x80000000) == 0) {
 				continue;
 			}
 
-			for(j=0; j<PAGE_L2_TABLE_SIZE; j++) {
+			for(int j=0; j<PAGE_L2_TABLE_SIZE; j++) {
 				L2Table[l2idx + j] = 0;
 			}
 			table[idx] = VADDR_TO_PADDR(L2Table + l2idx) | PTE_SECTION_AP_READ_WRITE | PTE_TYPE_COARSE;
@@ -55,12 +44,12 @@ void PageTable::allocL2Table(void *vaddr)
 		}
 	}
 
-	L2Page = Page::alloc();
-	L2Table = (unsigned*)L2Page->vaddr();
+	Page *L2Page = Page::alloc();
+	unsigned *L2Table = (unsigned*)L2Page->vaddr();
 	mL2Tables.addTail(L2Page);
 
 	memset(L2Table, 0, PAGE_L2_TABLE_SIZE * sizeof(unsigned));
-	for(i=1; i<4; i++) {
+	for(int i=1; i<4; i++) {
 		L2Table[i*PAGE_L2_TABLE_SIZE] = 0x80000000;
 	}
 
@@ -69,16 +58,9 @@ void PageTable::allocL2Table(void *vaddr)
 
 void PageTable::mapPage(void *vaddr, PAddr paddr, Permission permission)
 {
-	unsigned *table;
-	int idx;
-	unsigned pte;
-	unsigned *L2Table;
-	unsigned int perm;
-	int l2idx;
-
-	table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
-	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
-	pte = table[idx];
+	unsigned *table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	int idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	unsigned pte = table[idx];
 
 	if((pte & PTE_TYPE_MASK) == PTE_TYPE_SECTION ||
 	   (pte & PTE_TYPE_MASK) == PTE_TYPE_DISABLED) {
@@ -87,6 +69,7 @@ void PageTable::mapPage(void *vaddr, PAddr paddr, Permission permission)
 
 	pte = table[idx];
 
+	unsigned int perm;
 	switch(permission) {
 		case PermissionNone: perm = PTE_L2_AP_ALL_NONE; break;
 		case PermissionRO: perm = PTE_L2_AP_ALL_READ_ONLY; break;
@@ -95,16 +78,14 @@ void PageTable::mapPage(void *vaddr, PAddr paddr, Permission permission)
 	}
 
 	if((pte & PTE_TYPE_MASK) == PTE_TYPE_COARSE) {
-		L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
-		l2idx = ((unsigned)vaddr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
+		unsigned *L2Table = (unsigned*)PADDR_TO_VADDR(pte & PTE_COARSE_BASE_MASK);
+		int l2idx = ((unsigned)vaddr & (~PAGE_TABLE_SECTION_MASK)) >> PAGE_SHIFT;
 		L2Table[l2idx] = (paddr & PTE_COARSE_BASE_MASK) | perm | PTE_L2_TYPE_SMALL;
 	}
 }
 
 void PageTable::mapSection(void *vaddr, PAddr paddr, Permission permission)
 {
-	unsigned *table;
-	int idx;
 	unsigned int perm;
 
 	switch(permission) {
@@ -114,8 +95,8 @@ void PageTable::mapSection(void *vaddr, PAddr paddr, Permission permission)
 		case PermissionRWPriv: perm = PTE_L2_AP_ALL_READ_WRITE_PRIV; break;
 	}
 
-	table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
-	idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
+	unsigned *table = (unsigned*)PADDR_TO_VADDR(mTablePAddr);
+	unsigned int idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 	table[idx] = (paddr & PTE_SECTION_BASE_MASK) | perm | PTE_TYPE_SECTION;
 }
 

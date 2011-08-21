@@ -15,9 +15,7 @@ List<NameEntry> nameList;
 
 struct NameEntry *findEntry(const char *name)
 {
-	struct NameEntry *entry;
-
-	for(entry = nameList.head(); entry != NULL; entry = nameList.next(entry)) {
+	for(struct NameEntry *entry = nameList.head(); entry != NULL; entry = nameList.next(entry)) {
 		if(!strcmp(name, entry->name)) {
 			return entry;
 		}
@@ -38,9 +36,7 @@ int Name::lookup(const char *name)
 
 void Name::set(const char *name, int object)
 {
-	struct NameEntry *entry;
-
-	entry = findEntry(name);
+	struct NameEntry *entry = findEntry(name);
 
 	if(entry == NULL) {
 		entry = nameSlab.allocate();

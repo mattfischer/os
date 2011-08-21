@@ -18,11 +18,7 @@ AddressSpace::AddressSpace(PageTable *pageTable)
 
 void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned int size)
 {
-	struct Mapping *mapping;
-	struct Mapping *mappingCursor;
-	unsigned v;
-
-	mapping = mappingSlab.allocate();
+	struct Mapping *mapping = mappingSlab.allocate();
 	mapping->vaddr = (void*)PAGE_ADDR_ROUND_DOWN(vaddr);
 	mapping->offset = PAGE_ADDR_ROUND_DOWN(offset);
 	mapping->size = PAGE_SIZE_ROUND_UP(size + offset - mapping->offset);
@@ -30,7 +26,7 @@ void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned
 
 	area->map(mPageTable, vaddr, mapping->offset, mapping->size);
 
-	for(mappingCursor = mMappings.head(); mappingCursor != NULL; mappingCursor = mMappings.next(mappingCursor)) {
+	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != NULL; mappingCursor = mMappings.next(mappingCursor)) {
 		if(mappingCursor->vaddr > mapping->vaddr) {
 			mMappings.addAfter(mapping, mappingCursor);
 			break;
@@ -55,19 +51,15 @@ void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *src
 		int destSize = nextPageBoundary(destPtr) - destPtr;
 		int copySize = min(min(srcSize, destSize), size);
 
-		void *srcKernel;
-		void *destKernel;
+		void *srcKernel = (void*)srcPtr;
+		void *destKernel = (void*)destPtr;
 
-		if(srcSpace == NULL) {
-			srcKernel = (void*)srcPtr;
-		} else {
-			srcKernel = PADDR_TO_VADDR(srcSpace->pageTable()->translateVAddr((void*)srcPtr));
+		if(srcSpace != NULL) {
+			srcKernel = PADDR_TO_VADDR(srcSpace->pageTable()->translateVAddr(srcKernel));
 		}
 
-		if(destSpace == NULL ) {
-			destKernel = (void*)destPtr;
-		} else {
-			destKernel = PADDR_TO_VADDR(destSpace->pageTable()->translateVAddr((void*)destPtr));
+		if(destSpace != NULL ) {
+			destKernel = PADDR_TO_VADDR(destSpace->pageTable()->translateVAddr(destKernel));
 		}
 
 		::memcpy(destKernel, srcKernel, copySize);

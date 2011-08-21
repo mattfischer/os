@@ -31,14 +31,11 @@ void Sched::switchTo(Task *task)
 
 void Sched::runNext()
 {
-	Task *next;
-	Task *old;
-	
 	if(sCurrent->state() == Task::StateRunning) {
 		add(sCurrent);
 	}
 
-	next = sRunList.removeHead();
+	Task *next = sRunList.removeHead();
 
 	if(next != sCurrent) {
 		switchTo(next);

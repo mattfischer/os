@@ -6,11 +6,7 @@ SlabAllocator<Task> Task::sSlab;
 
 Task::Task(Process *process)
 {
-	int i;
-	Task *task;
-	Page *stack;
-
-	stack = Page::alloc();
+	Page *stack = Page::alloc();
 
 	mStack = stack;
 	mState = StateInit;
