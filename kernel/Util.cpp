@@ -50,3 +50,7 @@ int strcmp(const char *str1, const char *str2)
 		}
 	}
 }
+
+extern "C" {
+	void __cxa_pure_virtual() {}
+}

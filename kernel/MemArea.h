@@ -12,7 +12,7 @@ public:
 
 	int size() { return mSize; }
 
-	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size) {}
+	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size) = 0;
 
 private:
 	int mSize;
