@@ -50,11 +50,11 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 
 void ProcessManager::main(void *param)
 {
-	sObject = Object_Create(NULL);
+	sObject = Object_Create(OBJECT_INVALID, NULL);
 
 	Kernel::setObject(KernelObjectProcManager, sObject);
 
-	startUserProcess("init", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
+	startUserProcess("init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
 	while(1) {
 		struct ProcManagerMsg message;

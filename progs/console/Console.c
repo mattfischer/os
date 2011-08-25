@@ -22,9 +22,10 @@ void PrintUart(char *uart, char *buffer, int size)
 int main(int argc, char *argv[])
 {
 	char *uart = (char*)0x16000000;
-	int obj = Object_Create(NULL);
+	int obj = Object_Create(OBJECT_INVALID, NULL);
+	int obj2 = Object_Create(obj, NULL);
 
-	Name_Set("console", obj);
+	Name_Set("console", obj2);
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {

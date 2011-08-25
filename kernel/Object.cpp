@@ -5,8 +5,9 @@
 
 Slab<Object> Object::sSlab;
 
-Object::Object(void *data)
+Object::Object(Object *parent, void *data)
 {
+	mParent = parent;
 	mData = data;
 }
 
@@ -16,8 +17,22 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 	mMessages.addTail(&message);
 
 	Sched::current()->setState(Task::StateSendBlock);
-	if(!mReceivers.empty()) {
-		Task *task = mReceivers.removeHead();
+
+	Task *task = NULL;
+	for(Object *object = this; object != NULL; object = object->parent()) {
+		if(!object->mReceivers.empty()) {
+			task = object->mReceivers.removeHead();
+			break;
+		} else {
+			Object *parent = object->parent();
+			if(parent) {
+				parent->mSendingChildren.remove(object);
+				parent->mSendingChildren.addTail(object);
+			}
+		}
+	}
+
+	if(task) {
 		Sched::switchTo(task);
 	} else {
 		Sched::runNext();
@@ -28,24 +43,42 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 
 Message *Object::receive(struct MessageHeader *recvMsg)
 {
-	if(mMessages.empty()) {
+	Message *message = NULL;
+	while(!message) {
+		for(Object *object = this; object != NULL; object = object->mSendingChildren.head()) {
+			if(!object->mMessages.empty()) {
+				message = object->mMessages.removeHead();
+
+				for(; object != NULL; object = object->parent()) {
+					if(object->mSendingChildren.empty() && object->mMessages.empty() && object->parent()) {
+						object->parent()->mSendingChildren.remove(object);
+					} else {
+						break;
+					}
+				}
+				break;
+			}
+		}
+
+		if(message) {
+			break;
+		}
+
 		mReceivers.addTail(Sched::current());
 		Sched::current()->setState(Task::StateReceiveBlock);
 		Sched::runNext();
 	}
 
-	Message *message = mMessages.removeHead();
-
 	message->read(recvMsg);
-
 	message->sender()->setState(Task::StateReplyBlock);
 
 	return message;
 }
 
-int Object_Create(void *data)
+int Object_Create(int parent, void *data)
 {
-	Object *object = new Object(data);
+	Object *p = Sched::current()->process()->object(parent);
+	Object *object = new Object(p, data);
 	return Sched::current()->process()->refObject(object);
 }
 

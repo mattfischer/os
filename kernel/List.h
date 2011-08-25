@@ -7,6 +7,11 @@ template<typename T>
 struct ListEntryAux {
 	T *prev;
 	T *next;
+
+	ListEntryAux() {
+		prev = NULL;
+		next = NULL;
+	}
 };
 
 template<typename T, ListEntryAux<T> T::*member = NULL>
@@ -31,6 +36,7 @@ public:
 	void addHead(T *entry) {
 		(entry->*member).prev = NULL;
 		(entry->*member).next = mHead;
+
 		if(mHead == NULL) {
 			mHead = entry;
 			mTail = entry;
@@ -43,6 +49,7 @@ public:
 	void addTail(T *entry) {
 		(entry->*member).prev = mTail;
 		(entry->*member).next = NULL;
+
 		if(mHead == NULL) {
 			mHead = entry;
 			mTail = entry;
@@ -55,6 +62,7 @@ public:
 	void addBefore(T *entry, T *target) {
 		(entry->*member).prev = (target->*member).prev;
 		(entry->*member).next = target;
+
 		if(mHead == target) {
 			(mHead->*member).prev = entry;
 			mHead = entry;
@@ -67,6 +75,7 @@ public:
 	void addAfter(T *entry, T *target) {
 		(entry->*member).prev = target;
 		(entry->*member).next = (target->*member).next;
+
 		if(mTail == target) {
 			(mTail->*member).next = entry;
 			mTail = entry;
@@ -80,18 +89,34 @@ public:
 		if((entry->*member).prev) {
 			((entry->*member).prev->*member).next = (entry->*member).next;
 		}
+
 		if((entry->*member).next) {
 			((entry->*member).next->*member).prev = (entry->*member).prev;
 		}
+
 		if(mHead == entry) {
 			mHead = (entry->*member).next;
 		}
+
 		if(mTail == entry) {
 			mTail = (entry->*member).prev;
 		}
+
+		(entry->*member).next = NULL;
+		(entry->*member).prev = NULL;
 	}
 
 	bool empty() { return mHead == NULL; }
+
+	bool contains(T *target) {
+		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
+			if(cursor == target) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 private:
 	T *mHead;
@@ -101,6 +126,11 @@ private:
 struct ListEntry {
 	ListEntry *prev;
 	ListEntry *next;
+
+	ListEntry() {
+		prev = NULL;
+		next = NULL;
+	}
 };
 
 template<typename T>
@@ -125,6 +155,7 @@ public:
 	void addHead(ListEntry *entry) {
 		entry->prev = NULL;
 		entry->next = mHead;
+
 		if(mHead == NULL) {
 			mHead = entry;
 			mTail = entry;
@@ -137,6 +168,7 @@ public:
 	void addTail(ListEntry *entry) {
 		entry->prev = mTail;
 		entry->next = NULL;
+
 		if(mHead == NULL) {
 			mHead = entry;
 			mTail = entry;
@@ -149,6 +181,7 @@ public:
 	void addBefore(ListEntry *entry, ListEntry *target) {
 		entry->prev = target->prev;
 		entry->next = target;
+
 		if(mHead == target) {
 			mHead->prev = entry;
 			mHead = entry;
@@ -161,6 +194,7 @@ public:
 	void addAfter(ListEntry *entry, ListEntry *target) {
 		entry->prev = target;
 		entry->next = target->next;
+
 		if(mTail == target) {
 			mTail->next = entry;
 			mTail = entry;
@@ -174,15 +208,21 @@ public:
 		if(entry->prev) {
 			entry->prev->next = entry->next;
 		}
+
 		if(entry->next) {
 			entry->next->prev = entry->prev;
 		}
+
 		if(mHead == entry) {
 			mHead = entry->next;
 		}
+
 		if(mTail == entry) {
 			mTail = entry->prev;
 		}
+
+		entry->next = NULL;
+		entry->prev = NULL;
 	}
 
 	T *removeHead() {
@@ -206,6 +246,16 @@ public:
 	}
 
 	bool empty() { return mHead == NULL; }
+
+	bool contains(T *target) {
+		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
+			if(cursor == target) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 private:
 	ListEntry *mHead;

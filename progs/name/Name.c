@@ -31,7 +31,7 @@ int lookup(const char *name)
 	struct NameEntry *entry = findEntry(name);
 
 	if(entry == NULL) {
-		return INVALID_OBJECT;
+		return OBJECT_INVALID;
 	} else {
 		return entry->object;
 	}
@@ -55,7 +55,7 @@ void set(const char *name, int object)
 
 int main(int argc, char *argv[])
 {
-	int obj = Object_Create(NULL);
+	int obj = Object_Create(OBJECT_INVALID, NULL);
 
 	Kernel_SetObject(KernelObjectNameServer, obj);
 

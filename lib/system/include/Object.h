@@ -3,9 +3,9 @@
 
 #include <kernel/include/MessageFmt.h>
 
-#define INVALID_OBJECT 0x7fffffff
+#define OBJECT_INVALID 0x7fffffff
 
-int Object_Create();
+int Object_Create(int parent, void *data);
 void Object_Release(int obj);
 
 int Object_Send(int obj, void *msg, int msgSize, void *reply, int replySize);

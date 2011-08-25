@@ -33,7 +33,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, st
 			int *d = (int*)PADDR_TO_VADDR(destProcess->addressSpace()->pageTable()->translateVAddr((char*)dest + objOffset - offset));
 			int obj = *s;
 
-			if(translateCache[i] == INVALID_OBJECT) {
+			if(translateCache[i] == OBJECT_INVALID) {
 				translateCache[i] = destProcess->dupObjectRef(srcProcess, obj);
 			}
 
@@ -80,7 +80,7 @@ Message::Message(Task *sender, Object *target, struct MessageHeader &sendMsg, st
 	mRet = 0;
 
 	for(int i=0; i<mSendMsg.objectsSize; i++) {
-		mTranslateCache[i] = INVALID_OBJECT;
+		mTranslateCache[i] = OBJECT_INVALID;
 	}
 }
 
@@ -98,7 +98,7 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 {
 	int translateCache[MESSAGE_MAX_OBJECTS];
 	for(int i=0; i<replyMsg->objectsSize; i++) {
-		translateCache[i] = INVALID_OBJECT;
+		translateCache[i] = OBJECT_INVALID;
 	}
 
 	copyMessage(mSender->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);

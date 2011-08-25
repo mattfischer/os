@@ -3,9 +3,9 @@
 
 #include <kernel/include/Syscalls.h>
 
-int Object_Create(void *data)
+int Object_Create(int parent, void *data)
 {
-	return swi(SyscallObjectCreate, (unsigned int)data, 0, 0, 0);
+	return swi(SyscallObjectCreate, (unsigned int)parent, (unsigned int)data, 0, 0);
 }
 
 void Object_Release(int obj)

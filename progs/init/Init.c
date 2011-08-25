@@ -6,10 +6,10 @@ int main(int argc, char *argv[])
 {
 	int console;
 
-	SpawnProcess("name", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
+	SpawnProcess("name", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Yield();
 
-	SpawnProcess("console", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
+	SpawnProcess("console", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Yield();
 	Yield();
 

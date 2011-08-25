@@ -7,15 +7,16 @@
 
 #include <kernel/include/MessageFmt.h>
 
-#define INVALID_OBJECT 0x7fffffff
+#define OBJECT_INVALID 0x7fffffff
 
-class Object {
+class Object : public ListEntry {
 public:
-	Object(void *data);
+	Object(Object *parent, void *data);
 
 	int send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	Message *receive(struct MessageHeader *recvMsg);
 
+	Object *parent() { return mParent; }
 	void *data() { return mData; }
 
 	void *operator new(size_t) { return sSlab.allocate(); }
@@ -23,12 +24,14 @@ public:
 private:
 	List<Task> mReceivers;
 	List<Message> mMessages;
+	List<Object> mSendingChildren;
 	void *mData;
+	Object *mParent;
 
 	static Slab<Object> sSlab;
 };
 
-int Object_Create(void *data);
+int Object_Create(int parent, void *data);
 void Object_Release(int obj);
 
 int Object_Send(int obj, void *msg, int msgSize, void *reply, int replySize);

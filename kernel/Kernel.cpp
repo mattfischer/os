@@ -32,7 +32,7 @@ void Kernel::init()
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
 	for(int i=0; i<KernelObjectCount; i++) {
-		sObjects[i] = INVALID_OBJECT;
+		sObjects[i] = OBJECT_INVALID;
 	}
 }
 
@@ -49,7 +49,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			return 0;
 
 		case SyscallObjectCreate:
-			return Object_Create((void*)arg0);
+			return Object_Create((unsigned int)arg0, (void*)arg1);
 
 		case SyscallObjectRelease:
 			Object_Release(arg0);

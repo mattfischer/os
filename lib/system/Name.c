@@ -24,7 +24,7 @@ void Name_Set(const char *name, int obj)
 	strcpy(msg.u.set.name, name);
 	msg.u.set.obj = obj;
 
-	while(__NameServer == INVALID_OBJECT) {
+	while(__NameServer == OBJECT_INVALID) {
 		__NameServer = Kernel_GetObject(KernelObjectNameServer);
 	}
 
@@ -42,7 +42,7 @@ int Name_Lookup(const char *name)
 	msgSend.type = NameMsgTypeLookup;
 	strcpy(msgSend.u.lookup.name, name);
 
-	while(__NameServer == INVALID_OBJECT) {
+	while(__NameServer == OBJECT_INVALID) {
 		__NameServer = Kernel_GetObject(KernelObjectNameServer);
 	}
 

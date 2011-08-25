@@ -9,17 +9,12 @@
 int Write(int obj, void *buffer, int size)
 {
 	struct IOMsg msg;
-	struct MessageHeader hdr;
 	struct BufferSegment segs[] = { &msg, sizeof(msg), buffer, size };
+	struct MessageHeader hdr = { segs, 2, 0, 0 };
 	int ret;
 
 	msg.type = IOMsgTypeWrite;
 	msg.u.write.size = size;
-
-	hdr.segments = segs;
-	hdr.numSegments = 2;
-	hdr.objectsSize = 0;
-	hdr.objectsOffset = 0;
 
 	ret = Object_Sendxs(obj, &hdr, NULL, 0);
 	return ret;

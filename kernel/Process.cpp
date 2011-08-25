@@ -20,7 +20,7 @@ Process::Process(AddressSpace *addressSpace)
 
 Object *Process::object(int obj)
 {
-	if(obj == INVALID_OBJECT) {
+	if(obj == OBJECT_INVALID) {
 		return NULL;
 	} else {
 		return mObjects[obj];
@@ -30,7 +30,7 @@ Object *Process::object(int obj)
 int Process::refObject(Object *object)
 {
 	if(object == NULL) {
-		return INVALID_OBJECT;
+		return OBJECT_INVALID;
 	}
 
 	for(int i=0; i<16; i++) {
@@ -40,13 +40,13 @@ int Process::refObject(Object *object)
 		}
 	}
 
-	return INVALID_OBJECT;
+	return OBJECT_INVALID;
 }
 
 int Process::refObjectTo(int obj, Object *object)
 {
 	if(mObjects[obj] != NULL || object == NULL) {
-		return INVALID_OBJECT;
+		return OBJECT_INVALID;
 	}
 
 	mObjects[obj] = object;
@@ -55,15 +55,15 @@ int Process::refObjectTo(int obj, Object *object)
 
 void Process::unrefObject(int obj)
 {
-	if(obj != INVALID_OBJECT) {
+	if(obj != OBJECT_INVALID) {
 		mObjects[obj] = NULL;
 	}
 }
 
 int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
 {
-	if(sourceObj == INVALID_OBJECT) {
-		return INVALID_OBJECT;
+	if(sourceObj == OBJECT_INVALID) {
+		return OBJECT_INVALID;
 	}
 
 	return refObject(sourceProcess->object(sourceObj));
@@ -71,8 +71,8 @@ int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
 
 int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
 {
-	if(sourceObj == INVALID_OBJECT) {
-		return INVALID_OBJECT;
+	if(sourceObj == OBJECT_INVALID) {
+		return OBJECT_INVALID;
 	}
 
 	return refObjectTo(obj, sourceProcess->object(sourceObj));
