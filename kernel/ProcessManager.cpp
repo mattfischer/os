@@ -7,7 +7,6 @@
 #include "AddressSpace.h"
 #include "Process.h"
 #include "Object.h"
-#include "Name.h"
 #include "Message.h"
 #include "Kernel.h"
 
@@ -53,6 +52,8 @@ void ProcessManager::main(void *param)
 {
 	sObject = CreateObject();
 
+	Kernel::setObject(KernelObjectProcManager, sObject);
+
 	startUserProcess("init", INVALID_OBJECT, INVALID_OBJECT, INVALID_OBJECT);
 
 	while(1) {
@@ -62,24 +63,6 @@ void ProcessManager::main(void *param)
 		int msg = ReceiveMessagex(object(), &recvHdr);
 
 		switch(message.type) {
-			case ProcManagerNameLookup:
-			{
-				int object = Name::lookup(message.u.lookup.name);
-				struct BufferSegment replySegs[] = { &object, sizeof(object) };
-				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
-
-				ReplyMessagex(msg, 0, &replyHdr);
-				break;
-			}
-
-			case ProcManagerNameSet:
-			{
-				Name::set(message.u.set.name, message.u.set.obj);
-
-				ReplyMessage(msg, 0, NULL, 0);
-				break;
-			}
-
 			case ProcManagerMapPhys:
 			{
 				MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);

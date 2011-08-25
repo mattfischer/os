@@ -2,3 +2,4 @@ console:out/bin/console
 init:out/bin/init
 clientA:out/bin/clientA
 clientB:out/bin/clientB
+name:out/bin/name

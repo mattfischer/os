@@ -2,12 +2,12 @@ TARGETS := system
 
 system_SOURCES := \
 	IO.c \
+	KernelObject.c \
 	Map.c \
 	Message.c \
 	Name.c \
 	NewlibFuncs.c \
 	Object.c \
-	ProcessManager.c \
 	Spawn.c \
 	Start.c \
 	SwiAsm.s \

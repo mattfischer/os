@@ -17,16 +17,18 @@ void Sched::switchTo(Task *task)
 {
 	task->setState(Task::StateRunning);
 
-	if(task->process() != Kernel::process()) {
-		task->setEffectiveAddressSpace(task->process()->addressSpace());
-		SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
-	} else {
-		task->setEffectiveAddressSpace(sCurrent->effectiveAddressSpace());
-	}
+	if(task != sCurrent) {
+		if(task->process() != Kernel::process()) {
+			task->setEffectiveAddressSpace(task->process()->addressSpace());
+			SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
+		} else {
+			task->setEffectiveAddressSpace(sCurrent->effectiveAddressSpace());
+		}
 
-	Task *old = sCurrent;
-	sCurrent = task;
-	SwitchToAsm(old->regs(), task->regs());
+		Task *old = sCurrent;
+		sCurrent = task;
+		SwitchToAsm(old->regs(), task->regs());
+	}
 }
 
 void Sched::runNext()
@@ -37,9 +39,7 @@ void Sched::runNext()
 
 	Task *next = sRunList.removeHead();
 
-	if(next != sCurrent) {
-		switchTo(next);
-	}
+	switchTo(next);
 }
 
 void Sched::runFirst()

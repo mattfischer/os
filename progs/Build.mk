@@ -1,1 +1,1 @@
-SUBDIRS := test init console
+SUBDIRS := test init console name

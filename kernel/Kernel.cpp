@@ -11,6 +11,7 @@ extern "C" {
 }
 
 Process *Kernel::sProcess;
+int Kernel::sObjects[KernelObjectCount];
 
 extern char vectorStart[];
 extern char vectorEnd[];
@@ -29,8 +30,16 @@ void Kernel::init()
 	char *vector = (char*)vectorPage->vaddr();
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
+
+	for(int i=0; i<KernelObjectCount; i++) {
+		sObjects[i] = INVALID_OBJECT;
+	}
 }
 
+void Kernel::setObject(enum KernelObject idx, int obj)
+{
+	sObjects[idx] = obj;
+}
 
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
@@ -58,7 +67,11 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			ReleaseObject(arg0);
 			return 0;
 
-		case SyscallGetProcessManager:
-			return Sched::current()->process()->dupObjectRef(Kernel::process(), ProcessManager::object());
+		case SyscallGetObject:
+			return Sched::current()->process()->dupObjectRef(process(), sObjects[arg0]);
+
+		case SyscallSetObject:
+			sObjects[arg0] = process()->dupObjectRef(Sched::current()->process(), arg1);
+			return 0;
 	}
 }

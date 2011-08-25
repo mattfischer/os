@@ -1,6 +1,12 @@
 #ifndef SYSCALLS_H
 #define SYSCALLS_H
 
+enum KernelObject {
+	KernelObjectProcManager,
+	KernelObjectNameServer,
+	KernelObjectCount
+};
+
 enum Syscall {
 	SyscallYield,
 	SyscallSendMessage,
@@ -9,7 +15,8 @@ enum Syscall {
 	SyscallReplyMessage,
 	SyscallCreateObject,
 	SyscallReleaseObject,
-	SyscallGetProcessManager
+	SyscallGetObject,
+	SyscallSetObject
 };
 
 #endif

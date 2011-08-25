@@ -1,46 +1,52 @@
 #include "include/System.h"
 #include "include/Message.h"
+#include "include/Object.h"
 
 #include <kernel/include/Syscalls.h>
-#include <kernel/include/ProcManagerFmt.h>
-
+#include <kernel/include/NameFmt.h>
 #include "Internal.h"
+
+#include <kernel/include/NameFmt.h>
+#include <kernel/include/MessageFmt.h>
 
 #include <string.h>
 #include <stddef.h>
 
+extern int __NameServer;
+
 void SetName(const char *name, int obj)
 {
-	struct MessageHeader hdr;
-	struct ProcManagerMsg msg;
+	struct NameMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
+	struct MessageHeader hdr = { segs, 1, offsetof(struct NameMsg, u.set.obj), 1 };
 
-	hdr.segments = segs;
-	hdr.numSegments = 1;
-	hdr.objectsSize = 1;
-	hdr.objectsOffset = offsetof(struct ProcManagerMsg, u.set.obj);
-
-	msg.type = ProcManagerNameSet;
+	msg.type = NameMsgTypeSet;
 	strcpy(msg.u.set.name, name);
 	msg.u.set.obj = obj;
-	SendMessagexs(__ProcessManager, &hdr, NULL, 0);
+
+	while(__NameServer == INVALID_OBJECT) {
+		__NameServer = GetKernelObject(KernelObjectNameServer);
+	}
+
+	SendMessagexs(__NameServer, &hdr, NULL, 0);
 }
 
 int LookupName(const char *name)
 {
 	struct MessageHeader send;
-	struct ProcManagerMsg msgSend;
-	struct MessageHeader reply;
+	struct NameMsg msgSend;
 	int object;
 	struct BufferSegment segs[] = { &object, sizeof(object) };
+	struct MessageHeader reply = { segs, 1, 0, 0};
 
-	msgSend.type = ProcManagerNameLookup;
+	msgSend.type = NameMsgTypeLookup;
 	strcpy(msgSend.u.lookup.name, name);
 
-	reply.segments = segs;
-	reply.numSegments = 1;
+	while(__NameServer == INVALID_OBJECT) {
+		__NameServer = GetKernelObject(KernelObjectNameServer);
+	}
 
-	SendMessagesx(__ProcessManager, &msgSend, sizeof(msgSend), &reply);
+	SendMessagesx(__NameServer, &msgSend, sizeof(msgSend), &reply);
 
 	return object;
 }

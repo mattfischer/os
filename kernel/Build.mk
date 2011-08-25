@@ -11,7 +11,6 @@ kernel_SOURCES := \
 	Low.cpp \
 	MemArea.cpp \
 	Message.cpp \
-	Name.cpp \
 	Object.cpp \
 	Page.cpp \
 	PageTable.cpp \
