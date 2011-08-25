@@ -48,6 +48,13 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			Sched::runNext();
 			return 0;
 
+		case SyscallObjectCreate:
+			return Object_Create((void*)arg0);
+
+		case SyscallObjectRelease:
+			Object_Release(arg0);
+			return 0;
+
 		case SyscallObjectSend:
 			return Object_Sendx(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
 
@@ -60,11 +67,8 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 		case SyscallMessageReply:
 			return Message_Replyx(arg0, (int)arg1, (struct MessageHeader*)arg2);
 
-		case SyscallObjectCreate:
-			return Object_Create();
-
-		case SyscallObjectRelease:
-			Object_Release(arg0);
+		case SyscallMessageInfo:
+			Message_Info(arg0, (struct MessageInfo*)arg1);
 			return 0;
 
 		case SyscallKernelGetObject:

@@ -5,13 +5,14 @@
 
 Slab<Object> Object::sSlab;
 
-Object::Object()
+Object::Object(void *data)
 {
+	mData = data;
 }
 
 int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	Message message(Sched::current(), *sendMsg, *replyMsg);
+	Message message(Sched::current(), this, *sendMsg, *replyMsg);
 	mMessages.addTail(&message);
 
 	Sched::current()->setState(Task::StateSendBlock);
@@ -42,9 +43,9 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 	return message;
 }
 
-int Object_Create()
+int Object_Create(void *data)
 {
-	Object *object = new Object();
+	Object *object = new Object(data);
 	return Sched::current()->process()->refObject(object);
 }
 

@@ -15,4 +15,8 @@ struct MessageHeader {
 	int objectsSize;
 };
 
+struct MessageInfo {
+	void *targetData;
+};
+
 #endif

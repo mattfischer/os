@@ -22,7 +22,7 @@ void PrintUart(char *uart, char *buffer, int size)
 int main(int argc, char *argv[])
 {
 	char *uart = (char*)0x16000000;
-	int obj = Object_Create();
+	int obj = Object_Create(NULL);
 
 	Name_Set("console", obj);
 

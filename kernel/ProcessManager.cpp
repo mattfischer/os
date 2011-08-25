@@ -50,7 +50,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 
 void ProcessManager::main(void *param)
 {
-	sObject = Object_Create();
+	sObject = Object_Create(NULL);
 
 	Kernel::setObject(KernelObjectProcManager, sObject);
 

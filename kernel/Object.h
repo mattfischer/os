@@ -11,21 +11,24 @@
 
 class Object {
 public:
-	Object();
+	Object(void *data);
 
 	int send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	Message *receive(struct MessageHeader *recvMsg);
+
+	void *data() { return mData; }
 
 	void *operator new(size_t) { return sSlab.allocate(); }
 
 private:
 	List<Task> mReceivers;
 	List<Message> mMessages;
+	void *mData;
 
 	static Slab<Object> sSlab;
 };
 
-int Object_Create();
+int Object_Create(void *data);
 void Object_Release(int obj);
 
 int Object_Send(int obj, void *msg, int msgSize, void *reply, int replySize);

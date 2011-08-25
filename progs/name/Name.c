@@ -55,7 +55,7 @@ void set(const char *name, int object)
 
 int main(int argc, char *argv[])
 {
-	int obj = Object_Create();
+	int obj = Object_Create(NULL);
 
 	Kernel_SetObject(KernelObjectNameServer, obj);
 

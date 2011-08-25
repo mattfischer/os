@@ -71,9 +71,10 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
 	return copied;
 }
 
-Message::Message(Task *sender, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
+Message::Message(Task *sender, Object *target, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
 {
 	mSender = sender;
+	mTarget = target;
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
 	mRet = 0;
@@ -109,6 +110,11 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 	return 0;
 }
 
+void Message::info(struct MessageInfo *info)
+{
+	info->targetData = mTarget->data();
+}
+
 int Message_Read(int msg, void *buffer, int offset, int size)
 {
 	struct Message *message = Sched::current()->process()->message(msg);
@@ -131,4 +137,10 @@ int Message_Replyx(int msg, int ret, struct MessageHeader *replyMsg)
 	Sched::current()->process()->unrefMessage(msg);
 
 	return r;
+}
+
+void Message_Info(int msg, struct MessageInfo *info)
+{
+	struct Message *message = Sched::current()->process()->message(msg);
+	message->info(info);
 }
