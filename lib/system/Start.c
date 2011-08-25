@@ -11,7 +11,7 @@ void _start()
   int argc = 0;
   char *argv[0];
 
-  __ProcessManager = GetKernelObject(KernelObjectProcManager);
+  __ProcessManager = Kernel_GetObject(KernelObjectProcManager);
 
   int ret = main(argc, argv);
 }

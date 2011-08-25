@@ -14,7 +14,7 @@
 
 extern int __NameServer;
 
-void SetName(const char *name, int obj)
+void Name_Set(const char *name, int obj)
 {
 	struct NameMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
@@ -25,13 +25,13 @@ void SetName(const char *name, int obj)
 	msg.u.set.obj = obj;
 
 	while(__NameServer == INVALID_OBJECT) {
-		__NameServer = GetKernelObject(KernelObjectNameServer);
+		__NameServer = Kernel_GetObject(KernelObjectNameServer);
 	}
 
-	SendMessagexs(__NameServer, &hdr, NULL, 0);
+	Object_Sendxs(__NameServer, &hdr, NULL, 0);
 }
 
-int LookupName(const char *name)
+int Name_Lookup(const char *name)
 {
 	struct MessageHeader send;
 	struct NameMsg msgSend;
@@ -43,10 +43,10 @@ int LookupName(const char *name)
 	strcpy(msgSend.u.lookup.name, name);
 
 	while(__NameServer == INVALID_OBJECT) {
-		__NameServer = GetKernelObject(KernelObjectNameServer);
+		__NameServer = Kernel_GetObject(KernelObjectNameServer);
 	}
 
-	SendMessagesx(__NameServer, &msgSend, sizeof(msgSend), &reply);
+	Object_Sendsx(__NameServer, &msgSend, sizeof(msgSend), &reply);
 
 	return object;
 }

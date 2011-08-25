@@ -26,5 +26,5 @@ void SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stder
 	hdr.objectsOffset = offsetof(struct ProcManagerMsg, u.spawn.stdinObject);
 	hdr.objectsSize = 3;
 
-	SendMessagexs(__ProcessManager, &hdr, NULL, 0);
+	Object_Sendxs(__ProcessManager, &hdr, NULL, 0);
 }

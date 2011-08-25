@@ -21,6 +21,6 @@ int Write(int obj, void *buffer, int size)
 	hdr.objectsSize = 0;
 	hdr.objectsOffset = 0;
 
-	ret = SendMessagexs(obj, &hdr, NULL, 0);
+	ret = Object_Sendxs(obj, &hdr, NULL, 0);
 	return ret;
 }

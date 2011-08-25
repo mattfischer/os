@@ -13,7 +13,7 @@ void *_sbrk(int inc)
 
 	msg.type = ProcManagerSbrk;
 	msg.u.sbrk.increment = inc;
-	return (void*)SendMessage(__ProcessManager, &msg, sizeof(msg), NULL, 0);
+	return (void*)Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
 }
 
 int _write(int fd, char *buffer, int len)

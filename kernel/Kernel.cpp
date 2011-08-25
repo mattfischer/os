@@ -48,29 +48,29 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			Sched::runNext();
 			return 0;
 
-		case SyscallSendMessage:
-			return SendMessagex(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
+		case SyscallObjectSend:
+			return Object_Sendx(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
 
-		case SyscallReceiveMessage:
-			return ReceiveMessagex(arg0, (struct MessageHeader*)arg1);
+		case SyscallObjectReceive:
+			return Object_Receivex(arg0, (struct MessageHeader*)arg1);
 
-		case SyscallReadMessage:
-			return ReadMessage(arg0, (void*)arg1, (int)arg2, (int)arg3);
+		case SyscallMessageRead:
+			return Message_Read(arg0, (void*)arg1, (int)arg2, (int)arg3);
 
-		case SyscallReplyMessage:
-			return ReplyMessagex(arg0, (int)arg1, (struct MessageHeader*)arg2);
+		case SyscallMessageReply:
+			return Message_Replyx(arg0, (int)arg1, (struct MessageHeader*)arg2);
 
-		case SyscallCreateObject:
-			return CreateObject();
+		case SyscallObjectCreate:
+			return Object_Create();
 
-		case SyscallReleaseObject:
-			ReleaseObject(arg0);
+		case SyscallObjectRelease:
+			Object_Release(arg0);
 			return 0;
 
-		case SyscallGetObject:
+		case SyscallKernelGetObject:
 			return Sched::current()->process()->dupObjectRef(process(), sObjects[arg0]);
 
-		case SyscallSetObject:
+		case SyscallKernelSetObject:
 			sObjects[arg0] = process()->dupObjectRef(Sched::current()->process(), arg1);
 			return 0;
 	}

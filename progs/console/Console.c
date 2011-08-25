@@ -22,16 +22,16 @@ void PrintUart(char *uart, char *buffer, int size)
 int main(int argc, char *argv[])
 {
 	char *uart = (char*)0x16000000;
-	int obj = CreateObject();
+	int obj = Object_Create();
 
-	SetName("console", obj);
+	Name_Set("console", obj);
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {
 		struct IOMsg msg;
 		int m;
 
-		m = ReceiveMessage(obj, &msg, sizeof(msg));
+		m = Object_Receive(obj, &msg, sizeof(msg));
 		switch(msg.type) {
 			case IOMsgTypeWrite:
 			{
@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
 				while(sent < msg.u.write.size) {
 					int size;
 
-					size = ReadMessage(m, buffer, headerSize + sent, sizeof(buffer));
+					size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));
 					PrintUart(uart, buffer, size);
 					sent += size;
 				}
-				ReplyMessage(m, 0, NULL, 0);
+				Message_Reply(m, 0, NULL, 0);
 				break;
 			}
 		}

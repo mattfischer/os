@@ -9,14 +9,14 @@ enum KernelObject {
 
 enum Syscall {
 	SyscallYield,
-	SyscallSendMessage,
-	SyscallReceiveMessage,
-	SyscallReadMessage,
-	SyscallReplyMessage,
-	SyscallCreateObject,
-	SyscallReleaseObject,
-	SyscallGetObject,
-	SyscallSetObject
+	SyscallObjectSend,
+	SyscallObjectReceive,
+	SyscallMessageRead,
+	SyscallMessageReply,
+	SyscallObjectCreate,
+	SyscallObjectRelease,
+	SyscallKernelGetObject,
+	SyscallKernelSetObject
 };
 
 #endif

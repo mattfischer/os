@@ -55,29 +55,29 @@ void set(const char *name, int object)
 
 int main(int argc, char *argv[])
 {
-	int obj = CreateObject();
+	int obj = Object_Create();
 
-	SetKernelObject(KernelObjectNameServer, obj);
+	Kernel_SetObject(KernelObjectNameServer, obj);
 
 	while(1) {
 		struct NameMsg msg;
 		int m;
 
-		m = ReceiveMessage(obj, &msg, sizeof(msg));
+		m = Object_Receive(obj, &msg, sizeof(msg));
 		switch(msg.type) {
 			case NameMsgTypeLookup:
 			{
 				int ret = lookup(msg.u.lookup.name);
 				struct BufferSegment segs[] = { &ret, sizeof(ret) };
 				struct MessageHeader hdr = { segs, 1, 0, 1 };
-				ReplyMessagex(m, 0, &hdr);
+				Message_Replyx(m, 0, &hdr);
 				break;
 			}
 
 			case NameMsgTypeSet:
 			{
 				set(msg.u.set.name, msg.u.set.obj);
-				ReplyMessage(m, 0, NULL, 0);
+				Message_Reply(m, 0, NULL, 0);
 				break;
 			}
 		}

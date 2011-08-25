@@ -50,7 +50,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 
 void ProcessManager::main(void *param)
 {
-	sObject = CreateObject();
+	sObject = Object_Create();
 
 	Kernel::setObject(KernelObjectProcManager, sObject);
 
@@ -60,7 +60,7 @@ void ProcessManager::main(void *param)
 		struct ProcManagerMsg message;
 		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
 		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
-		int msg = ReceiveMessagex(object(), &recvHdr);
+		int msg = Object_Receivex(object(), &recvHdr);
 
 		switch(message.type) {
 			case ProcManagerMapPhys:
@@ -68,7 +68,7 @@ void ProcessManager::main(void *param)
 				MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
 				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size());
 
-				ReplyMessage(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, NULL, 0);
 				break;
 			}
 
@@ -105,18 +105,18 @@ void ProcessManager::main(void *param)
 					}
 				}
 
-				ReplyMessage(msg, ret, NULL, 0);
+				Message_Reply(msg, ret, NULL, 0);
 				break;
 			}
 
 			case ProcManagerSpawnProcess:
 			{
 				startUserProcess(message.u.spawn.name, message.u.spawn.stdinObject, message.u.spawn.stdoutObject, message.u.spawn.stderrObject);
-				ReleaseObject(message.u.spawn.stdinObject);
-				ReleaseObject(message.u.spawn.stdoutObject);
-				ReleaseObject(message.u.spawn.stderrObject);
+				Object_Release(message.u.spawn.stdinObject);
+				Object_Release(message.u.spawn.stdoutObject);
+				Object_Release(message.u.spawn.stderrObject);
 
-				ReplyMessage(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, NULL, 0);
 			}
 		}
 	}

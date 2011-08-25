@@ -3,12 +3,12 @@
 #include <kernel/include/Syscalls.h>
 #include "Swi.h"
 
-int GetKernelObject(enum KernelObject idx)
+int Kernel_GetObject(enum KernelObject idx)
 {
-	return swi(SyscallGetObject, idx, 0, 0, 0);
+	return swi(SyscallKernelGetObject, idx, 0, 0, 0);
 }
 
-void SetKernelObject(enum KernelObject idx, int obj)
+void Kernel_SetObject(enum KernelObject idx, int obj)
 {
-	swi(SyscallSetObject, idx, obj, 0, 0);
+	swi(SyscallKernelSetObject, idx, obj, 0, 0);
 }
