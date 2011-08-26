@@ -37,7 +37,7 @@ ifeq ($$($$(target)_PLATFORM),HOST)
   ldflags := $(HOST_LDFLAGS) $$($$(target)_LDFLAGS)
   extra_deps := $$($$(target)_EXTRA_DEPS)
   extra_objs := $$($$(target)_EXTRA_OBJS)
-  libs := $$($$(target)_LIBS:%=$$(HOST_LIBDIR)%$$(HOST_LIB_EXT))
+  libs := $$($$(target)_LIBS:%=$$(HOST_LIBDIR)lib%$$(HOST_LIB_EXT))
 else
   ifeq ($$($$(target)_TYPE),LIBRARY)
     binary := $$(CROSS_LIBDIR)lib$$(target)$$(CROSS_LIB_EXT)
@@ -64,7 +64,7 @@ else
   cxxflags := $(CROSS_CXXFLAGS) $$($$(target)_CXXFLAGS)
   aflags := $(CROSS_AFLAGS) $$($$(target)_AFLAGS)
   ldflags := $(CROSS_LDFLAGS) $$($$(target)_LDFLAGS)
-  libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)%$$(CROSS_LIB_EXT))
+  libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)lib%$$(CROSS_LIB_EXT))
   ifneq ($$($$(target)_BASE_ADDR),)
     ldflags += -Ttext $$($$(target)_BASE_ADDR)
   endif
@@ -73,9 +73,9 @@ else
   extra_objs := $$($$(target)_EXTRA_OBJS)
 
   ifeq ($$($$(target)_PLATFORM),TARGET)
-    cflags += -isystem lib/system/include
+    cflags += -isystem lib/system/include -isystem lib/shared/include
     ifeq ($$($$(target)_TYPE),BINARY)
-      ldflags += -L$$(CROSS_LIBDIR) -u _start --start-group -lsystem -lc --end-group
+      ldflags += -L$$(CROSS_LIBDIR) -u _start --start-group -lsystem -lshared -lc --end-group
 	  extra_deps += $$(CROSS_LIBDIR)libsystem$$(CROSS_LIB_EXT)
     endif
   endif

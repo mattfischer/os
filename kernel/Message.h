@@ -5,6 +5,8 @@
 #include "Task.h"
 #include "include/MessageFmt.h"
 
+#include <lib/shared/include/Message.h>
+
 class Message : public ListEntry {
 public:
 	Message(Task *sender, Object *target, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
@@ -30,11 +32,5 @@ private:
 	int mRet;
 	int mTranslateCache[MESSAGE_MAX_OBJECTS];
 };
-
-int Message_Read(int msg, void *buffer, int offset, int size);
-
-int Message_Reply(int msg, int ret, void *reply, int replySize);
-int Message_Replyx(int msg, int ret, struct MessageHeader *replyMsg);
-void Message_Info(int msg, struct MessageInfo *info);
 
 #endif

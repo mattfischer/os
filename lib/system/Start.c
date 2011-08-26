@@ -1,5 +1,5 @@
-#include "include/System.h"
-#include "include/Object.h"
+#include <System.h>
+#include <Object.h>
 
 extern int main(int argc, char *argv[]);
 

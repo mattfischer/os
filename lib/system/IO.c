@@ -1,6 +1,5 @@
-#include "include/System.h"
-
-#include "include/Message.h"
+#include <System.h>
+#include <Message.h>
 
 #include <kernel/include/IOFmt.h>
 

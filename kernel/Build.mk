@@ -25,6 +25,7 @@ kernel_CFLAGS := -g -O2
 kernel_AFLAGS := -g
 kernel_EXTRA_DEPS := $(CWD)ldscript
 kernel_PLATFORM := TARGET_BARE
+kernel_LIBS := shared
 
 MKINITFS := $(HOST_BINDIR)mkinitfs$(HOST_EXE_EXT)
 

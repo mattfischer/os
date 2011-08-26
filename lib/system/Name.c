@@ -1,13 +1,11 @@
-#include "include/System.h"
-#include "include/Message.h"
-#include "include/Object.h"
+#include <System.h>
+#include <Message.h>
+#include <Object.h>
 
 #include <kernel/include/Syscalls.h>
 #include <kernel/include/NameFmt.h>
-#include "Internal.h"
 
-#include <kernel/include/NameFmt.h>
-#include <kernel/include/MessageFmt.h>
+#include "Internal.h"
 
 #include <string.h>
 #include <stddef.h>
