@@ -57,16 +57,20 @@ void ProcessManager::main(void *param)
 	startUserProcess("init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
 	while(1) {
-		struct ProcManagerMsg message;
+		union ProcManagerMsg message;
 		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
 		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
 		int msg = Object_Receivex(object(), &recvHdr);
 
-		switch(message.type) {
+		if(msg == 0) {
+			continue;
+		}
+
+		switch(message.msg.type) {
 			case ProcManagerMapPhys:
 			{
-				MemArea *area = new MemAreaPhys(message.u.mapPhys.size, message.u.mapPhys.paddr);
-				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.u.mapPhys.vaddr, 0, area->size());
+				MemArea *area = new MemAreaPhys(message.msg.u.mapPhys.size, message.msg.u.mapPhys.paddr);
+				Sched::current()->process()->message(msg)->sender()->process()->addressSpace()->map(area, (void*)message.msg.u.mapPhys.vaddr, 0, area->size());
 
 				Message_Reply(msg, 0, NULL, 0);
 				break;
@@ -75,7 +79,7 @@ void ProcessManager::main(void *param)
 			case ProcManagerSbrk:
 			{
 				Process *process = Sched::current()->process()->message(msg)->sender()->process();
-				int increment = message.u.sbrk.increment;
+				int increment = message.msg.u.sbrk.increment;
 				int ret;
 
 				if(process->heapTop() == NULL) {
@@ -111,10 +115,10 @@ void ProcessManager::main(void *param)
 
 			case ProcManagerSpawnProcess:
 			{
-				startUserProcess(message.u.spawn.name, message.u.spawn.stdinObject, message.u.spawn.stdoutObject, message.u.spawn.stderrObject);
-				Object_Release(message.u.spawn.stdinObject);
-				Object_Release(message.u.spawn.stdoutObject);
-				Object_Release(message.u.spawn.stderrObject);
+				startUserProcess(message.msg.u.spawn.name, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				Object_Release(message.msg.u.spawn.stdinObject);
+				Object_Release(message.msg.u.spawn.stdoutObject);
+				Object_Release(message.msg.u.spawn.stderrObject);
 
 				Message_Reply(msg, 0, NULL, 0);
 			}

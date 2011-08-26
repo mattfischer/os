@@ -58,6 +58,10 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 		case SyscallObjectSend:
 			return Object_Sendx(arg0, (struct MessageHeader*)arg1, (struct MessageHeader*)arg2);
 
+		case SyscallObjectPost:
+			Object_Post(arg0, arg1, arg2);
+			return 0;
+
 		case SyscallObjectReceive:
 			return Object_Receivex(arg0, (struct MessageHeader*)arg1);
 

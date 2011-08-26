@@ -19,4 +19,15 @@ struct MessageInfo {
 	void *targetData;
 };
 
+struct Event {
+	unsigned type;
+	void *targetData;
+	unsigned value;
+};
+
+enum SysEvent {
+	SysEventObjectRef,
+	SysEventObjectUnref
+};
+
 #endif

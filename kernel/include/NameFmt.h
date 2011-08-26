@@ -1,6 +1,8 @@
 #ifndef NAME_FMT_H
 #define NAME_FMT_H
 
+#include <kernel/include/MessageFmt.h>
+
 enum NameMsgType {
 	NameMsgTypeSet,
 	NameMsgTypeLookup
@@ -15,12 +17,15 @@ struct NameMsgLookupHdr {
 	char name[32];
 };
 
-struct NameMsg {
-	enum NameMsgType type;
-	union {
-		struct NameMsgSetHdr set;
-		struct NameMsgLookupHdr lookup;
-	} u;
+union NameMsg {
+	struct {
+		enum NameMsgType type;
+		union {
+			struct NameMsgSetHdr set;
+			struct NameMsgLookupHdr lookup;
+		} u;
+	} msg;
+	struct Event event;
 };
 
 #endif

@@ -4,6 +4,8 @@
 #include "Sched.h"
 #include "Util.h"
 
+Slab<MessageEvent> MessageEvent::sSlab;
+
 static int readMessage(Process *destProcess, void *dest, Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
 {
 	int copied = 0;
@@ -72,9 +74,8 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
 }
 
 Message::Message(Task *sender, Object *target, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
+ : MessageBase(TypeMessage, sender, target)
 {
-	mSender = sender;
-	mTarget = target;
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
 	mRet = 0;
@@ -86,12 +87,12 @@ Message::Message(Task *sender, Object *target, struct MessageHeader &sendMsg, st
 
 int Message::read(void *buffer, int offset, int size)
 {
-	return readMessage(Sched::current()->process(), buffer, mSender->process(), &mSendMsg, offset, size, mTranslateCache);
+	return readMessage(Sched::current()->process(), buffer, sender()->process(), &mSendMsg, offset, size, mTranslateCache);
 }
 
 int Message::read(struct MessageHeader *header)
 {
-	return copyMessage(Sched::current()->process(), header, mSender->process(), &mSendMsg, mTranslateCache);
+	return copyMessage(Sched::current()->process(), header, sender()->process(), &mSendMsg, mTranslateCache);
 }
 
 int Message::reply(int ret, struct MessageHeader *replyMsg)
@@ -101,18 +102,31 @@ int Message::reply(int ret, struct MessageHeader *replyMsg)
 		translateCache[i] = OBJECT_INVALID;
 	}
 
-	copyMessage(mSender->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
+	copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
 	mRet = ret;
 
 	Sched::add(Sched::current());
-	Sched::switchTo(mSender);
+	Sched::switchTo(sender());
 
 	return 0;
 }
 
 void Message::info(struct MessageInfo *info)
 {
-	info->targetData = mTarget->data();
+	info->targetData = target()->data();
+}
+
+int MessageEvent::read(struct MessageHeader *header)
+{
+	struct Event event;
+
+	event.type = mType;
+	event.targetData = target()->data();
+	event.value = mValue;
+
+	memcpy(header->segments[0].buffer, &event, sizeof(event));
+
+	return sizeof(event);
 }
 
 int Message_Read(int msg, void *buffer, int offset, int size)
@@ -124,6 +138,10 @@ int Message_Read(int msg, void *buffer, int offset, int size)
 
 int Message_Replyx(int msg, int ret, struct MessageHeader *replyMsg)
 {
+	if(msg == 0) {
+		return 0;
+	}
+
 	struct Message *message = Sched::current()->process()->message(msg);
 	int r = message->reply(ret, replyMsg);
 	Sched::current()->process()->unrefMessage(msg);

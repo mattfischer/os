@@ -20,6 +20,8 @@ int Object_Sendx(int obj, struct MessageHeader *sendMsg, struct MessageHeader *r
 int Object_Receive(int obj, void *recv, int recvSize);
 int Object_Receivex(int obj, struct MessageHeader *recvMsg);
 
+void Object_Post(int obj, unsigned type, unsigned value);
+
 #ifdef __cplusplus
 }
 #endif

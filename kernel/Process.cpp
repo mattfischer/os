@@ -36,6 +36,7 @@ int Process::refObject(Object *object)
 	for(int i=0; i<16; i++) {
 		if(mObjects[i] == NULL) {
 			mObjects[i] = object;
+			object->post(SysEventObjectRef, 0);
 			return i;
 		}
 	}
@@ -50,12 +51,16 @@ int Process::refObjectTo(int obj, Object *object)
 	}
 
 	mObjects[obj] = object;
+	object->post(SysEventObjectRef, 0);
 	return obj;
 }
 
 void Process::unrefObject(int obj)
 {
 	if(obj != OBJECT_INVALID) {
+		if(mObjects[obj]) {
+			mObjects[obj]->post(SysEventObjectUnref, 0);
+		}
 		mObjects[obj] = NULL;
 	}
 }
@@ -80,15 +85,19 @@ int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
 
 struct Message *Process::message(int msg)
 {
-	return mMessages[msg];
+	return mMessages[msg - 1];
 }
 
 int Process::refMessage(Message *message)
 {
+	if(!message) {
+		return 0;
+	}
+
 	for(int i=0; i<16; i++) {
 		if(mMessages[i] == NULL) {
 			mMessages[i] = message;
-			return i;
+			return i + 1;
 		}
 	}
 
@@ -97,5 +106,5 @@ int Process::refMessage(Message *message)
 
 void Process::unrefMessage(int msg)
 {
-	mMessages[msg] = NULL;
+	mMessages[msg - 1] = NULL;
 }

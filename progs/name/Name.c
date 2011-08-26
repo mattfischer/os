@@ -60,14 +60,19 @@ int main(int argc, char *argv[])
 	Kernel_SetObject(KernelObjectNameServer, obj);
 
 	while(1) {
-		struct NameMsg msg;
+		union NameMsg msg;
 		int m;
 
 		m = Object_Receive(obj, &msg, sizeof(msg));
-		switch(msg.type) {
+
+		if(m == 0) {
+			continue;
+		}
+
+		switch(msg.msg.type) {
 			case NameMsgTypeLookup:
 			{
-				int ret = lookup(msg.u.lookup.name);
+				int ret = lookup(msg.msg.u.lookup.name);
 				struct BufferSegment segs[] = { &ret, sizeof(ret) };
 				struct MessageHeader hdr = { segs, 1, 0, 1 };
 				Message_Replyx(m, 0, &hdr);
@@ -76,7 +81,7 @@ int main(int argc, char *argv[])
 
 			case NameMsgTypeSet:
 			{
-				set(msg.u.set.name, msg.u.set.obj);
+				set(msg.msg.u.set.name, msg.msg.u.set.obj);
 				Message_Reply(m, 0, NULL, 0);
 				break;
 			}

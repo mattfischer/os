@@ -9,10 +9,10 @@
 
 void *_sbrk(int inc)
 {
-	struct ProcManagerMsg msg;
+	union ProcManagerMsg msg;
 
-	msg.type = ProcManagerSbrk;
-	msg.u.sbrk.increment = inc;
+	msg.msg.type = ProcManagerSbrk;
+	msg.msg.u.sbrk.increment = inc;
 	return (void*)Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
 }
 

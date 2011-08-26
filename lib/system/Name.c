@@ -14,13 +14,13 @@ extern int __NameServer;
 
 void Name_Set(const char *name, int obj)
 {
-	struct NameMsg msg;
+	union NameMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
-	struct MessageHeader hdr = { segs, 1, offsetof(struct NameMsg, u.set.obj), 1 };
+	struct MessageHeader hdr = { segs, 1, offsetof(union NameMsg, msg.u.set.obj), 1 };
 
-	msg.type = NameMsgTypeSet;
-	strcpy(msg.u.set.name, name);
-	msg.u.set.obj = obj;
+	msg.msg.type = NameMsgTypeSet;
+	strcpy(msg.msg.u.set.name, name);
+	msg.msg.u.set.obj = obj;
 
 	while(__NameServer == OBJECT_INVALID) {
 		__NameServer = Kernel_GetObject(KernelObjectNameServer);
@@ -32,13 +32,13 @@ void Name_Set(const char *name, int obj)
 int Name_Lookup(const char *name)
 {
 	struct MessageHeader send;
-	struct NameMsg msgSend;
+	union NameMsg msgSend;
 	int object;
 	struct BufferSegment segs[] = { &object, sizeof(object) };
 	struct MessageHeader reply = { segs, 1, 0, 0};
 
-	msgSend.type = NameMsgTypeLookup;
-	strcpy(msgSend.u.lookup.name, name);
+	msgSend.msg.type = NameMsgTypeLookup;
+	strcpy(msgSend.msg.u.lookup.name, name);
 
 	while(__NameServer == OBJECT_INVALID) {
 		__NameServer = Kernel_GetObject(KernelObjectNameServer);

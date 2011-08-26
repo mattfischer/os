@@ -1,6 +1,8 @@
 #ifndef PROC_MANAGER_FMT_H
 #define PROC_MANAGER_FMT_H
 
+#include <kernel/include/MessageFmt.h>
+
 enum ProcManagerMsgType {
 	ProcManagerMapPhys,
 	ProcManagerSbrk,
@@ -24,13 +26,16 @@ struct ProcManagerMsgSpawnProcess {
 	int stderrObject;
 };
 
-struct ProcManagerMsg {
-	enum ProcManagerMsgType type;
-	union {
-		struct ProcManagerMsgMapPhys mapPhys;
-		struct ProcManagerMsgSbrk sbrk;
-		struct ProcManagerMsgSpawnProcess spawn;
-	} u;
+union ProcManagerMsg {
+	struct {
+		enum ProcManagerMsgType type;
+		union {
+			struct ProcManagerMsgMapPhys mapPhys;
+			struct ProcManagerMsgSbrk sbrk;
+			struct ProcManagerMsgSpawnProcess spawn;
+		} u;
+	} msg;
+	struct Event event;
 };
 
 #endif

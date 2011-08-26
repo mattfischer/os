@@ -7,13 +7,13 @@
 
 int Write(int obj, void *buffer, int size)
 {
-	struct IOMsg msg;
-	struct BufferSegment segs[] = { &msg, sizeof(msg), buffer, size };
+	union IOMsg msg;
+	struct BufferSegment segs[] = { &msg, offsetof(union IOMsg, msg.u.write) + sizeof(struct IOMsgWriteHdr), buffer, size };
 	struct MessageHeader hdr = { segs, 2, 0, 0 };
 	int ret;
 
-	msg.type = IOMsgTypeWrite;
-	msg.u.write.size = size;
+	msg.msg.type = IOMsgTypeWrite;
+	msg.msg.u.write.size = size;
 
 	ret = Object_Sendxs(obj, &hdr, NULL, 0);
 	return ret;

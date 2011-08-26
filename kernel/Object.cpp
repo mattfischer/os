@@ -11,18 +11,11 @@ Object::Object(Object *parent, void *data)
 	mData = data;
 }
 
-int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+Task *Object::findReceiver()
 {
-	Message message(Sched::current(), this, *sendMsg, *replyMsg);
-	mMessages.addTail(&message);
-
-	Sched::current()->setState(Task::StateSendBlock);
-
-	Task *task = NULL;
 	for(Object *object = this; object != NULL; object = object->parent()) {
 		if(!object->mReceivers.empty()) {
-			task = object->mReceivers.removeHead();
-			break;
+			return object->mReceivers.removeHead();
 		} else {
 			Object *parent = object->parent();
 			if(parent) {
@@ -32,6 +25,17 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 		}
 	}
 
+	return NULL;
+}
+
+int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+{
+	Message message(Sched::current(), this, *sendMsg, *replyMsg);
+	mMessages.addTail(&message);
+
+	Task *task = findReceiver();
+
+	Sched::current()->setState(Task::StateSendBlock);
 	if(task) {
 		Sched::switchTo(task);
 	} else {
@@ -41,9 +45,21 @@ int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 	return message.ret();
 }
 
+void Object::post(unsigned type, unsigned value)
+{
+	MessageEvent *event = new MessageEvent(Sched::current(), this, type, value);
+	mMessages.addTail(event);
+
+	Task *task = findReceiver();
+
+	if(task) {
+		Sched::add(task);
+	}
+}
+
 Message *Object::receive(struct MessageHeader *recvMsg)
 {
-	Message *message = NULL;
+	MessageBase *message = NULL;
 	while(!message) {
 		for(Object *object = this; object != NULL; object = object->mSendingChildren.head()) {
 			if(!object->mMessages.empty()) {
@@ -70,9 +86,14 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 	}
 
 	message->read(recvMsg);
-	message->sender()->setState(Task::StateReplyBlock);
 
-	return message;
+	if(message->type() == Message::TypeMessage) {
+		message->sender()->setState(Task::StateReplyBlock);
+		return (Message*)message;
+	} else {
+		delete (MessageEvent*)message;
+		return NULL;
+	}
 }
 
 int Object_Create(int parent, void *data)
@@ -91,6 +112,12 @@ int Object_Sendx(int obj, struct MessageHeader *sendMsg, struct MessageHeader *r
 {
 	struct Object *object = Sched::current()->process()->object(obj);
 	return object->send(sendMsg, replyMsg);
+}
+
+void Object_Post(int obj, unsigned int type, unsigned int value)
+{
+	struct Object *object = Sched::current()->process()->object(obj);
+	object->post(type, value);
 }
 
 int Object_Receivex(int obj, struct MessageHeader *recvMsg)
