@@ -31,8 +31,6 @@ int Name_Lookup(const char *name)
 	struct MessageHeader send;
 	union NameMsg msgSend;
 	int object;
-	struct BufferSegment segs[] = { &object, sizeof(object) };
-	struct MessageHeader reply = { segs, 1, 0, 0};
 
 	msgSend.msg.type = NameMsgTypeLookup;
 	strcpy(msgSend.msg.u.lookup.name, name);
@@ -41,7 +39,7 @@ int Name_Lookup(const char *name)
 		__NameServer = Kernel_GetObject(KernelObjectNameServer);
 	}
 
-	Object_Sendsx(__NameServer, &msgSend, sizeof(msgSend), &reply);
+	Object_Send(__NameServer, &msgSend, sizeof(msgSend), &object, sizeof(object));
 
 	return object;
 }
