@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	Yield();
 	Yield();
 
-	console = Name_Lookup("console");
+	console = open("console");
 	SpawnProcess("clientA", console, console, console);
 	SpawnProcess("clientB", console, console, console);
 

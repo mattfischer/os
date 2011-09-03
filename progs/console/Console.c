@@ -5,6 +5,7 @@
 #include <stddef.h>
 
 #include <kernel/include/IOFmt.h>
+#include <kernel/include/NameFmt.h>
 
 void PrintUart(char *uart, char *buffer, int size)
 {
@@ -23,13 +24,16 @@ int main(int argc, char *argv[])
 {
 	char *uart = (char*)0x16000000;
 	int obj = Object_Create(OBJECT_INVALID, NULL);
-	int obj2 = Object_Create(obj, NULL);
 
-	Name_Set("console", obj2);
+	Name_Set("console", obj);
 
 	MapPhys(uart, 0x16000000, 4096);
 	while(1) {
-		union IOMsg msg;
+		union {
+			union IOMsg io;
+			union NameMsg name;
+		} msg;
+		struct MessageInfo info;
 		int m;
 
 		m = Object_Receive(obj, &msg, sizeof(msg));
@@ -38,24 +42,42 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		switch(msg.msg.type) {
-			case IOMsgTypeWrite:
-			{
-				char buffer[256];
-				int sent;
-				int headerSize;
+		Message_Info(m, &info);
 
-				headerSize = offsetof(union IOMsg, msg.u.write) + sizeof(msg.msg.u.write);
-				sent = 0;
-				while(sent < msg.msg.u.write.size) {
-					int size;
+		if(info.targetData == NULL) {
+			switch(msg.name.msg.type) {
+				case NameMsgTypeOpen:
+				{
+					int child;
+					struct BufferSegment segs[] = { &child, sizeof(child) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
 
-					size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));
-					PrintUart(uart, buffer, size);
-					sent += size;
+					child = Object_Create(obj, (void*)0x1234);
+
+					Message_Replyx(m, 0, &hdr);
+					break;
 				}
-				Message_Reply(m, 0, NULL, 0);
-				break;
+			}
+		} else {
+			switch(msg.io.msg.type) {
+				case IOMsgTypeWrite:
+				{
+					char buffer[256];
+					int sent;
+					int headerSize;
+
+					headerSize = offsetof(union IOMsg, msg.u.write) + sizeof(msg.io.msg.u.write);
+					sent = 0;
+					while(sent < msg.io.msg.u.write.size) {
+						int size;
+
+						size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));
+						PrintUart(uart, buffer, size);
+						sent += size;
+					}
+					Message_Reply(m, 0, NULL, 0);
+					break;
+				}
 			}
 		}
 	}

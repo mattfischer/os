@@ -1,5 +1,6 @@
 #include <System.h>
 #include <Object.h>
+#include <Kernel.h>
 
 extern int main(int argc, char *argv[]);
 

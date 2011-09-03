@@ -7,19 +7,19 @@
 #include <stddef.h>
 #include <string.h>
 
-int File_Open(char *name)
+int File_Open(const char *name)
 {
-	int entry = Name_Lookup(name);
-	union NameEntryMsg msg;
+	int entry;
+	union NameMsg msg;
 	int obj;
-	struct BufferSegment segs[] = { &obj, sizeof(obj) };
-	struct MessageHeader hdr = { segs, 1, 0, 0 };
 	int ret;
 
-	msg.msg.type = NameEntryMsgTypeOpen;
+	entry = Name_Lookup(name);
+
+	msg.msg.type = NameMsgTypeOpen;
 	strcpy(msg.msg.u.open.name, name);
 
-	ret = Object_Sendsx(entry, &msg, sizeof(msg), &hdr);
+	ret = Object_Send(entry, &msg, sizeof(msg), &obj, sizeof(obj));
 	Object_Release(entry);
 
 	return obj;

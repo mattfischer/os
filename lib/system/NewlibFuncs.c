@@ -8,6 +8,11 @@
 
 extern int __ProcessManager;
 
+int _open(const char *name, int flags, int mode)
+{
+	return File_Open(name);
+}
+
 void *_sbrk(int inc)
 {
 	union ProcManagerMsg msg;
