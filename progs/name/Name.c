@@ -4,7 +4,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+
 #include <kernel/include/NameFmt.h>
+#include <kernel/include/Syscalls.h>
 
 struct NameEntry {
 	char name[32];

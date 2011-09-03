@@ -4,8 +4,7 @@
 #include <kernel/include/MessageFmt.h>
 
 enum IOMsgType {
-	IOMsgTypeWrite,
-	IOMsgTypeLast
+	IOMsgTypeWrite
 };
 
 struct IOMsgWriteHdr {

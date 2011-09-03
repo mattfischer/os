@@ -1,11 +1,12 @@
-#include <Message.h>
+#include <Object.h>
+#include <IO.h>
 
 #include <kernel/include/ProcManagerFmt.h>
 
-#include "Internal.h"
-
 #include <sys/stat.h>
 #include <stddef.h>
+
+extern int __ProcessManager;
 
 void *_sbrk(int inc)
 {
@@ -18,7 +19,7 @@ void *_sbrk(int inc)
 
 int _write(int fd, char *buffer, int len)
 {
-	return Write(fd, buffer, len);
+	return File_Write(fd, buffer, len);
 }
 
 int _read(int fd, char *buffer, int len)
