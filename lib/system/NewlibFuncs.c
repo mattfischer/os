@@ -50,3 +50,18 @@ int _fstat(int file, struct stat *st) {
 int _lseek(int file, int ptr, int dir) {
 	return 0;
 }
+
+void _exit(int code)
+{
+	while(1) {}
+}
+
+void _kill()
+{
+}
+
+void _getpid()
+{
+}
+
+int __dso_handle;

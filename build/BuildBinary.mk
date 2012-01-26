@@ -66,7 +66,7 @@ else
   ldflags := $(CROSS_LDFLAGS) $$($$(target)_LDFLAGS)
   libs := $$($$(target)_LIBS:%=$$(CROSS_LIBDIR)lib%$$(CROSS_LIB_EXT))
   ifneq ($$($$(target)_BASE_ADDR),)
-    ldflags += -Ttext $$($$(target)_BASE_ADDR)
+    ldflags += -Wl,-Ttext -Wl,$$($$(target)_BASE_ADDR)
   endif
 
   extra_deps := $$($$(target)_EXTRA_DEPS)
@@ -75,7 +75,7 @@ else
   ifeq ($$($$(target)_PLATFORM),TARGET)
     cflags += -isystem lib/system/include -isystem lib/shared/include
     ifeq ($$($$(target)_TYPE),BINARY)
-      ldflags += -L$$(CROSS_LIBDIR) -u _start --start-group -lsystem -lshared -lc --end-group
+      ldflags += -L$$(CROSS_LIBDIR) -u _start -nostartfiles -static -Wl,--whole-archive -lsystem -lshared -Wl,--no-whole-archive
 	  extra_deps += $$(CROSS_LIBDIR)libsystem$$(CROSS_LIB_EXT)
     endif
   endif

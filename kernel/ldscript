@@ -16,6 +16,10 @@ SECTIONS
 		__CtorsStart = .;
 		*(.init_array .init_array.*)
 		__CtorsEnd = .;
+		*(.init)
+		*(.fini)
+		*(.fini_array)
+		*(.jcr)
 	}
 	
 	.data : AT(LOADADDR(.text) + SIZEOF(.text))

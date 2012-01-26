@@ -1,6 +1,7 @@
 #include <System.h>
 #include <Object.h>
 #include <Message.h>
+#include <Kernel.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -8,20 +9,22 @@
 #include <kernel/include/NameFmt.h>
 #include <kernel/include/Syscalls.h>
 
+#include <vector>
+
+using std::vector;
+
 struct NameEntry {
 	char name[32];
 	int object;
-	struct NameEntry *next;
 };
 
-struct NameEntry *nameList = NULL;
+vector<NameEntry*> nameList;
 
 struct NameEntry *findEntry(const char *name)
 {
-	struct NameEntry *entry;
-	for(entry = nameList; entry != NULL; entry = entry->next) {
-		if(!strcmp(name, entry->name)) {
-			return entry;
+	for(int i=0; i<nameList.size(); i++) {
+		if(!strcmp(name, nameList[i]->name)) {
+			return nameList[i];
 		}
 	}
 
@@ -48,8 +51,7 @@ void set(const char *name, int object)
 
 		strcpy(entry->name, name);
 		entry->object = object;
-		entry->next = nameList;
-		nameList = entry;
+		nameList.push_back(entry);
 	} else {
 		entry->object = object;
 	}
