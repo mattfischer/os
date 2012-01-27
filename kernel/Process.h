@@ -6,21 +6,52 @@
 class Object;
 class Message;
 
+/*!
+ * \brief Represents a single process, including an address space and a list of tasks
+ */
 class Process {
 public:
 	Process(AddressSpace *addressSpace = NULL);
 
 	static void init();
 
+	/*!
+	 * \brief Address space used by this process
+	 * \return Address space
+	 */
 	AddressSpace *addressSpace() { return mAddressSpace; }
 
+	/*!
+	 * \brief Memory area containing process heap
+	 * \return Heap
+	 */
 	MemAreaPages *heap() { return mHeap; }
+	/*!
+	 * \brief Set heap area
+	 * \param heap Heap area
+	 */
 	void setHeap(MemAreaPages *heap) { mHeap = heap; }
 
+	/*!
+	 * \brief Address of the top of the heap
+	 * \return Heap top
+	 */
 	char *heapTop() { return mHeapTop; }
+	/*!
+	 * \brief Set top of heap
+	 * \param heapTop Top of heap
+	 */
 	void setHeapTop(char *heapTop) { mHeapTop = heapTop; }
 
+	/*!
+	 * \brief Top of heap memory area
+	 * \return Heap area top
+	 */
 	char *heapAreaTop() { return mHeapAreaTop; }
+	/*!
+	 * \brief Set top of heap area
+	 * \param heapAreaTop Top of heap area
+	 */
 	void setHeapAreaTop(char *heapAreaTop) { mHeapAreaTop = heapAreaTop; }
 
 	Object *object(int obj);
@@ -35,15 +66,16 @@ public:
 	int refMessage(Message *message);
 	void unrefMessage(int msg);
 
+	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
 private:
-	AddressSpace *mAddressSpace;
-	MemAreaPages *mHeap;
-	char *mHeapTop;
-	char *mHeapAreaTop;
-	Object *mObjects[16];
-	Message *mMessages[16];
+	AddressSpace *mAddressSpace; //!< Address space of process
+	MemAreaPages *mHeap; //!< Memory area for heap
+	char *mHeapTop; //!< Top of heap
+	char *mHeapAreaTop; //!< Top of heap area
+	Object *mObjects[16]; //!< Object list
+	Message *mMessages[16]; //!< Outstanding messages
 
 	static Slab<Process> sSlab;
 };

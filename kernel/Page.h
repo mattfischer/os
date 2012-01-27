@@ -119,7 +119,7 @@ public:
 	static Page *fromVAddrLow(void *vaddr);
 
 private:
-	Flags mFlags;
+	Flags mFlags; //!< Flags
 
 	static Page sPages[N_PAGES];
 };
