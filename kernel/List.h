@@ -3,36 +3,70 @@
 
 #include <stddef.h>
 
+/*!
+ * \brief Intrusive list entry to be included within a class.
+ *
+ * Use this entry when an object must be included in multiple lists at
+ * once.  Add the item as a member, and use with ListAux
+ */
 template<typename T>
 struct ListEntryAux {
-	T *prev;
-	T *next;
+	T *prev; //!< Previous item
+	T *next; //!< Next item
 
+	//! Constructor
 	ListEntryAux() {
 		prev = NULL;
 		next = NULL;
 	}
 };
 
+/*!
+ * \brief Intrusive list.  Uses ListEntryAux to store list pointers
+ */
 template<typename T, ListEntryAux<T> T::*member = NULL>
 class ListAux {
 public:
+	//! Constructor
 	ListAux() {
 		mHead = NULL;
 		mTail = NULL;
 	}
 
+	//! Initialize
 	void init() {
 		mHead = NULL;
 		mTail = NULL;
 	}
 
+	/*!
+	 * \brief List head
+	 * \return Head
+	 */
 	T *head() { return mHead; }
+	/*!
+	 * \brief List tail
+	 * \return Tail
+	 */
 	T *tail() { return mTail; }
 
+	/*!
+	 * \brief Get next item in list
+	 * \param entry Current item
+	 * \return Next item
+	 */
 	T *next(T *entry) { return (entry->*member).next ? (entry->*member).next : NULL; }
+	/*!
+	 * \brief Get previous item in list
+	 * \param entry Current item
+	 * \return Previous item
+	 */
 	T *prev(T *entry) { return (entry->*member).prev ? (entry->*member).prev : NULL; }
 
+	/*!
+	 * \brief Add item to head of list
+	 * \param entry Item to add
+	 */
 	void addHead(T *entry) {
 		(entry->*member).prev = NULL;
 		(entry->*member).next = mHead;
@@ -46,6 +80,10 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item to tail of list
+	 * \param entry Item to add
+	 */
 	void addTail(T *entry) {
 		(entry->*member).prev = mTail;
 		(entry->*member).next = NULL;
@@ -59,6 +97,11 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item before another item
+	 * \param entry Item to add
+	 * \param target Item to add before
+	 */
 	void addBefore(T *entry, T *target) {
 		(entry->*member).prev = (target->*member).prev;
 		(entry->*member).next = target;
@@ -72,6 +115,11 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item after another item
+	 * \param entry Item to add
+	 * \param target Item to add after
+	 */
 	void addAfter(T *entry, T *target) {
 		(entry->*member).prev = target;
 		(entry->*member).next = (target->*member).next;
@@ -85,6 +133,10 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Remove item
+	 * \param entry Item to remove
+	 */
 	void remove(T *entry) {
 		if((entry->*member).prev) {
 			((entry->*member).prev->*member).next = (entry->*member).next;
@@ -106,8 +158,16 @@ public:
 		(entry->*member).prev = NULL;
 	}
 
+	/*!
+	 * \brief Determines if list is empty
+	 * \return True if empty, false otherwise
+	 */
 	bool empty() { return mHead == NULL; }
 
+	/*!
+	 * \brief Determine if an item is contained in the list
+	 * \param target Item
+	 */
 	bool contains(T *target) {
 		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
 			if(cursor == target) {
@@ -119,13 +179,20 @@ public:
 	}
 
 private:
-	T *mHead;
-	T *mTail;
+	T *mHead; //!< Head of list
+	T *mTail; //!< Tail of list
 };
 
+/*!
+ * \brief Intrusive list entry type.
+ *
+ * Use this type when an item only needs to be contained in
+ * one list.  Inherit the item type from this class, and use
+ * the class List.
+ */
 struct ListEntry {
-	ListEntry *prev;
-	ListEntry *next;
+	ListEntry *prev; //!< Previous item
+	ListEntry *next; //!< Next item
 
 	ListEntry() {
 		prev = NULL;
@@ -133,25 +200,52 @@ struct ListEntry {
 	}
 };
 
+/*!
+ * \brief Intrusive list.  Uses ListEntry to store list pointers
+ */
 template<typename T>
 class List {
 public:
+	//! Constructor
 	List() {
 		mHead = NULL;
 		mTail = NULL;
 	}
 
+	//! Initialize
 	void init() {
 		mHead = NULL;
 		mTail = NULL;
 	}
 
+	/*!
+	 * \brief List head
+	 * \return Head
+	 */
 	T *head() { return mHead ? static_cast<T*>(mHead) : NULL; }
+	/*!
+	 * \brief List tail
+	 * \return Tail
+	 */
 	T *tail() { return mTail ? static_cast<T*>(mTail) : NULL; }
 
+	/*!
+	 * \brief Get next item in list
+	 * \param entry Current item
+	 * \return Next item
+	 */
 	T *next(ListEntry *entry) { return entry->next ? static_cast<T*>(entry->next) : NULL; }
+	/*!
+	 * \brief Get previous item in list
+	 * \param entry Current item
+	 * \return Previous item
+	 */
 	T *prev(ListEntry *entry) { return entry->prev ? static_cast<T*>(entry->prev) : NULL; }
 
+	/*!
+	 * \brief Add item to head of list
+	 * \param entry Item to add
+	 */
 	void addHead(ListEntry *entry) {
 		entry->prev = NULL;
 		entry->next = mHead;
@@ -165,6 +259,10 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item to tail of list
+	 * \param entry Item to add
+	 */
 	void addTail(ListEntry *entry) {
 		entry->prev = mTail;
 		entry->next = NULL;
@@ -178,6 +276,11 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item before another item
+	 * \param entry Item to add
+	 * \param target Item to add before
+	 */
 	void addBefore(ListEntry *entry, ListEntry *target) {
 		entry->prev = target->prev;
 		entry->next = target;
@@ -191,6 +294,11 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Add item after another item
+	 * \param entry Item to add
+	 * \param target Item to add after
+	 */
 	void addAfter(ListEntry *entry, ListEntry *target) {
 		entry->prev = target;
 		entry->next = target->next;
@@ -204,6 +312,10 @@ public:
 		}
 	}
 
+	/*!
+	 * \brief Remove item
+	 * \param entry Item to remove
+	 */
 	void remove(ListEntry *entry) {
 		if(entry->prev) {
 			entry->prev->next = entry->next;
@@ -225,6 +337,10 @@ public:
 		entry->prev = NULL;
 	}
 
+	/*!
+	 * \brief Remove head of list
+	 * \return Removed item
+	 */
 	T *removeHead() {
 		T *ret = head();
 
@@ -235,6 +351,10 @@ public:
 		return ret;
 	}
 
+	/*!
+	 * \brief Remove tail of list
+	 * \return Removed item
+	 */
 	T *removeTail() {
 		T *ret = tail();
 
@@ -245,8 +365,16 @@ public:
 		return ret;
 	}
 
+	/*!
+	 * \brief Determines if list is empty
+	 * \return True if empty, false otherwise
+	 */
 	bool empty() { return mHead == NULL; }
 
+	/*!
+	 * \brief Determine if an item is contained in the list
+	 * \param target Item
+	 */
 	bool contains(T *target) {
 		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
 			if(cursor == target) {
@@ -258,8 +386,8 @@ public:
 	}
 
 private:
-	ListEntry *mHead;
-	ListEntry *mTail;
+	ListEntry *mHead; //!< Head of list
+	ListEntry *mTail; //!< Tail of list
 };
 
 #endif

@@ -5,42 +5,64 @@
 #include "Object.h"
 #include "ProcessManager.h"
 
+// State information used for early bootup in assembly.  Extern C to avoid name mangling
 extern "C" {
 	char InitStack[256];
 	PAddr KernelTablePAddr;
 }
 
+//! Kernel process
 Process *Kernel::sProcess;
+//! List of special kernel objects
 int Kernel::sObjects[KernelObjectCount];
 
+// Start of vector area
 extern char vectorStart[];
+// End of vector area
 extern char vectorEnd[];
 
+/*!
+ * \brief Initialize kernel state
+ */
 void Kernel::init()
 {
+	// Now that we've pivoted to high addresses, lock out the low area of the address space
 	PageTable *pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
 	for(unsigned vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
 		pageTable->mapSection((void*)vaddr, 0, PageTable::PermissionNone);
 	}
 
+	// Construct the kernel address space and process out of the already-allocated page table
 	AddressSpace *addressSpace = new AddressSpace(pageTable);
 	sProcess = new Process(addressSpace);
 
+	// Allocate a page to hold the vectors
 	Page *vectorPage = Page::alloc();
 	char *vector = (char*)vectorPage->vaddr();
+
+	// Map the page to the high vectory area, and copy the vector entries into it
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
+	// Initialize the kernel object array
 	for(int i=0; i<KernelObjectCount; i++) {
 		sObjects[i] = OBJECT_INVALID;
 	}
 }
 
+/*!
+ * \brief Set a special kernel object
+ * \param idx Kernel object index
+ * \param obj Object index
+ */
 void Kernel::setObject(enum KernelObject idx, int obj)
 {
 	sObjects[idx] = obj;
 }
 
+/*!
+ * \brief Syscall handler
+ */
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
 	switch(code) {

@@ -4,6 +4,9 @@
 #include "Task.h"
 #include "List.h"
 
+/*!
+ * \brief Task scheduler
+ */
 class Sched {
 public:
 	static void runFirst();
@@ -11,6 +14,10 @@ public:
 	static void add(Task *task);
 	static void switchTo(Task *task);
 
+	/*!
+	 * \brief Currently-running task
+	 * \return Current task
+	 */
 	static Task *current() { return sCurrent; }
 private:
 	static Task *sCurrent;
