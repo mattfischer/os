@@ -5,6 +5,9 @@
 #include "Page.h"
 #include "List.h"
 
+/*!
+ * \brief Represents a page table.
+ */
 class PageTable {
 public:
 	enum Permission {
@@ -19,6 +22,10 @@ public:
 
 	static void init();
 
+	/*!
+	 * \brief Returns physical address of page table
+	 * \return Physical address
+	 */
 	PAddr tablePAddr() { return mTablePAddr; }
 
 	void mapPage(void *vaddr, PAddr paddr, Permission permission);
@@ -26,6 +33,7 @@ public:
 
 	PAddr translateVAddr(void *vaddr);
 
+	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
 	static void initLow();
