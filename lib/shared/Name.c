@@ -43,3 +43,21 @@ int Name_Lookup(const char *name)
 
 	return object;
 }
+
+int Name_Open(const char *name)
+{
+	union NameMsg msg;
+	int obj;
+	int ret;
+
+	while(__NameServer == OBJECT_INVALID) {
+		__NameServer = Kernel_GetObject(KernelObjectNameServer);
+	}
+
+	msg.msg.type = NameMsgTypeOpen;
+	strcpy(msg.msg.u.open.name, name);
+
+	ret = Object_Send(__NameServer, &msg, sizeof(msg), &obj, sizeof(obj));
+
+	return obj;
+}

@@ -89,6 +89,19 @@ int main(int argc, char *argv[])
 				Message_Reply(m, 0, NULL, 0);
 				break;
 			}
+
+			case NameMsgTypeOpen:
+			{
+				int ret = OBJECT_INVALID;
+				struct BufferSegment segs[] = { &ret, sizeof(ret) };
+				struct MessageHeader hdr = { segs, 1, 0, 1 };
+				int obj = lookup(msg.msg.u.open.name);
+				if(obj != OBJECT_INVALID) {
+					Object_Send(obj, &msg, sizeof(union NameMsg), &ret, sizeof(ret));
+				}
+				Message_Replyx(m, 0, &hdr);
+				Object_Release(obj);
+			}
 		}
 	}
 }

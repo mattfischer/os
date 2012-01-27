@@ -7,24 +7,6 @@
 #include <stddef.h>
 #include <string.h>
 
-int File_Open(const char *name)
-{
-	int entry;
-	union NameMsg msg;
-	int obj;
-	int ret;
-
-	entry = Name_Lookup(name);
-
-	msg.msg.type = NameMsgTypeOpen;
-	strcpy(msg.msg.u.open.name, name);
-
-	ret = Object_Send(entry, &msg, sizeof(msg), &obj, sizeof(obj));
-	Object_Release(entry);
-
-	return obj;
-}
-
 int File_Write(int obj, void *buffer, int size)
 {
 	union IOMsg msg;

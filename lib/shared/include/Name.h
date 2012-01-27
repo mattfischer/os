@@ -3,5 +3,6 @@
 
 void Name_Set(const char *name, int obj);
 int Name_Lookup(const char *name);
+int Name_Open(const char *name);
 
 #endif
