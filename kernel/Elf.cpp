@@ -2,6 +2,8 @@
 #include "MemArea.h"
 #include "Util.h"
 
+// Constants and types below are lifted directly from the ELF specification
+
 typedef unsigned int Elf32_Addr;
 typedef unsigned short Elf32_Half;
 typedef unsigned int Elf32_Off;
@@ -60,19 +62,30 @@ typedef struct {
 	Elf32_Word		p_align;
 } Elf32_Phdr;
 
+/*!
+ * \brief Load an ELF file into an address space
+ * \param space Address space
+ * \param data ELF file data
+ * \param size Size of data
+ */
 Elf::Entry Elf::load(AddressSpace *space, void *data, int size)
 {
 	Elf32_Ehdr *hdr = (Elf32_Ehdr*)data;
 
+	// World's stupidest ELF loader.  Loop across program headers and
+	// copy each into the address space
 	for(int i=0; i<hdr->e_phnum; i++) {
 		Elf32_Phdr *phdr = (Elf32_Phdr*)((char*)data + hdr->e_phoff + hdr->e_phentsize * i);
 		if(phdr->p_type != PT_LOAD) {
 			continue;
 		}
 
+		// Add a memory area for each program header
 		int aligned = PAGE_ADDR_ROUND_DOWN(phdr->p_vaddr);
 		MemArea *area = new MemAreaPages(phdr->p_memsz + phdr->p_vaddr - aligned);
 		space->map(area, (void*)phdr->p_vaddr, 0, area->size());
+
+		// Copy the data into the section, and zero-init the space at the end
 		memcpy((void*)phdr->p_vaddr, (void*)((char*)data + phdr->p_offset), phdr->p_filesz);
 		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
 	}

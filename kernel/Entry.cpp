@@ -19,6 +19,7 @@ extern void *__CtorsStart[];
 extern void *__CtorsEnd[];
 typedef void (*CtorFunc)();
 
+// Run global C++ constructors
 static void runCtors()
 {
 	// Iterate through the constructor area and call each in turn
@@ -38,8 +39,13 @@ void Entry()
 	// Run C++ constructors to get global objects initialized
 	runCtors();
 
+	// Initialize the kernel data structures
 	Kernel::init();
+
+	// Set up the process manager, and start userspace.  This call never returns.
 	ProcessManager::start();
+
+	// Poof!
 }
 
 /*!

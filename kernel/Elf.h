@@ -3,6 +3,9 @@
 
 #include "AddressSpace.h"
 
+/*!
+ * \brief ELF file loader
+ */
 class Elf {
 public:
 	typedef void (*Entry)();
