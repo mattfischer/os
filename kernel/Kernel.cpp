@@ -4,17 +4,19 @@
 #include "Message.h"
 #include "Object.h"
 #include "ProcessManager.h"
+#include "InitFs.h"
+
+#include <lib/shared/include/Kernel.h>
 
 // State information used for early bootup in assembly.  Extern C to avoid name mangling
 extern "C" {
 	char InitStack[256];
 	PAddr KernelTablePAddr;
+	void Yield();
 }
 
 //! Kernel process
 Process *Kernel::sProcess;
-//! List of special kernel objects
-int Kernel::sObjects[KernelObjectCount];
 
 // Start of vector area
 extern char vectorStart[];
@@ -43,11 +45,6 @@ void Kernel::init()
 	// Map the page to the high vectory area, and copy the vector entries into it
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
-
-	// Initialize the kernel object array
-	for(int i=0; i<KernelObjectCount; i++) {
-		sObjects[i] = OBJECT_INVALID;
-	}
 }
 
 /*!
@@ -57,7 +54,28 @@ void Kernel::init()
  */
 void Kernel::setObject(enum KernelObject idx, int obj)
 {
-	sObjects[idx] = obj;
+	switch(idx) {
+		case KernelObjectNameServer:
+			InitFs::setNameServer(Sched::current()->process()->object(obj));
+			break;
+	}
+}
+
+int Kernel::getObject(enum KernelObject idx)
+{
+	Object *obj;
+
+	switch(idx) {
+		case KernelObjectProcManager:
+			obj = ProcessManager::object();
+			break;
+
+		case KernelObjectNameServer:
+			obj = InitFs::nameServer();
+			break;
+	}
+
+	return Sched::current()->process()->refObject(obj);
 }
 
 /*!
@@ -67,7 +85,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 {
 	switch(code) {
 		case SyscallYield:
-			Sched::runNext();
+			Yield();
 			return 0;
 
 		case SyscallObjectCreate:
@@ -98,10 +116,25 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			return 0;
 
 		case SyscallKernelGetObject:
-			return Sched::current()->process()->dupObjectRef(process(), sObjects[arg0]);
+			return Kernel_GetObject((KernelObject)arg0);
 
 		case SyscallKernelSetObject:
-			sObjects[arg0] = process()->dupObjectRef(Sched::current()->process(), arg1);
+			Kernel_SetObject((KernelObject)arg0, (int)arg1);
 			return 0;
 	}
+}
+
+int Kernel_GetObject(enum KernelObject idx)
+{
+	return Kernel::getObject(idx);
+}
+
+void Kernel_SetObject(enum KernelObject idx, int obj)
+{
+	Kernel::setObject(idx, obj);
+}
+
+void Yield()
+{
+	Sched::runNext();
 }

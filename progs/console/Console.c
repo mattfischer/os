@@ -66,16 +66,16 @@ int main(int argc, char *argv[])
 					int sent;
 					int headerSize;
 
-					headerSize = offsetof(union IOMsg, msg.u.write) + sizeof(msg.io.msg.u.write);
+					headerSize = offsetof(union IOMsg, msg.u.rw) + sizeof(msg.io.msg.u.rw);
 					sent = 0;
-					while(sent < msg.io.msg.u.write.size) {
+					while(sent < msg.io.msg.u.rw.size) {
 						int size;
 
 						size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));
 						PrintUart(uart, buffer, size);
 						sent += size;
 					}
-					Message_Reply(m, 0, NULL, 0);
+					Message_Reply(m, sent, NULL, 0);
 					break;
 				}
 			}

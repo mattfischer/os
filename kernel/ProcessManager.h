@@ -1,6 +1,8 @@
 #ifndef PROC_MANAGER_H
 #define PROC_MANAGER_H
 
+#include "Object.h"
+
 /*!
  * \brief Process services for userspace
  */
@@ -12,7 +14,7 @@ public:
 	 * \brief Get the object representing the process manager
 	 * \return Object id
 	 */
-	static int object() { return sObject; }
+	static Object *object();
 
 private:
 	static int sObject;

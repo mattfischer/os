@@ -5,7 +5,6 @@
 extern int main(int argc, char *argv[]);
 
 int __ProcessManager;
-int __NameServer = OBJECT_INVALID;
 
 void _start()
 {

@@ -31,9 +31,7 @@ static void startUser(void *param)
 	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
 
 	// Load the executable into the process
-	int size;
-	void *data = InitFs_Lookup(startupInfo->name, &size);
-	Elf::Entry entry = Elf::load(Sched::current()->process()->addressSpace(), data, size);
+	Elf::Entry entry = Elf::load(Sched::current()->process()->addressSpace(), startupInfo->name);
 
 	// Everything is now set up in the new process.  The time has come at last
 	// to enter userspace.  This call never returns--any transfer back to kernel
@@ -68,10 +66,11 @@ void ProcessManager::main(void *param)
 {
 	// Create and register the process manager object
 	sObject = Object_Create(OBJECT_INVALID, NULL);
-	Kernel::setObject(KernelObjectProcManager, sObject);
+
+	InitFs::start();
 
 	// Kernel initialization is now complete.  Start the first userspace process.
-	startUserProcess("init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
 	// Now that userspace is up and running, the only remaining role of this task
 	// is to service messages that it sends to us.
@@ -80,7 +79,7 @@ void ProcessManager::main(void *param)
 		union ProcManagerMsg message;
 		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
 		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
-		int msg = Object_Receivex(object(), &recvHdr);
+		int msg = Object_Receivex(sObject, &recvHdr);
 
 		if(msg == 0) {
 			// Received an event--ignore it.
@@ -158,6 +157,11 @@ void ProcessManager::main(void *param)
 			}
 		}
 	}
+}
+
+Object *ProcessManager::object()
+{
+	return Kernel::process()->object(sObject);
 }
 
 /*!

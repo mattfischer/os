@@ -6,16 +6,13 @@ int main(int argc, char *argv[])
 {
 	int console;
 
-	SpawnProcess("name", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
-	Yield();
+	SpawnProcess("/boot/name", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	SpawnProcess("/boot/console", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
-	SpawnProcess("console", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
-	Yield();
-	Yield();
-
+	Name_Wait("console");
 	console = open("console");
-	SpawnProcess("clientA", console, console, console);
-	SpawnProcess("clientB", console, console, console);
+	SpawnProcess("/boot/clientA", console, console, console);
+	SpawnProcess("/boot/clientB", console, console, console);
 
 	while(1) {
 		Yield();

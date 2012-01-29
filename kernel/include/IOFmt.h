@@ -4,18 +4,25 @@
 #include <kernel/include/MessageFmt.h>
 
 enum IOMsgType {
-	IOMsgTypeWrite
+	IOMsgTypeWrite,
+	IOMsgTypeRead,
+	IOMsgTypeSeek
 };
 
-struct IOMsgWriteHdr {
+struct IOMsgReadWriteHdr {
 	int size;
+};
+
+struct IOMsgSeek {
+	int pointer;
 };
 
 union IOMsg {
 	struct {
 		enum IOMsgType type;
 		union {
-			struct IOMsgWriteHdr write;
+			struct IOMsgReadWriteHdr rw;
+			struct IOMsgSeek seek;
 		} u;
 	} msg;
 	struct Event event;

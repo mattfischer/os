@@ -3,8 +3,7 @@
 
 enum KernelObject {
 	KernelObjectProcManager,
-	KernelObjectNameServer,
-	KernelObjectCount
+	KernelObjectNameServer
 };
 
 enum Syscall {

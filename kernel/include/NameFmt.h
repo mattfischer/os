@@ -6,7 +6,8 @@
 enum NameMsgType {
 	NameMsgTypeSet,
 	NameMsgTypeLookup,
-	NameMsgTypeOpen
+	NameMsgTypeOpen,
+	NameMsgTypeWait
 };
 
 struct NameMsgSetHdr {
@@ -22,6 +23,10 @@ struct NameMsgOpen {
 	char name[32];
 };
 
+struct NameMsgWait {
+	char name[32];
+};
+
 union NameMsg {
 	struct {
 		enum NameMsgType type;
@@ -29,6 +34,7 @@ union NameMsg {
 			struct NameMsgSetHdr set;
 			struct NameMsgLookupHdr lookup;
 			struct NameMsgOpen open;
+			struct NameMsgWait wait;
 		} u;
 	} msg;
 	struct Event event;

@@ -1,6 +1,10 @@
 #include "Elf.h"
 #include "MemArea.h"
 #include "Util.h"
+#include "Object.h"
+
+#include <lib/shared/include/Name.h>
+#include <lib/shared/include/IO.h>
 
 // Constants and types below are lifted directly from the ELF specification
 
@@ -68,27 +72,37 @@ typedef struct {
  * \param data ELF file data
  * \param size Size of data
  */
-Elf::Entry Elf::load(AddressSpace *space, void *data, int size)
+Elf::Entry Elf::load(AddressSpace *space, const char *name)
 {
-	Elf32_Ehdr *hdr = (Elf32_Ehdr*)data;
+	Elf32_Ehdr hdr;
+	int obj;
 
 	// World's stupidest ELF loader.  Loop across program headers and
 	// copy each into the address space
-	for(int i=0; i<hdr->e_phnum; i++) {
-		Elf32_Phdr *phdr = (Elf32_Phdr*)((char*)data + hdr->e_phoff + hdr->e_phentsize * i);
-		if(phdr->p_type != PT_LOAD) {
+	obj = Name_Open(name);
+	File_Read(obj, &hdr, sizeof(hdr));
+
+	Elf32_Phdr phdrs[hdr.e_phnum];
+	File_Seek(obj, hdr.e_phoff);
+	File_Read(obj, phdrs, sizeof(phdrs));
+
+	for(int i=0; i<hdr.e_phnum; i++) {
+		if(phdrs[i].p_type != PT_LOAD) {
 			continue;
 		}
 
 		// Add a memory area for each program header
-		int aligned = PAGE_ADDR_ROUND_DOWN(phdr->p_vaddr);
-		MemArea *area = new MemAreaPages(phdr->p_memsz + phdr->p_vaddr - aligned);
-		space->map(area, (void*)phdr->p_vaddr, 0, area->size());
+		int aligned = PAGE_ADDR_ROUND_DOWN(phdrs[i].p_vaddr);
+		MemArea *area = new MemAreaPages(phdrs[i].p_memsz + phdrs[i].p_vaddr - aligned);
+		space->map(area, (void*)phdrs[i].p_vaddr, 0, area->size());
 
 		// Copy the data into the section, and zero-init the space at the end
-		memcpy((void*)phdr->p_vaddr, (void*)((char*)data + phdr->p_offset), phdr->p_filesz);
-		memset((void*)(phdr->p_vaddr + phdr->p_filesz), 0, phdr->p_memsz - phdr->p_filesz);
+		File_Seek(obj, phdrs[i].p_offset);
+		File_Read(obj, (void*)phdrs[i].p_vaddr, phdrs[i].p_filesz);
+		memset((void*)(phdrs[i].p_vaddr + phdrs[i].p_filesz), 0, phdrs[i].p_memsz - phdrs[i].p_filesz);
 	}
 
-	return (Entry)hdr->e_entry;
+	Object_Release(obj);
+
+	return (Entry)hdr.e_entry;
 }

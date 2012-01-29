@@ -20,10 +20,18 @@ struct NameEntry {
 
 vector<NameEntry*> nameList;
 
+struct NameWaiter {
+	char name[32];
+	int message;
+};
+
+vector<NameWaiter*> waiters;
+
 struct NameEntry *findEntry(const char *name)
 {
 	for(int i=0; i<nameList.size(); i++) {
-		if(!strcmp(name, nameList[i]->name)) {
+		char *listName = nameList[i]->name;
+		if(!strncmp(name, listName, strlen(listName))) {
 			return nameList[i];
 		}
 	}
@@ -54,6 +62,14 @@ void set(const char *name, int object)
 		nameList.push_back(entry);
 	} else {
 		entry->object = object;
+	}
+
+	for(int i=0; i<waiters.size(); i++) {
+		if(strcmp(waiters[i]->name, name) == 0) {
+			Message_Reply(waiters[i]->message, 0, NULL, 0);
+			waiters.erase(waiters.begin() + i);
+			i--;
+		}
 	}
 }
 
@@ -100,7 +116,22 @@ int main(int argc, char *argv[])
 					Object_Send(obj, &msg, sizeof(union NameMsg), &ret, sizeof(ret));
 				}
 				Message_Replyx(m, 0, &hdr);
-				Object_Release(obj);
+				Object_Release(ret);
+				break;
+			}
+
+			case NameMsgTypeWait:
+			{
+				int obj = lookup(msg.msg.u.wait.name);
+				if(obj == OBJECT_INVALID) {
+					NameWaiter *waiter = new NameWaiter;
+					strcpy(waiter->name, msg.msg.u.wait.name);
+					waiter->message = m;
+					waiters.push_back(waiter);
+				} else {
+					Message_Reply(m, 0, NULL, 0);
+				}
+				break;
 			}
 		}
 	}

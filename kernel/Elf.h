@@ -9,7 +9,7 @@
 class Elf {
 public:
 	typedef void (*Entry)();
-	static Entry load(AddressSpace *space, void *data, int size);
+	static Entry load(AddressSpace *space, const char *name);
 };
 
 #endif
