@@ -10,67 +10,123 @@
 #include <kernel/include/Syscalls.h>
 
 #include <vector>
+#include <string>
 
 using std::vector;
+using std::string;
 
 struct NameEntry {
-	char name[32];
-	int object;
+	string name;
+	vector<int> objects;
+	vector<NameEntry*> children;
+	vector<int> waiters;
 };
 
-vector<NameEntry*> nameList;
+NameEntry root;
 
-struct NameWaiter {
-	char name[32];
-	int message;
-};
-
-vector<NameWaiter*> waiters;
-
-struct NameEntry *findEntry(const char *name)
+vector<string> splitPath(const string &path)
 {
-	for(int i=0; i<nameList.size(); i++) {
-		char *listName = nameList[i]->name;
-		if(!strncmp(name, listName, strlen(listName))) {
-			return nameList[i];
+	vector<string> ret;
+	int i, j;
+
+	i=1;
+	for(j=1; j<path.size(); j++) {
+		if(path[j] == '/') {
+			ret.push_back(path.substr(i, j-i));
+			i = j + 1;
 		}
 	}
 
-	return NULL;
+	ret.push_back(path.substr(i));
+
+	return ret;
 }
 
-int lookup(const char *name)
+vector<int> lookup(string name)
 {
-	struct NameEntry *entry = findEntry(name);
+	vector<string> segs = splitPath(name);
+	vector<int> ret;
+	NameEntry *cursor = &root;
 
-	if(entry == NULL) {
-		return OBJECT_INVALID;
-	} else {
-		return entry->object;
-	}
-}
+	ret.insert(ret.end(), root.objects.begin(), root.objects.end());
 
-void set(const char *name, int object)
-{
-	struct NameEntry *entry = findEntry(name);
+	for(int i=0; i<segs.size(); i++) {
+		NameEntry *child = NULL;
+		for(int j=0; j<cursor->children.size(); j++) {
+			if(cursor->children[j]->name == segs[i]) {
+				child = cursor->children[j];
+				break;
+			}
+		}
 
-	if(entry == NULL) {
-		entry = (struct NameEntry*)malloc(sizeof(struct NameEntry));
-
-		strcpy(entry->name, name);
-		entry->object = object;
-		nameList.push_back(entry);
-	} else {
-		entry->object = object;
-	}
-
-	for(int i=0; i<waiters.size(); i++) {
-		if(strcmp(waiters[i]->name, name) == 0) {
-			Message_Reply(waiters[i]->message, 0, NULL, 0);
-			waiters.erase(waiters.begin() + i);
-			i--;
+		if(child == NULL) {
+			break;
+		} else {
+			cursor = child;
+			ret.insert(ret.end(), cursor->objects.begin(), cursor->objects.end());
 		}
 	}
+
+	return ret;
+}
+
+void addWaiter(string name, int message)
+{
+	vector<string> segs = splitPath(name);
+	NameEntry *cursor = &root;
+
+	for(int i=0; i<segs.size(); i++) {
+		NameEntry *child = NULL;
+		for(int j=0; j<cursor->children.size(); j++) {
+			if(cursor->children[j]->name == segs[i]) {
+				child = cursor->children[j];
+				break;
+			}
+		}
+
+		if(child == NULL) {
+			child = new NameEntry;
+
+			child->name = segs[i];
+			cursor->children.push_back(child);
+		}
+
+		cursor = child;
+	}
+
+	cursor->waiters.push_back(message);
+}
+
+void set(const string &name, int object)
+{
+	vector<string> segs = splitPath(name);
+	NameEntry *cursor = &root;
+
+	for(int i=0; i<segs.size(); i++) {
+		NameEntry *child = NULL;
+		for(int j=0; j<cursor->children.size(); j++) {
+			if(cursor->children[j]->name == segs[i]) {
+				child = cursor->children[j];
+				break;
+			}
+		}
+
+		if(child == NULL) {
+			child = new NameEntry;
+
+			child->name = segs[i];
+			cursor->children.push_back(child);
+		}
+
+		cursor = child;
+	}
+
+	cursor->objects.push_back(object);
+
+	for(int i=0; i<cursor->waiters.size(); i++) {
+		Message_Reply(cursor->waiters[i], 0, NULL, 0);
+	}
+	cursor->waiters.clear();
 }
 
 int main(int argc, char *argv[])
@@ -90,15 +146,6 @@ int main(int argc, char *argv[])
 		}
 
 		switch(msg.msg.type) {
-			case NameMsgTypeLookup:
-			{
-				int ret = lookup(msg.msg.u.lookup.name);
-				struct BufferSegment segs[] = { &ret, sizeof(ret) };
-				struct MessageHeader hdr = { segs, 1, 0, 1 };
-				Message_Replyx(m, 0, &hdr);
-				break;
-			}
-
 			case NameMsgTypeSet:
 			{
 				set(msg.msg.u.set.name, msg.msg.u.set.obj);
@@ -111,9 +158,12 @@ int main(int argc, char *argv[])
 				int ret = OBJECT_INVALID;
 				struct BufferSegment segs[] = { &ret, sizeof(ret) };
 				struct MessageHeader hdr = { segs, 1, 0, 1 };
-				int obj = lookup(msg.msg.u.open.name);
-				if(obj != OBJECT_INVALID) {
-					Object_Send(obj, &msg, sizeof(union NameMsg), &ret, sizeof(ret));
+				vector<int> objs = lookup(msg.msg.u.open.name);
+				for(int i=objs.size() - 1; i>=0; i--) {
+					Object_Send(objs[i], &msg, sizeof(union NameMsg), &ret, sizeof(ret));
+					if(ret != OBJECT_INVALID) {
+						break;
+					}
 				}
 				Message_Replyx(m, 0, &hdr);
 				Object_Release(ret);
@@ -122,12 +172,9 @@ int main(int argc, char *argv[])
 
 			case NameMsgTypeWait:
 			{
-				int obj = lookup(msg.msg.u.wait.name);
-				if(obj == OBJECT_INVALID) {
-					NameWaiter *waiter = new NameWaiter;
-					strcpy(waiter->name, msg.msg.u.wait.name);
-					waiter->message = m;
-					waiters.push_back(waiter);
+				vector<int> objs = lookup(msg.msg.u.wait.name);
+				if(objs.size() == 0) {
+					addWaiter(msg.msg.u.wait.name, m);
 				} else {
 					Message_Reply(m, 0, NULL, 0);
 				}

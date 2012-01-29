@@ -22,7 +22,7 @@ int fileServer;
 Object *InitFs::sNameServer;
 
 // Path at which to register the InitFS
-#define PREFIX "/boot/"
+#define PREFIX "/boot"
 
 enum {
 	RegisterEvent = SysEventLast
@@ -124,7 +124,7 @@ static void server(void *param)
 
 					if(strncmp(name, PREFIX, strlen(PREFIX)) == 0) {
 						// Look up the requested file name in the InitFS
-						name += strlen(PREFIX);
+						name += strlen(PREFIX) + 1;
 						data = lookup(name, &size);
 						if(data) {
 							// File was found.  Create an object for the new
