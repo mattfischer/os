@@ -67,7 +67,7 @@ int Kernel::getObject(enum KernelObject idx)
 
 	switch(idx) {
 		case KernelObjectProcManager:
-			obj = ProcessManager::object();
+			obj = Sched::current()->process()->processObject();
 			break;
 
 		case KernelObjectNameServer:

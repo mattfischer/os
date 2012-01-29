@@ -17,7 +17,7 @@ struct StartupInfo {
 };
 
 //!< Object id for the process manager itself
-int ProcessManager::sObject;
+static int manager;
 
 // Shim function to kickstart newly-spawned processes.
 static void startUser(void *param)
@@ -50,6 +50,9 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
 	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
 
+	Object *processObject = new Object(Kernel::process()->object(manager), process);
+	process->setProcessObject(processObject);
+
 	// Create a task within the process, and copy the startup info into it
 	Task *task = new Task(process);
 
@@ -65,7 +68,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 void ProcessManager::main(void *param)
 {
 	// Create and register the process manager object
-	sObject = Object_Create(OBJECT_INVALID, NULL);
+	manager = Object_Create(OBJECT_INVALID, NULL);
 
 	InitFs::start();
 
@@ -79,12 +82,18 @@ void ProcessManager::main(void *param)
 		union ProcManagerMsg message;
 		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
 		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
-		int msg = Object_Receivex(sObject, &recvHdr);
+		int msg = Object_Receivex(manager, &recvHdr);
 
 		if(msg == 0) {
 			// Received an event--ignore it.
 			continue;
 		}
+
+		// Grab the process to which this message was directed
+		struct MessageInfo info;
+		Process *process;
+		Message_Info(msg, &info);
+		process = (Process*)info.targetData;
 
 		switch(message.msg.type) {
 			case ProcManagerMapPhys:
@@ -92,8 +101,7 @@ void ProcessManager::main(void *param)
 				// Map physical memory request.  Create a physical memory area and map it into
 				// the sending process.
 				MemArea *area = new MemAreaPhys(message.msg.u.mapPhys.size, message.msg.u.mapPhys.paddr);
-				Task *sender = Sched::current()->process()->message(msg)->sender();
-				sender->process()->addressSpace()->map(area, (void*)message.msg.u.mapPhys.vaddr, 0, area->size());
+				process->addressSpace()->map(area, (void*)message.msg.u.mapPhys.vaddr, 0, area->size());
 
 				Message_Reply(msg, 0, NULL, 0);
 				break;
@@ -102,7 +110,6 @@ void ProcessManager::main(void *param)
 			case ProcManagerSbrk:
 			{
 				// Expand heap request.
-				Process *process = Sched::current()->process()->message(msg)->sender()->process();
 				int increment = message.msg.u.sbrk.increment;
 				int ret;
 
@@ -157,11 +164,6 @@ void ProcessManager::main(void *param)
 			}
 		}
 	}
-}
-
-Object *ProcessManager::object()
-{
-	return Kernel::process()->object(sObject);
 }
 
 /*!

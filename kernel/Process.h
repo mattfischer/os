@@ -66,6 +66,9 @@ public:
 	int refMessage(Message *message);
 	void unrefMessage(int msg);
 
+	Object *processObject() { return mProcessObject; }
+	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
+
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
@@ -76,6 +79,7 @@ private:
 	char *mHeapAreaTop; //!< Top of heap area
 	Object *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
+	Object *mProcessObject;
 
 	static Slab<Process> sSlab;
 };
