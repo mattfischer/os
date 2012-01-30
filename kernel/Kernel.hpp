@@ -1,7 +1,8 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include "Process.h"
+#include "Process.hpp"
+
 #include "include/Syscalls.h"
 
 /*!

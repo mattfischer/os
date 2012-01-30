@@ -1,5 +1,5 @@
-#include "Kernel.h"
-#include "ProcessManager.h"
+#include "Kernel.hpp"
+#include "ProcessManager.hpp"
 
 #include "include/Syscalls.h"
 

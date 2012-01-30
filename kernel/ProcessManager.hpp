@@ -1,7 +1,7 @@
 #ifndef PROC_MANAGER_H
 #define PROC_MANAGER_H
 
-#include "Object.h"
+#include "Object.hpp"
 
 /*!
  * \brief Process services for userspace

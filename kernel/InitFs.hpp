@@ -1,7 +1,7 @@
 #ifndef INIT_FS_H
 #define INIT_FS_H
 
-#include "Object.h"
+#include "Object.hpp"
 
 /*!
  * \brief The InitFS filesystem that is built into the kernel

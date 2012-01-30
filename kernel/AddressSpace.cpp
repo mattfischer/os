@@ -1,7 +1,8 @@
-#include "AddressSpace.h"
-#include "Util.h"
-#include "Kernel.h"
-#include "AsmFuncs.h"
+#include "AddressSpace.hpp"
+
+#include "Util.hpp"
+#include "Kernel.hpp"
+#include "AsmFuncs.hpp"
 
 //! Slab allocator for address spaces
 Slab<AddressSpace> AddressSpace::sSlab;

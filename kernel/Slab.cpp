@@ -1,5 +1,6 @@
-#include "Slab.h"
-#include "Page.h"
+#include "Slab.hpp"
+
+#include "Page.hpp"
 
 // Page header, containing allocation bitfield
 struct SlabHead {

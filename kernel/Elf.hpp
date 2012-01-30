@@ -1,7 +1,7 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include "AddressSpace.h"
+#include "AddressSpace.hpp"
 
 /*!
  * \brief ELF file loader

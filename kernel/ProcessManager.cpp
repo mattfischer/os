@@ -1,14 +1,15 @@
-#include "ProcessManager.h"
-#include "Sched.h"
-#include "InitFs.h"
-#include "AsmFuncs.h"
-#include "Elf.h"
-#include "Util.h"
-#include "AddressSpace.h"
-#include "Process.h"
-#include "Object.h"
-#include "Message.h"
-#include "Kernel.h"
+#include "ProcessManager.hpp"
+
+#include "Sched.hpp"
+#include "InitFs.hpp"
+#include "AsmFuncs.hpp"
+#include "Elf.hpp"
+#include "Util.hpp"
+#include "AddressSpace.hpp"
+#include "Process.hpp"
+#include "Object.hpp"
+#include "Message.hpp"
+#include "Kernel.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
 

@@ -1,7 +1,8 @@
-#include "Process.h"
-#include "Slab.h"
-#include "Util.h"
-#include "Object.h"
+#include "Process.hpp"
+
+#include "Slab.hpp"
+#include "Util.hpp"
+#include "Object.hpp"
 
 //!< Slab allocator for processes
 Slab<Process> Process::sSlab;

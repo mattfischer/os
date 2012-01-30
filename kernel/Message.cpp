@@ -1,8 +1,8 @@
-#include "Message.h"
+#include "Message.hpp"
 
-#include "Object.h"
-#include "Sched.h"
-#include "Util.h"
+#include "Object.hpp"
+#include "Sched.hpp"
+#include "Util.hpp"
 
 //! Slab allocator for event messages.  Normal messages don't need one, because
 //! they're always stack allocated.

@@ -1,9 +1,10 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include "List.h"
-#include "Task.h"
-#include "include/MessageFmt.h"
+#include "List.hpp"
+#include "Task.hpp"
+
+#include <kernel/include/MessageFmt.h>
 
 #include <lib/shared/include/Message.h>
 

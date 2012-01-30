@@ -1,14 +1,14 @@
-#include "InitFs.h"
-#include "Util.h"
+#include "InitFs.hpp"
+
+#include "Util.hpp"
+#include "Kernel.hpp"
+#include "Object.hpp"
+#include "Message.hpp"
+#include "Sched.hpp"
 
 #include <kernel/include/InitFsFmt.h>
 #include <kernel/include/NameFmt.h>
 #include <kernel/include/IOFmt.h>
-
-#include "Kernel.h"
-#include "Object.h"
-#include "Message.h"
-#include "Sched.h"
 
 #include <lib/shared/include/Name.h>
 #include <lib/shared/include/Kernel.h>

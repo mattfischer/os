@@ -1,10 +1,10 @@
 #ifndef ADDRESS_SPACE_H
 #define ADDRESS_SPACE_H
 
-#include "List.h"
-#include "PageTable.h"
-#include "MemArea.h"
-#include "Slab.h"
+#include "List.hpp"
+#include "PageTable.hpp"
+#include "MemArea.hpp"
+#include "Slab.hpp"
 
 /*!
  * \brief A mapped area in an address space

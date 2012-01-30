@@ -1,4 +1,4 @@
-#include "MemArea.h"
+#include "MemArea.hpp"
 
 //! Slab allocator
 Slab<MemAreaPages> MemAreaPages::sSlab;

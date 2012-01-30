@@ -1,7 +1,8 @@
-#include "Elf.h"
-#include "MemArea.h"
-#include "Util.h"
-#include "Object.h"
+#include "Elf.hpp"
+
+#include "MemArea.hpp"
+#include "Util.hpp"
+#include "Object.hpp"
 
 #include <lib/shared/include/Name.h>
 #include <lib/shared/include/IO.h>

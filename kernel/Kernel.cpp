@@ -1,10 +1,11 @@
-#include "Kernel.h"
-#include "Util.h"
-#include "Sched.h"
-#include "Message.h"
-#include "Object.h"
-#include "ProcessManager.h"
-#include "InitFs.h"
+#include "Kernel.hpp"
+
+#include "Util.hpp"
+#include "Sched.hpp"
+#include "Message.hpp"
+#include "Object.hpp"
+#include "ProcessManager.hpp"
+#include "InitFs.hpp"
 
 #include <lib/shared/include/Kernel.h>
 

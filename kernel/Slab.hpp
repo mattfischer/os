@@ -1,8 +1,8 @@
 #ifndef SLAB_H
 #define SLAB_H
 
-#include "List.h"
-#include "Page.h"
+#include "List.hpp"
+#include "Page.hpp"
 
 /*!
  * \brief Base class for slab allocators.

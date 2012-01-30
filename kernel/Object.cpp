@@ -1,7 +1,8 @@
-#include "Object.h"
-#include "Slab.h"
-#include "Sched.h"
-#include "Util.h"
+#include "Object.hpp"
+
+#include "Slab.hpp"
+#include "Sched.hpp"
+#include "Util.hpp"
 
 //! Slab allocator for objects
 Slab<Object> Object::sSlab;

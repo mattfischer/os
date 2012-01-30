@@ -1,10 +1,10 @@
 #ifndef MEM_AREA_H
 #define MEM_AREA_H
 
-#include "List.h"
-#include "Page.h"
-#include "PageTable.h"
-#include "Slab.h"
+#include "List.hpp"
+#include "Page.hpp"
+#include "PageTable.hpp"
+#include "Slab.hpp"
 
 /*!
  * \brief Represents a region of physical memory.  Abstract base class.

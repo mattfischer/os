@@ -1,8 +1,9 @@
-#include "Sched.h"
-#include "Slab.h"
-#include "Util.h"
-#include "AsmFuncs.h"
-#include "Kernel.h"
+#include "Sched.hpp"
+
+#include "Slab.hpp"
+#include "Util.hpp"
+#include "AsmFuncs.hpp"
+#include "Kernel.hpp"
 
 //! Queue of tasks that are ready to run
 List<Task> Sched::sRunList;

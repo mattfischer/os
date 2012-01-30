@@ -1,7 +1,7 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "AddressSpace.h"
+#include "AddressSpace.hpp"
 
 class Object;
 class Message;

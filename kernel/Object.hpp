@@ -1,9 +1,9 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
-#include "List.h"
-#include "Task.h"
-#include "Message.h"
+#include "List.hpp"
+#include "Task.hpp"
+#include "Message.hpp"
 
 #include <lib/shared/include/Object.h>
 

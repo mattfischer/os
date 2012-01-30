@@ -1,8 +1,8 @@
 #ifndef SCHED_H
 #define SCHED_H
 
-#include "Task.h"
-#include "List.h"
+#include "Task.hpp"
+#include "List.hpp"
 
 /*!
  * \brief Task scheduler

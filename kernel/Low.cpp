@@ -1,7 +1,7 @@
-#include "Kernel.h"
-#include "Page.h"
-#include "PageTable.h"
-#include "Pte.h"
+#include "Kernel.hpp"
+#include "Page.hpp"
+#include "PageTable.hpp"
+#include "Pte.hpp"
 
 /*!
  * \file

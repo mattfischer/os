@@ -1,9 +1,9 @@
 #ifndef PAGE_TABLE_H
 #define PAGE_TABLE_H
 
-#include "Slab.h"
-#include "Page.h"
-#include "List.h"
+#include "Slab.hpp"
+#include "Page.hpp"
+#include "List.hpp"
 
 /*!
  * \brief Represents a page table.
