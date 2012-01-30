@@ -24,15 +24,16 @@ static int manager;
 static void startUser(void *param)
 {
 	struct StartupInfo *startupInfo = (struct StartupInfo*)param;
+	Process *process = Sched::current()->process();
 
 	// Allocate a userspace stack for the task.
 	int stackSize = PAGE_SIZE;
 	MemArea *stackArea = new MemAreaPages(stackSize);
 	char *stackVAddr = (char*)(KERNEL_START - stackArea->size());
-	Sched::current()->process()->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
+	process->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
 
 	// Load the executable into the process
-	Elf::Entry entry = Elf::load(Sched::current()->process()->addressSpace(), startupInfo->name);
+	Elf::Entry entry = Elf::load(process->addressSpace(), startupInfo->name);
 
 	// Everything is now set up in the new process.  The time has come at last
 	// to enter userspace.  This call never returns--any transfer back to kernel
@@ -51,6 +52,8 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
 	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
 
+	// Construct the process object, to which userspace will send messages
+	// in order to access process services
 	Object *processObject = new Object(Kernel::process()->object(manager), process);
 	process->setProcessObject(processObject);
 
@@ -71,6 +74,8 @@ void ProcessManager::main(void *param)
 	// Create and register the process manager object
 	manager = Object_Create(OBJECT_INVALID, NULL);
 
+	// Start the InitFs file server, to serve up files from the
+	// built-in filesystem that is compiled into the kernel
 	InitFs::start();
 
 	// Kernel initialization is now complete.  Start the first userspace process.
@@ -174,7 +179,7 @@ void ProcessManager::start()
 {
 	// Execution up until now has not been in the context of a
 	// task, as the scheduler and task system had not been initialized
-	// yet.  The task has thus far been running on InitStack, a statically
+	// yet.  The CPU has thus far been running on InitStack, a statically
 	// allocated stack that is not associated with any task.  We
 	// are now ready to construct an actual task, and begin executing
 	// on its stack instead.  Construct this task now, and get it ready

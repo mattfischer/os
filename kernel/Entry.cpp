@@ -44,8 +44,6 @@ void Entry()
 
 	// Set up the process manager, and start userspace.  This call never returns.
 	ProcessManager::start();
-
-	// Poof!
 }
 
 /*!

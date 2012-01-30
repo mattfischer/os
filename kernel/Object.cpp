@@ -35,6 +35,7 @@ Task *Object::findReceiver()
 		}
 	}
 
+	// No receivers found
 	return NULL;
 }
 
@@ -106,10 +107,10 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 				// Found an object with a non-empty message queue.  Remove the message.
 				message = object->mMessages.removeHead();
 
-				// Now that the message has been removed from the object's queue, higher
-				// objects in the tree may no longer have any sending children.  Move up
-				// the rest of the tree and check if any sending children lists need to
-				// be updated
+				// Now that the message has been removed from the object's queue, it needs to
+				// be removed from its parent's sendingChildren list.  This may in turn cause
+				// other ancestors to be removed from their parents' lists as well.  Move up the
+				// rest of the tree and check if any sending children lists need to be updated
 				for(; object != NULL; object = object->parent()) {
 					if(object->mSendingChildren.empty() && object->mMessages.empty() && object->parent()) {
 						// This object has no sending children itself, and no messages in its queue.
@@ -141,7 +142,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 	message->read(recvMsg);
 
 	if(message->type() == Message::TypeMessage) {
-		// Received message was a normal message.  Mark the task as reply-blocked,
+		// Received message was a normal message.  Mark the sender as reply-blocked,
 		// and return the message to the caller
 		message->sender()->setState(Task::StateReplyBlock);
 		return (Message*)message;
