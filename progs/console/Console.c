@@ -10,13 +10,14 @@
 void PrintUart(char *uart, char *buffer, int size)
 {
 	int i;
+	volatile char *out = uart;
 
 	for(i=0; i<size; i++) {
 		if(buffer[i] == '\n') {
-			*uart = '\r';
+			*out = '\r';
 		}
 
-		*uart = buffer[i];
+		*out = buffer[i];
 	}
 }
 

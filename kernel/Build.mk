@@ -21,8 +21,6 @@ kernel_SOURCES := \
 	Task.cpp \
 	Util.cpp
 kernel_LDFLAGS := -T $(CWD)ldscript
-kernel_CFLAGS := -g
-kernel_AFLAGS := -g
 kernel_EXTRA_DEPS := $(CWD)ldscript
 kernel_PLATFORM := TARGET_BARE
 kernel_LIBS := shared
