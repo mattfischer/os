@@ -15,19 +15,8 @@ EntryAsm:
 	sub sp, r1
 	add sp, #256
 
-	# Jump to C++ low code to get basic initialization done
-	bl EntryLow
-
-	# Now that EntryLow has set up a page table, we can enable
-	# the MMU.  KernelTablePAddr is also a high address, so
-	# subtract memOffset to get a low address.
-	ldr r1, memOffset
-	ldr r0, =KernelTablePAddr
-	sub r0, r1
-
-	# Load the physical address of the page table, and set it
-	# as the translation table base address.
-	ldr r0, [r0]
+	# Jump to C++ code to build the initial page table
+	bl BuildInitPageTable
 	mcr p15, 0, r0, c2, c0, 0
 
 	# Enable all domains

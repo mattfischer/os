@@ -6,6 +6,7 @@
 #include "Object.hpp"
 #include "ProcessManager.hpp"
 #include "InitFs.hpp"
+#include "Pte.hpp"
 
 #include <lib/shared/include/Kernel.h>
 
@@ -14,6 +15,7 @@ extern "C" {
 	char InitStack[256];
 	PAddr KernelTablePAddr;
 	void Yield();
+	unsigned BuildInitPageTable();
 }
 
 //! Kernel process
@@ -29,6 +31,13 @@ extern char vectorEnd[];
  */
 void Kernel::init()
 {
+	// Mark as in use all pages used by the kernel itself, as well as the initial
+	// page table, which is located directly after it in memory.
+	Page *pages = Page::fromNumber(0);
+	for(int i=0; i<Page::fromPAddr(KernelTablePAddr)->number() + 4; i++) {
+		pages[i].setFlags(Page::FlagsInUse);
+	}
+
 	// Now that we've pivoted to high addresses, lock out the low area of the address space
 	PageTable *pageTable = new PageTable(Page::fromPAddr(KernelTablePAddr));
 	for(unsigned vaddr = 0; vaddr < KERNEL_START; vaddr += PageTable::SectionSize) {
@@ -138,4 +147,40 @@ void Kernel_SetObject(enum KernelObject idx, int obj)
 void Yield()
 {
 	Sched::runNext();
+}
+
+/*!
+ * \brief Set up the initial page table
+ *
+ * This function is called before the MMU is turned on, so it must be located
+ * in the low address range.  This is the purpose of the section attribute.
+ * \return Page table physical address
+ */
+__attribute__ ((section(".low"))) unsigned BuildInitPageTable()
+{
+	// Page tables must be 16kb (4 page) aligned.  Compute an address for it by starting
+	// with the address of the end of the kernel, and rounding up to the next 4-page boundary.
+	PAddr initPageTable = (VADDR_TO_PADDR(__KernelEnd) + PAGE_SIZE * 4 - 1) & (PAGE_MASK << 2);
+	unsigned *table = (unsigned*)(initPageTable);
+
+	// Identity-map the first portion of the virtual address space to physical memory
+	PAddr paddr = 0;
+	for(unsigned idx = 0; idx < (KERNEL_START >> PAGE_TABLE_SECTION_SHIFT); idx++) {
+		table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_L2_AP_ALL_READ_WRITE_PRIV | PTE_TYPE_SECTION;
+		paddr += PageTable::SectionSize;
+	}
+
+	// Duplicate the mapping of physical memory into the high address range
+	paddr = 0;
+	for(unsigned idx = (KERNEL_START >> PAGE_TABLE_SECTION_SHIFT); idx < PAGE_TABLE_SIZE; idx++) {
+		table[idx] = (paddr & PTE_SECTION_BASE_MASK) | PTE_L2_AP_ALL_READ_WRITE_PRIV | PTE_TYPE_SECTION;
+		paddr += PageTable::SectionSize;
+	}
+
+	// Convert the address of KernelTablePAddr to a low address, and save the
+	// physical address of the page table into it
+	PAddr *kernelTablePAddrLow = (PAddr*)VADDR_TO_PADDR(&KernelTablePAddr);
+	*kernelTablePAddrLow = initPageTable;
+
+	return initPageTable;
 }

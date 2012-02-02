@@ -36,9 +36,6 @@ public:
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 
-	static void initLow();
-	static void mapSectionLow(Page *pageTable, void *vaddr, PAddr paddr, Permission permission);
-
 	static const int SectionSize = (1024 * 1024);
 
 private:

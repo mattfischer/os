@@ -8,7 +8,6 @@ kernel_SOURCES := \
 	Entry.cpp \
 	InitFs.cpp \
 	Kernel.cpp \
-	Low.cpp \
 	MemArea.cpp \
 	Message.cpp \
 	Object.cpp \

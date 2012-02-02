@@ -39,7 +39,8 @@ void Entry()
 	// Run C++ constructors to get global objects initialized
 	runCtors();
 
-	// Initialize the kernel data structures
+	// Initialize the page list and kernel data structures
+	Page::init();
 	Kernel::init();
 
 	// Set up the process manager, and start userspace.  This call never returns.

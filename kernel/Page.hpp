@@ -30,6 +30,9 @@ typedef unsigned int PAddr;
 //! Convert virtual address to physical address
 #define VADDR_TO_PADDR(vaddr) ((PAddr)(vaddr) - KERNEL_START)
 
+#define PAGE_SIZE_ROUND_UP(size) ((size + PAGE_SIZE - 1) & PAGE_MASK)
+#define PAGE_ADDR_ROUND_DOWN(addr) ((unsigned)addr & PAGE_MASK)
+
 // These symbols are populated by the linker script, and point to
 // the beginning and end of the kernel's in-memory image
 extern char __KernelStart[];
@@ -47,7 +50,7 @@ public:
 		FlagsInUse
 	};
 
-	Page() {}
+	static void init();
 
 	/*!
 	 * \brief Get page flags
@@ -106,25 +109,10 @@ public:
 	 */
 	static Page *fromVAddr(void *vaddr) { return fromPAddr(VADDR_TO_PADDR(vaddr)); }
 
-	static void init();
-
-	Flags flagsLow();
-	void setFlagsLow(Flags flags);
-	int numberLow();
-	PAddr paddrLow();
-	static Page *allocContigLow(int align, int num);
-	static void initLow();
-	static Page *fromNumberLow(int n);
-	static Page *fromPAddrLow(PAddr paddr);
-	static Page *fromVAddrLow(void *vaddr);
-
 private:
 	Flags mFlags; //!< Flags
 
 	static Page sPages[N_PAGES];
 };
-
-#define PAGE_SIZE_ROUND_UP(size) ((size + PAGE_SIZE - 1) & PAGE_MASK)
-#define PAGE_ADDR_ROUND_DOWN(addr) ((unsigned)addr & PAGE_MASK)
 
 #endif

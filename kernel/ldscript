@@ -4,7 +4,6 @@ SECTIONS
 	.low 0x4000 :
 	{
 		*(.low)
-		out/obj/kernel/Low.o(.text .text.* .rodata .rodata.* .data .data.* .bss COMMON)
 	}
 	__KernelStart = 0xC0000000;
 

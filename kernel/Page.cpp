@@ -1,5 +1,7 @@
 #include "Page.hpp"
 
+#include "Util.hpp"
+
 /*!
  * \brief Page list--one entry per page of physical memory
  *
@@ -8,6 +10,15 @@
  * to track processes' use of physical memory throughout the system
  */
 Page Page::sPages[N_PAGES];
+
+/*!
+ * \brief Initialize the page list
+ */
+void Page::init()
+{
+	// Just zero everything out
+	memset(sPages, 0, N_PAGES * sizeof(Page));
+}
 
 /*!
  * \brief Allocate a page

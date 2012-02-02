@@ -21,7 +21,6 @@ public:
 	static void setObject(enum KernelObject idx, int obj);
 	static int getObject(enum KernelObject idx);
 
-	static void initLow();
 private:
 	static Process *sProcess;
 };
