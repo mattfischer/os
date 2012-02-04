@@ -45,6 +45,10 @@ int main(int argc, char *argv[])
 
 		ext_name = argv[i];
 		slash = strrchr(argv[i], '\\');
+		if(slash == NULL) {
+			slash = strrchr(argv[i], '/');
+		}
+
 		if(slash) {
 			int_name = slash + 1;
 		} else {
