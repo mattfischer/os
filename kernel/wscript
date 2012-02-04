@@ -1,0 +1,22 @@
+def build(ctx):
+	source =   ['AddressSpace.cpp',
+				'Message.cpp',
+				'Sched.cpp',
+				'Elf.cpp',
+				'Object.cpp',
+				'Slab.cpp',
+				'Entry.cpp',
+				'Page.cpp',
+				'Task.cpp',
+				'InitFs.cpp',
+				'PageTable.cpp',
+				'Util.cpp',
+				'Kernel.cpp',
+				'Process.cpp',
+				'MemArea.cpp',
+				'ProcessManager.cpp',
+				'AsmFuncs.s',
+				'EntryAsm.s']
+
+	ldscript = ctx.path.find_resource('ldscript')
+	ctx.crossprogram(target='kernel', source=source, use='shared', linkflags = '-nostdlib -T %s' % ldscript.bldpath())

@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.userprogram(target='name', source='Name.cpp')

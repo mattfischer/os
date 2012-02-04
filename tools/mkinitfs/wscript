@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.program(target='mkinitfs', source='MkInitFs.c', includes=ctx.top_dir, env=ctx.all_envs['host'])

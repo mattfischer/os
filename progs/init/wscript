@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.userprogram(target='init', source='Init.c')

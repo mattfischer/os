@@ -1,0 +1,3 @@
+def build(ctx):
+	ctx.userprogram(target='clientA', source='ClientA.c')
+	ctx.userprogram(target='clientB', source='ClientB.c')

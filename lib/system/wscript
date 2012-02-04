@@ -1,0 +1,11 @@
+def build(ctx):
+	source = [ 'KernelObject.c',
+				'Map.c',
+				'Message.c',
+				'NewlibFuncs.c',
+				'Object.c',
+				'Spawn.c',
+				'Start.c',
+				'SwiAsm.s',
+				'Yield.c']
+	ctx.crossobjects(target='system', source=source, use='shared', export_includes='include', includes='include')
