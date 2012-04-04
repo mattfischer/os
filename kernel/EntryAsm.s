@@ -96,8 +96,23 @@ vecSWI:
 vecPrefetchAbort:
 vecDataAbort:
 vecIRQ:
+	# IRQ entry. Save the caller-saved registers
+	stmfd sp!, {r0-r3}
+
+	# Jump to the C++ IRQ handler
+	ldr ip, IRQEntryAddr
+	blx ip
+
+	# Restore the caller-saved registers
+	ldmfd sp!, {r0-r3}
+
+	# Jump back to userspace
+	movs pc, lr
+
 vecFIQ:
 SysEntryAddr:
 	.word SysEntry
+IRQEntryAddr:
+	.word IRQEntry
 .globl vectorEnd
 vectorEnd:

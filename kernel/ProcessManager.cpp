@@ -10,12 +10,42 @@
 #include "Object.hpp"
 #include "Message.hpp"
 #include "Kernel.hpp"
+#include "Interrupt.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
 
 struct StartupInfo {
 	char name[16];
 };
+
+class EventSubscription : public Interrupt::Subscription
+{
+public:
+	EventSubscription(Object *object, unsigned type, unsigned value)
+	{
+		mObject = object;
+		mType = type;
+		mValue = value;
+	}
+
+	virtual void dispatch()
+	{
+		mObject->post(mType, mValue);
+	}
+
+	//! Allocator
+	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((EventSubscription*)p); }
+
+private:
+	Object *mObject;
+	unsigned mType;
+	unsigned mValue;
+
+	static Slab<EventSubscription> sSlab;
+};
+
+Slab<EventSubscription> EventSubscription::sSlab;
 
 //!< Object id for the process manager itself
 static int manager;
@@ -167,6 +197,36 @@ void ProcessManager::main(void *param)
 				Object_Release(message.msg.u.spawn.stderrObject);
 
 				Message_Reply(msg, 0, NULL, 0);
+				break;
+			}
+
+			case ProcManagerSubInt:
+			{
+				EventSubscription *subscription = new EventSubscription(Sched::current()->process()->object(message.msg.u.subInt.object), message.msg.u.subInt.type, message.msg.u.subInt.value);
+				Interrupt::subscribe(message.msg.u.subInt.irq, subscription);
+				Object_Release(message.msg.u.subInt.object);
+
+				int sub = process->refSubscription(subscription);
+				Message_Reply(msg, 0, &sub, sizeof(sub));
+				break;
+			}
+
+			case ProcManagerUnsubInt:
+			{
+				Interrupt::Subscription *subscription = process->subscription(message.msg.u.unsubInt.sub);
+				Interrupt::unsubscribe(message.msg.u.unsubInt.irq, subscription);
+
+				process->unrefSubscription(message.msg.u.unsubInt.sub);
+				Message_Reply(msg, 0, NULL, 0);
+				break;
+			}
+
+			case ProcManagerAckInt:
+			{
+				Interrupt::Subscription *subscription = process->subscription(message.msg.u.ackInt.sub);
+				Interrupt::acknowledge(message.msg.u.ackInt.irq, subscription);
+				Message_Reply(msg, 0, NULL, 0);
+				break;
 			}
 		}
 	}

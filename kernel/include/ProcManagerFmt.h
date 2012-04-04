@@ -6,7 +6,10 @@
 enum ProcManagerMsgType {
 	ProcManagerMapPhys,
 	ProcManagerSbrk,
-	ProcManagerSpawnProcess
+	ProcManagerSpawnProcess,
+	ProcManagerSubInt,
+	ProcManagerUnsubInt,
+	ProcManagerAckInt
 };
 
 struct ProcManagerMsgMapPhys {
@@ -26,6 +29,23 @@ struct ProcManagerMsgSpawnProcess {
 	int stderrObject;
 };
 
+struct ProcManagerMsgSubInt {
+	unsigned irq;
+	int object;
+	unsigned type;
+	unsigned value;
+};
+
+struct ProcManagerMsgUnsubInt {
+	unsigned irq;
+	int sub;
+};
+
+struct ProcManagerMsgAckInt {
+	unsigned irq;
+	int sub;
+};
+
 union ProcManagerMsg {
 	struct {
 		enum ProcManagerMsgType type;
@@ -33,6 +53,9 @@ union ProcManagerMsg {
 			struct ProcManagerMsgMapPhys mapPhys;
 			struct ProcManagerMsgSbrk sbrk;
 			struct ProcManagerMsgSpawnProcess spawn;
+			struct ProcManagerMsgSubInt subInt;
+			struct ProcManagerMsgUnsubInt unsubInt;
+			struct ProcManagerMsgAckInt ackInt;
 		} u;
 	} msg;
 	struct Event event;

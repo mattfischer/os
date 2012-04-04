@@ -2,6 +2,7 @@
 #define PROCESS_H
 
 #include "AddressSpace.hpp"
+#include "Interrupt.hpp"
 
 class Object;
 class Message;
@@ -66,6 +67,10 @@ public:
 	int refMessage(Message *message);
 	void unrefMessage(int msg);
 
+	Interrupt::Subscription *subscription(int sub) { return mSubscriptions[sub]; }
+	int refSubscription(Interrupt::Subscription *subscription);
+	void unrefSubscription(int sub);
+
 	Object *processObject() { return mProcessObject; }
 	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
 
@@ -79,6 +84,7 @@ private:
 	char *mHeapAreaTop; //!< Top of heap area
 	Object *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
+	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
 	Object *mProcessObject;
 
 	static Slab<Process> sSlab;

@@ -169,3 +169,21 @@ void Process::unrefMessage(int msg)
 {
 	mMessages[msg - 1] = NULL;
 }
+
+int Process::refSubscription(Interrupt::Subscription *subscription)
+{
+	// Find an empty slot
+	for(int i=0; i<16; i++) {
+		if(mSubscriptions[i] == NULL) {
+			mSubscriptions[i] = subscription;
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+void Process::unrefSubscription(int sub)
+{
+	mSubscriptions[sub] = NULL;
+}
