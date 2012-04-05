@@ -1,8 +1,13 @@
 #include "AddressSpace.hpp"
 
-#include "Util.hpp"
 #include "Kernel.hpp"
 #include "AsmFuncs.hpp"
+#include "PageTable.hpp"
+#include "MemArea.hpp"
+#include "Process.hpp"
+
+#include <algorithm>
+#include <string.h>
 
 //! Slab allocator for address spaces
 Slab<AddressSpace> AddressSpace::sSlab;
@@ -77,7 +82,7 @@ void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *src
 		// Compute the size for this portion of the copy
 		int srcSize = nextPageBoundary(srcPtr) - srcPtr;
 		int destSize = nextPageBoundary(destPtr) - destPtr;
-		int copySize = min(min(srcSize, destSize), size);
+		int copySize = std::min(std::min(srcSize, destSize), size);
 
 		void *srcKernel = (void*)srcPtr;
 		void *destKernel = (void*)destPtr;

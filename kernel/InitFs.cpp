@@ -1,10 +1,11 @@
 #include "InitFs.hpp"
 
-#include "Util.hpp"
 #include "Kernel.hpp"
 #include "Object.hpp"
 #include "Message.hpp"
 #include "Sched.hpp"
+#include "Task.hpp"
+#include "Process.hpp"
 
 #include <kernel/include/InitFsFmt.h>
 #include <kernel/include/NameFmt.h>
@@ -12,6 +13,10 @@
 
 #include <lib/shared/include/Name.h>
 #include <lib/shared/include/Kernel.h>
+
+#include <algorithm>
+
+#include <string.h>
 
 // These symbols are populated by the linker script, and point
 // to the beginning and end of the initfs data
@@ -173,7 +178,7 @@ static void server(void *param)
 				case IOMsgTypeRead:
 				{
 					FileInfo *fileInfo = (FileInfo*)info.targetData;
-					int size = min(msg.io.msg.u.rw.size, fileInfo->size - fileInfo->pointer);
+					int size = std::min(msg.io.msg.u.rw.size, fileInfo->size - fileInfo->pointer);
 					Message_Reply(m, size, (char*)fileInfo->data + fileInfo->pointer, size);
 					break;
 				}

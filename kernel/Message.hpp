@@ -2,11 +2,14 @@
 #define MESSAGE_H
 
 #include "List.hpp"
-#include "Task.hpp"
+#include "Slab.hpp"
 
 #include <kernel/include/MessageFmt.h>
 
 #include <lib/shared/include/Message.h>
+
+class Task;
+class Object;
 
 /*!
  * \brief Base class for all messages

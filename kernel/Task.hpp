@@ -1,16 +1,15 @@
 #ifndef TASK_H
 #define TASK_H
 
-#include "AddressSpace.hpp"
 #include "Page.hpp"
 #include "List.hpp"
-#include "Process.hpp"
 #include "Slab.hpp"
 
 #define R_SP 13
 #define R_PC 15
 
 class Process;
+class AddressSpace;
 
 /*!
  * \brief A single thread of execution

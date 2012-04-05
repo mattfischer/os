@@ -1,5 +1,7 @@
 #include "MemArea.hpp"
 
+#include "PageTable.hpp"
+
 //! Slab allocator
 Slab<MemAreaPages> MemAreaPages::sSlab;
 

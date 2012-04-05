@@ -2,9 +2,10 @@
 #define MEM_AREA_H
 
 #include "List.hpp"
-#include "Page.hpp"
-#include "PageTable.hpp"
 #include "Slab.hpp"
+#include "Page.hpp"
+
+class PageTable;
 
 /*!
  * \brief Represents a region of physical memory.  Abstract base class.

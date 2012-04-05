@@ -1,9 +1,14 @@
 #include "Sched.hpp"
 
 #include "Slab.hpp"
-#include "Util.hpp"
 #include "AsmFuncs.hpp"
 #include "Kernel.hpp"
+#include "PageTable.hpp"
+#include "Task.hpp"
+#include "Process.hpp"
+#include "AddressSpace.hpp"
+
+#include <string.h>
 
 //! Queue of tasks that are ready to run
 List<Task> Sched::sRunList;

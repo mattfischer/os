@@ -1,14 +1,19 @@
 #include "Kernel.hpp"
 
-#include "Util.hpp"
 #include "Sched.hpp"
 #include "Message.hpp"
 #include "Object.hpp"
 #include "ProcessManager.hpp"
 #include "InitFs.hpp"
 #include "Pte.hpp"
+#include "PageTable.hpp"
+#include "AddressSpace.hpp"
+#include "Process.hpp"
+#include "Task.hpp"
 
 #include <lib/shared/include/Kernel.h>
+
+#include <string.h>
 
 // State information used for early bootup in assembly.  Extern C to avoid name mangling
 extern "C" {

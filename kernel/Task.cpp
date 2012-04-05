@@ -1,7 +1,8 @@
 #include "Task.hpp"
 
-#include "Util.hpp"
 #include "Sched.hpp"
+
+#include <string.h>
 
 //! Slab allocator for tasks
 Slab<Task> Task::sSlab;

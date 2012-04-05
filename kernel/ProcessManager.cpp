@@ -4,15 +4,18 @@
 #include "InitFs.hpp"
 #include "AsmFuncs.hpp"
 #include "Elf.hpp"
-#include "Util.hpp"
 #include "AddressSpace.hpp"
 #include "Process.hpp"
 #include "Object.hpp"
 #include "Message.hpp"
 #include "Kernel.hpp"
 #include "Interrupt.hpp"
+#include "MemArea.hpp"
+#include "PageTable.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
+
+#include <string.h>
 
 struct StartupInfo {
 	char name[16];

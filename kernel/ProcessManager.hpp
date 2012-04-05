@@ -1,7 +1,7 @@
 #ifndef PROC_MANAGER_H
 #define PROC_MANAGER_H
 
-#include "Object.hpp"
+class Object;
 
 /*!
  * \brief Process services for userspace
@@ -21,7 +21,5 @@ private:
 
 	static void main(void *param);
 };
-
-
 
 #endif

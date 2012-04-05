@@ -10,7 +10,7 @@ def build(ctx):
 				'Task.cpp',
 				'InitFs.cpp',
 				'PageTable.cpp',
-				'Util.cpp',
+				'StdlibFuncs.cpp',
 				'Kernel.cpp',
 				'Process.cpp',
 				'MemArea.cpp',

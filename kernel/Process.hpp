@@ -1,11 +1,13 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "AddressSpace.hpp"
+#include "Slab.hpp"
 #include "Interrupt.hpp"
 
 class Object;
 class Message;
+class MemAreaPages;
+class AddressSpace;
 
 /*!
  * \brief Represents a single process, including an address space and a list of tasks

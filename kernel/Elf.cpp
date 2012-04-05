@@ -1,11 +1,13 @@
 #include "Elf.hpp"
 
 #include "MemArea.hpp"
-#include "Util.hpp"
 #include "Object.hpp"
+#include "AddressSpace.hpp"
 
 #include <lib/shared/include/Name.h>
 #include <lib/shared/include/IO.h>
+
+#include <string.h>
 
 // Constants and types below are lifted directly from the ELF specification
 

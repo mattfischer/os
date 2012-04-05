@@ -2,7 +2,11 @@
 
 #include "Slab.hpp"
 #include "Sched.hpp"
-#include "Util.hpp"
+#include "Message.hpp"
+#include "Task.hpp"
+#include "Process.hpp"
+
+#include <string.h>
 
 //! Slab allocator for objects
 Slab<Object> Object::sSlab;

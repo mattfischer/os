@@ -1,8 +1,10 @@
 #include "Process.hpp"
 
 #include "Slab.hpp"
-#include "Util.hpp"
 #include "Object.hpp"
+#include "AddressSpace.hpp"
+
+#include <string.h>
 
 //!< Slab allocator for processes
 Slab<Process> Process::sSlab;

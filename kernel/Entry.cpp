@@ -1,6 +1,7 @@
 #include "Kernel.hpp"
 #include "ProcessManager.hpp"
 #include "Interrupt.hpp"
+#include "Page.hpp"
 
 #include "include/Syscalls.h"
 

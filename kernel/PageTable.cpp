@@ -1,7 +1,8 @@
 #include "PageTable.hpp"
 
-#include "Util.hpp"
 #include "Pte.hpp"
+
+#include <string.h>
 
 //! Slab allocator for page tables
 struct Slab<PageTable> PageTable::sSlab;

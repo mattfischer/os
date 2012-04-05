@@ -1,4 +1,4 @@
-#include "Util.hpp"
+#include <string.h>
 
 void *memcpy(void *dest, const void *src, unsigned n)
 {
@@ -75,7 +75,7 @@ int strncmp(const char *str1, const char *str2, size_t size)
 	return 0;
 }
 
-int strlen(const char *str)
+size_t strlen(const char *str)
 {
 	int i;
 	for(i=0; str[i] != '\0'; i++) {}

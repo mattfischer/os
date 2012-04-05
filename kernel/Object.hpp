@@ -2,10 +2,13 @@
 #define OBJECT_H
 
 #include "List.hpp"
-#include "Task.hpp"
-#include "Message.hpp"
+#include "Slab.hpp"
 
 #include <lib/shared/include/Object.h>
+
+class Task;
+class MessageBase;
+class Message;
 
 /*!
  * \brief A kernel object, to which userspace can send/receive messages

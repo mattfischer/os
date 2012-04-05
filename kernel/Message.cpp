@@ -2,7 +2,14 @@
 
 #include "Object.hpp"
 #include "Sched.hpp"
-#include "Util.hpp"
+#include "PageTable.hpp"
+#include "Task.hpp"
+#include "AddressSpace.hpp"
+#include "Process.hpp"
+
+#include <algorithm>
+
+#include <string.h>
 
 //! Slab allocator for event messages.  Normal messages don't need one, because
 //! they're always stack allocated.
@@ -27,7 +34,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, st
 
 		// Compute how far into the segment the copy should begin from, and how large it should be
 		int segmentStart = offset + copied - srcOffset;
-		int segmentSize = min(size - copied, segment.size - segmentStart);
+		int segmentSize = std::min(size - copied, segment.size - segmentStart);
 
 		// Everything is now set up...copy the data
 		AddressSpace::memcpy(destProcess->addressSpace(), (char*)dest + copied, srcProcess->addressSpace(), (char*)segment.buffer + segmentStart, segmentSize);

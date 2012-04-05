@@ -1,9 +1,9 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include "Process.hpp"
-
 #include "include/Syscalls.h"
+
+class Process;
 
 /*!
  * \brief Contains basic kernel state information

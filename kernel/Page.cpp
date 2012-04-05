@@ -1,6 +1,6 @@
 #include "Page.hpp"
 
-#include "Util.hpp"
+#include <string.h>
 
 /*!
  * \brief Page list--one entry per page of physical memory

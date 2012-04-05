@@ -2,9 +2,10 @@
 #define ADDRESS_SPACE_H
 
 #include "List.hpp"
-#include "PageTable.hpp"
-#include "MemArea.hpp"
 #include "Slab.hpp"
+
+class PageTable;
+class MemArea;
 
 /*!
  * \brief A mapped area in an address space
