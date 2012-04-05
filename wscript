@@ -58,8 +58,8 @@ def initfs(ctx, *k, **kw):
 	mkinitfs.post()
 	tmp = ctx.path.find_or_declare('InitFsData.tmp')
 	data = ctx.path.find_or_declare('InitFsData.o')
-	ctx(rule='%s -o ${TGT} ${SRC}' % mkinitfs.link_task.outputs[0].bldpath(), source=inputs, target=tmp, env=ctx.all_envs['cross'].derive(), *k, **kw)
-	ctx(rule='"${OBJCOPY}" -I binary -O elf32-littlearm -B arm --rename-section .data=.initfs ${SRC} ${TGT}', source=tmp, target=data, env=ctx.all_envs['cross'].derive(), *k, **kw)
+	ctx(name='mkinitfs', rule='%s -o ${TGT} ${SRC}' % mkinitfs.link_task.outputs[0].bldpath(), source=inputs, target=tmp, env=ctx.all_envs['cross'].derive(), *k, **kw)
+	ctx(name='pkginitfs', rule='"${OBJCOPY}" -I binary -O elf32-littlearm -B arm --rename-section .data=.initfs ${SRC} ${TGT}', source=tmp, target=data, env=ctx.all_envs['cross'].derive(), *k, **kw)
 	attach = ctx.get_tgen_by_name(kw['attach'])
 	attach.source += [data]
 
