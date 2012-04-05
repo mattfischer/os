@@ -3,6 +3,9 @@ from waflib.Task import Task
 from waflib.Configure import conf
 from waflib import Utils
 
+APPNAME = 'os'
+VERSION = '1.0'
+
 out = 'out'
 
 def options(ctx):
