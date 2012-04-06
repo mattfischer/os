@@ -1,17 +1,32 @@
 #include <Object.h>
 #include <Message.h>
 #include <System.h>
+#include <Name.h>
 
 #include <stddef.h>
 
 #include <kernel/include/IOFmt.h>
 #include <kernel/include/NameFmt.h>
 
+#include <algorithm>
+#include <list>
+
 #define UARTBASE (volatile unsigned*)0x16000000
 #define UARTDR   (UARTBASE + 0)
 #define UARTIMSC (UARTBASE + 14)
 #define UARTMIS  (UARTBASE + 16)
 #define UARTICR  (UARTBASE + 17)
+
+struct Waiter {
+	int m;
+	int size;
+};
+
+#define BUFFER_SIZE 4096
+char buffer[BUFFER_SIZE];
+int readPointer = 0;
+int writePointer = 0;
+
 
 void PrintUart(char *buffer, int size)
 {
@@ -27,6 +42,19 @@ void PrintUart(char *buffer, int size)
 	}
 }
 
+void returnData(int m, int size)
+{
+	int retSize;
+	if(writePointer > readPointer) {
+		retSize = std::min(writePointer - readPointer, size);
+	} else {
+		retSize = std::min(BUFFER_SIZE - readPointer, size);
+	}
+	Message_Reply(m, retSize, buffer + readPointer, retSize);
+	readPointer += retSize;
+	readPointer %= BUFFER_SIZE;
+}
+
 enum {
 	IRQEvent = SysEventLast
 };
@@ -34,6 +62,7 @@ enum {
 int main(int argc, char *argv[])
 {
 	int sub;
+	std::list<Waiter> waiters;
 	int obj = Object_Create(OBJECT_INVALID, NULL);
 
 	Name_Set("/dev/console", obj);
@@ -59,7 +88,17 @@ int main(int argc, char *argv[])
 					unsigned status = *UARTMIS;
 					if(status & 0x10) {
 						char input = (char)*UARTDR;
-						*UARTDR = input;
+						if(writePointer != readPointer - 1) {
+							buffer[writePointer] = input;
+							writePointer++;
+							writePointer %= BUFFER_SIZE;
+						}
+
+						if(!waiters.empty()) {
+							Waiter w = waiters.front();
+							waiters.pop_front();
+							returnData(w.m, w.size);
+						}
 					}
 
 					Interrupt_Acknowledge(1, sub);
@@ -104,6 +143,18 @@ int main(int argc, char *argv[])
 					}
 					Message_Reply(m, sent, NULL, 0);
 					break;
+				}
+
+				case IOMsgTypeRead:
+				{
+					if(readPointer == writePointer) {
+						struct Waiter w;
+						w.m = m;
+						w.size = msg.io.msg.u.rw.size;
+						waiters.push_back(w);
+					} else {
+						returnData(m, msg.io.msg.u.rw.size);
+					}
 				}
 			}
 		}

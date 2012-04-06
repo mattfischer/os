@@ -1,6 +1,7 @@
 #include <Message.h>
 #include <Object.h>
 #include <Kernel.h>
+#include <Name.h>
 
 #include <kernel/include/NameFmt.h>
 
@@ -60,7 +61,7 @@ int Name_Open(const char *name)
 	return obj;
 }
 
-int Name_Wait(const char *name)
+void Name_Wait(const char *name)
 {
 	union NameMsg msg;
 	int obj;

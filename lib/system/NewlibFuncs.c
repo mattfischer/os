@@ -30,7 +30,7 @@ int _write(int fd, char *buffer, int len)
 
 int _read(int fd, char *buffer, int len)
 {
-	return 0;
+	return File_Read(fd, buffer, len);
 }
 
 int _close(int fd)
