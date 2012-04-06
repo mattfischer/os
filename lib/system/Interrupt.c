@@ -9,11 +9,12 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-void Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
+int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 {
 	struct MessageHeader hdr;
 	union ProcManagerMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
+	int ret;
 
 	msg.msg.type = ProcManagerSubInt;
 	msg.msg.u.subInt.irq = irq;
@@ -26,7 +27,8 @@ void Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value
 	hdr.objectsOffset = offsetof(union ProcManagerMsg, msg.u.subInt.object);
 	hdr.objectsSize = 1;
 
-	Object_Sendxs(__ProcessManager, &hdr, NULL, 0);
+	Object_Sendxs(__ProcessManager, &hdr, &ret, sizeof(ret));
+	return ret;
 }
 
 void Interrupt_Unsubscribe(unsigned irq, int sub)

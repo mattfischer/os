@@ -47,7 +47,11 @@ def crossobjects(ctx, *k, **kw):
 
 @conf
 def userprogram(ctx, *k, **kw):
-	ctx.crossprogram(use='system shared', linkflags='-u_start -nostartfiles -static', *k, **kw)
+	linkflags = '-u_start -nostartfiles -static'
+	if 'baseaddr' in kw:
+		linkflags = linkflags + ' -Wl,-Ttext -Wl,%s' % kw['baseaddr']
+		del kw['baseaddr']
+	ctx.crossprogram(use='system shared', linkflags=linkflags, *k, **kw)
 
 @conf
 def initfs(ctx, *k, **kw):

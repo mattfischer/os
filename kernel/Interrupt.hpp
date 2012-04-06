@@ -15,7 +15,7 @@ public:
 
 		virtual void dispatch() = 0;
 		bool acknowledged() { return mAcknowledged; }
-		void acknowledge() { mAcknowledged = true; }
+		void setAcknowledged(bool acknowledged) { mAcknowledged = acknowledged; }
 
 	private:
 		bool mAcknowledged;

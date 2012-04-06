@@ -7,10 +7,16 @@
 #include <kernel/include/IOFmt.h>
 #include <kernel/include/NameFmt.h>
 
-void PrintUart(char *uart, char *buffer, int size)
+#define UARTBASE (volatile unsigned*)0x16000000
+#define UARTDR   (UARTBASE + 0)
+#define UARTIMSC (UARTBASE + 14)
+#define UARTMIS  (UARTBASE + 16)
+#define UARTICR  (UARTBASE + 17)
+
+void PrintUart(char *buffer, int size)
 {
 	int i;
-	volatile char *out = uart;
+	volatile unsigned *out = UARTDR;
 
 	for(i=0; i<size; i++) {
 		if(buffer[i] == '\n') {
@@ -21,14 +27,21 @@ void PrintUart(char *uart, char *buffer, int size)
 	}
 }
 
+enum {
+	IRQEvent = SysEventLast
+};
+
 int main(int argc, char *argv[])
 {
-	char *uart = (char*)0x16000000;
+	int sub;
 	int obj = Object_Create(OBJECT_INVALID, NULL);
 
 	Name_Set("/dev/console", obj);
 
-	MapPhys(uart, 0x16000000, 4096);
+	MapPhys((void*)UARTBASE, 0x16000000, 4096);
+	*UARTIMSC = 0x10;
+	sub = Interrupt_Subscribe(1, obj, IRQEvent, 0);
+
 	while(1) {
 		union {
 			union IOMsg io;
@@ -40,6 +53,19 @@ int main(int argc, char *argv[])
 		m = Object_Receive(obj, &msg, sizeof(msg));
 
 		if(m == 0) {
+			switch(msg.name.event.type) {
+				case IRQEvent:
+				{
+					unsigned status = *UARTMIS;
+					if(status & 0x10) {
+						char input = (char)*UARTDR;
+						*UARTDR = input;
+					}
+
+					Interrupt_Acknowledge(1, sub);
+					break;
+				}
+			}
 			continue;
 		}
 
@@ -73,7 +99,7 @@ int main(int argc, char *argv[])
 						int size;
 
 						size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));
-						PrintUart(uart, buffer, size);
+						PrintUart(buffer, size);
 						sent += size;
 					}
 					Message_Reply(m, sent, NULL, 0);

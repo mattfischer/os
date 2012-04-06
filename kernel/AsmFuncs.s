@@ -59,7 +59,7 @@ FlushTLB:
 EnterUser:
 	# Prepare the usermode CPSR by clearing the mode bits
 	mrs r2, cpsr
-	bic r2, #0xf
+	bic r2, #0x8f
 	msr spsr, r2
 
 	# Carve out a space on the stack to use for initializing

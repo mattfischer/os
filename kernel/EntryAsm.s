@@ -13,7 +13,7 @@ EntryAsm:
 	ldr r1, memOffset
 	ldr sp, =InitStack
 	sub sp, r1
-	add sp, #256
+	add sp, #4096
 
 	# Jump to C++ code to build the initial page table
 	bl BuildInitPageTable
@@ -36,7 +36,15 @@ EntryAsm:
     # subtraction from here on out.  Reset the stack pointer
 	# to the high address.
 	ldr sp, =InitStack
-	add sp, #256
+	add sp, #4096
+
+	# Set up interrupt-mode stack
+	mov r0, #0xd2
+	msr cpsr, r0
+	ldr sp, =InitStack
+	add sp, #4096
+	mov r0, #0xd3
+	msr cpsr, r0
 
 	# Assembly init is done.  Jump to C++.
 	ldr r0, =Entry
@@ -95,19 +103,21 @@ vecSWI:
 
 vecPrefetchAbort:
 vecDataAbort:
+	b vecDataAbort
+
 vecIRQ:
 	# IRQ entry. Save the caller-saved registers
-	stmfd sp!, {r0-r3}
+	stmfd sp!, {r0-r3,ip,lr}
 
 	# Jump to the C++ IRQ handler
 	ldr ip, IRQEntryAddr
 	blx ip
 
 	# Restore the caller-saved registers
-	ldmfd sp!, {r0-r3}
+	ldmfd sp!, {r0-r3,ip,lr}
 
 	# Jump back to userspace
-	movs pc, lr
+	subs pc, lr, #4
 
 vecFIQ:
 SysEntryAddr:

@@ -27,17 +27,21 @@ static void unmask(unsigned irq)
 void Interrupt::subscribe(unsigned irq, Subscription *subscription)
 {
 	subscriptions[irq].addTail(subscription);
+	unmask(irq);
 }
 
 void Interrupt::unsubscribe(unsigned irq, Subscription *subscription)
 {
 	subscriptions[irq].remove(subscription);
+	if(subscriptions[irq].empty()) {
+		mask(irq);
+	}
 }
 
 void Interrupt::acknowledge(unsigned irq, Subscription *subscription)
 {
 	if(!subscription->acknowledged()) {
-		subscription->acknowledge();
+		subscription->setAcknowledged(true);
 		outstanding[irq]--;
 		if(outstanding[irq] == 0) {
 			unmask(irq);
@@ -54,6 +58,7 @@ void Interrupt::dispatch()
 			outstanding[i] = 0;
 			Subscription *subscription;
 			for(subscription = subscriptions[i].head(); subscription != NULL; subscription = subscriptions[i].next(subscription)) {
+				subscription->setAcknowledged(false);
 				subscription->dispatch();
 				outstanding[i]++;
 			}

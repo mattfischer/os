@@ -1,2 +1,2 @@
 def build(ctx):
-	ctx.userprogram(target='console', source='Console.c')
+	ctx.userprogram(target='console', source='Console.c', baseaddr='0xc000')

@@ -17,7 +17,7 @@
 
 // State information used for early bootup in assembly.  Extern C to avoid name mangling
 extern "C" {
-	char InitStack[256];
+	char InitStack[4096];
 	PAddr KernelTablePAddr;
 	void Yield();
 	unsigned BuildInitPageTable();
