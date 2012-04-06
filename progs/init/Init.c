@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 
 	Name_Wait("/dev/console");
 	console = open("/dev/console");
-	SpawnProcess("/boot/echo", console, console, console);
+	SpawnProcess("/boot/shell", console, console, console);
 
 	while(1) {
 		Yield();

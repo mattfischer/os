@@ -89,9 +89,15 @@ int main(int argc, char *argv[])
 					if(status & 0x10) {
 						char input = (char)*UARTDR;
 						if(writePointer != readPointer - 1) {
+							if(input == '\r') {
+								input = '\n';
+							}
 							buffer[writePointer] = input;
 							writePointer++;
 							writePointer %= BUFFER_SIZE;
+							if(input != '\n') {
+								*UARTDR = input;
+							}
 						}
 
 						if(!waiters.empty()) {

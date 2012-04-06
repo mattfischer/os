@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.userprogram(target='shell', source='Shell.c', baseaddr='0x80000')
