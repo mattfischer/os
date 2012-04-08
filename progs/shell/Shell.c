@@ -1,12 +1,47 @@
 #include <stdio.h>
 #include <sys/stat.h>
+#include <limits.h>
+#include <string.h>
+#include <stdlib.h>
+
+char cwd[PATH_MAX];
+char dir[PATH_MAX];
+
+void resolve(char *path)
+{
+	char *c = path;
+	while(c[0] != '\0') {
+		while(c[1] == '/') {
+			strcpy(c, c + 1);
+		}
+		while(strncmp(c, "/..", 3) == 0) {
+			char *c2 = c - 1;
+			while(*c2 != '/') c2--;
+			if(c[3] == '\0') {
+				c2[1] = '\0';
+			} else {
+				strcpy(c2 + 1, c + 4);
+			}
+			c = c2;
+		}
+		c = strchr(c + 1, '/');
+	}
+}
 
 void ls(const char *cmd)
 {
-	const char *dir = "/";
+	strcpy(dir, cwd);
+
 	cmd += 2;
 	if(cmd[0] != '\0') {
-		dir = cmd + 1;
+		const char *d = cmd + 1;
+		if(d[0] == '/') {
+			strcpy(dir, d);
+		} else {
+			strcat(dir, "/");
+			strcat(dir, d);
+			resolve(dir);
+		}
 	}
 
 	struct stat st;
@@ -30,10 +65,41 @@ void ls(const char *cmd)
 	Object_Release(obj);
 }
 
+void cd(const char *cmd)
+{
+	const char *d = cmd + 3;
+	struct stat st;
+
+	if(d[0] == '/') {
+		strcpy(dir, d);
+	} else {
+		strcpy(dir, cwd);
+		strcat(dir, "/");
+		strcat(dir, d);
+		resolve(dir);
+	}
+
+	if(stat(dir, &st) != 0) {
+		printf("Directory '%s' does not exist\n", dir);
+		return;
+	}
+
+	if(!S_ISDIR(st.st_mode)) {
+		printf("'%s' is not a directory\n", dir);
+		return;
+	}
+
+	strcpy(cwd, dir);
+}
+
 void processCommand(const char *cmd)
 {
 	if(strncmp(cmd, "ls", 2) == 0) {
 		ls(cmd);
+	} else if(strncmp(cmd, "cd", 2) == 0) {
+		cd(cmd);
+	} else if(strncmp(cmd, "pwd", 3) == 0) {
+		printf("%s\n", cwd);
 	} else {
 		printf("Invalid command '%s'\n", cmd);
 	}
@@ -42,6 +108,8 @@ void processCommand(const char *cmd)
 int main(int argc, char *argv[])
 {
 	char buffer[1024];
+
+	strcpy(cwd, "/");
 
 	while(1) {
 		printf("# ");
