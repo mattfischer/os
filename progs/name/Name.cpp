@@ -160,21 +160,27 @@ struct OpenDir *createOpenDir(const char *name)
 		}
 	}
 
-	struct OpenDir *openDir = new OpenDir;
-	openDir->entry = cursor;
-	openDir->entryIdx = 0;
-	vector<int> objs = lookup(name);
-	for(int i=0; i<objs.size(); i++) {
+	vector<int> servers = lookup(name);
+	vector<int> objs;
+	for(int i=0; i<servers.size(); i++) {
 		int obj;
 		union NameMsg msg;
 		msg.msg.type = NameMsgTypeOpenDir;
 		strcpy(msg.msg.u.openDir.name, name);
-		Object_Send(objs[i], &msg, sizeof(msg), &obj, sizeof(obj));
+		Object_Send(servers[i], &msg, sizeof(msg), &obj, sizeof(obj));
 		if(obj != OBJECT_INVALID) {
-			openDir->objects.push_back(obj);
+			objs.push_back(obj);
 		}
 	}
-	openDir->objectIdx = 0;
+
+	struct OpenDir *openDir = NULL;
+	if(cursor || objs.size() > 0) {
+		openDir = new OpenDir;
+		openDir->entry = cursor;
+		openDir->entryIdx = 0;
+		openDir->objects = objs;
+		openDir->objectIdx = 0;
+	}
 
 	return openDir;
 }
@@ -227,7 +233,10 @@ int main(int argc, char *argv[])
 				case NameMsgTypeOpenDir:
 				{
 					struct OpenDir *openDir = createOpenDir(msg.msg.u.openDir.name);
-					int ret = Object_Create(obj, openDir);
+					int ret = OBJECT_INVALID;
+					if(openDir) {
+						ret = Object_Create(obj, openDir);
+					}
 					struct BufferSegment segs[] = { &ret, sizeof(ret) };
 					struct MessageHeader hdr = { segs, 1, 0, 1 };
 					Message_Replyx(m, 0, &hdr);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <sys/stat.h>
 
 void ls(const char *cmd)
 {
@@ -6,6 +7,17 @@ void ls(const char *cmd)
 	cmd += 2;
 	if(cmd[0] != '\0') {
 		dir = cmd + 1;
+	}
+
+	struct stat st;
+	if(stat(dir, &st) != 0) {
+		printf("Directory '%s' does not exist\n", dir);
+		return;
+	}
+
+	if(!S_ISDIR(st.st_mode)) {
+		printf("'%s' is not a directory\n", dir);
+		return;
 	}
 
 	char buffer[32];

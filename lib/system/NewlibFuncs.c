@@ -65,4 +65,25 @@ void _getpid()
 {
 }
 
+int _stat(char *file, struct stat *st)
+{
+	int obj;
+
+	obj = Name_Open(file);
+	if(obj != OBJECT_INVALID) {
+		Object_Release(obj);
+		st->st_mode = S_IFREG;
+		return 0;
+	}
+
+	obj = Name_OpenDir(file);
+	if(obj != OBJECT_INVALID) {
+		Object_Release(obj);
+		st->st_mode = S_IFDIR;
+		return 0;
+	}
+
+	return -1;
+}
+
 int __dso_handle;
