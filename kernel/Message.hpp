@@ -67,7 +67,7 @@ private:
  */
 class Message : public MessageBase {
 public:
-	Message(Task *sender, Object *target, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
+	Message(Task *sender, Object *target, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
 
 	/*!
 	 * \brief Return send message area
@@ -89,7 +89,7 @@ public:
 	int read(void *buffer, int offset, int size);
 	virtual int read(struct MessageHeader *header);
 
-	int reply(int ret, struct MessageHeader *replyMsg);
+	int reply(int ret, const struct MessageHeader *replyMsg);
 
 	void info(struct MessageInfo *info);
 

@@ -42,3 +42,17 @@ void File_Seek(int obj, int pointer)
 
 	Object_Send(obj, &msg, sizeof(msg), NULL, 0);
 }
+
+int File_ReadDir(int obj, char *name)
+{
+	union IOMsg msg;
+	struct IOMsgReadDirRet ret;
+	int status;
+
+	msg.msg.type = IOMsgTypeReadDir;
+
+	status = Object_Send(obj, &msg, sizeof(msg), &ret, sizeof(ret));
+	strcpy(name, ret.name);
+
+	return status;
+}

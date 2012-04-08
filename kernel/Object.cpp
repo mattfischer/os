@@ -49,7 +49,7 @@ Task *Object::findReceiver()
  * \param replyMsg Message reply info
  * \return Message reply code
  */
-int Object::send(struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
 	// Construct a message object, and add it to the list of pending objects
 	Message message(Sched::current(), this, *sendMsg, *replyMsg);
@@ -187,7 +187,7 @@ void Object_Release(int obj)
  * \param replyMsg Reply message info
  * \return Reply return value
  */
-int Object_Sendx(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
 	struct Object *object = Sched::current()->process()->object(obj);
 	return object->send(sendMsg, replyMsg);

@@ -61,6 +61,24 @@ int Name_Open(const char *name)
 	return obj;
 }
 
+int Name_OpenDir(const char *name)
+{
+	union NameMsg msg;
+	int obj;
+	int ret;
+	int server;
+
+	server = Kernel_GetObject(KernelObjectNameServer);
+
+	msg.msg.type = NameMsgTypeOpenDir;
+	strcpy(msg.msg.u.open.name, name);
+
+	ret = Object_Send(server, &msg, sizeof(msg), &obj, sizeof(obj));
+	Object_Release(server);
+
+	return obj;
+}
+
 void Name_Wait(const char *name)
 {
 	union NameMsg msg;

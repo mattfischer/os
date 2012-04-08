@@ -1,16 +1,16 @@
 #include <Object.h>
 
-int Object_Send(int obj, void *msg, int msgSize, void *reply, int replySize)
+int Object_Send(int obj, const void *msg, int msgSize, void *reply, int replySize)
 {
-	struct BufferSegment sendSegs[] = { msg, msgSize };
-	struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
+	const struct BufferSegment sendSegs[] = { msg, msgSize };
+	const struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
 	struct BufferSegment replySegs[] = { reply, replySize };
 	struct MessageHeader replyMsg = { replySegs, 1, 0, 0 };
 
 	return Object_Sendx(obj, &sendMsg, &replyMsg);
 }
 
-int Object_Sendxs(int obj, struct MessageHeader *sendMsg, void *reply, int replySize)
+int Object_Sendxs(int obj, const struct MessageHeader *sendMsg, void *reply, int replySize)
 {
 	struct BufferSegment replySegs[] = { reply, replySize };
 	struct MessageHeader replyMsg = { replySegs, 1, 0, 0 };
@@ -18,10 +18,10 @@ int Object_Sendxs(int obj, struct MessageHeader *sendMsg, void *reply, int reply
 	return Object_Sendx(obj, sendMsg, &replyMsg);
 }
 
-int Object_Sendsx(int obj, void *msg, int msgSize, struct MessageHeader *replyMsg)
+int Object_Sendsx(int obj, const void *msg, int msgSize, struct MessageHeader *replyMsg)
 {
-	struct BufferSegment sendSegs[] = { msg, msgSize };
-	struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
+	const struct BufferSegment sendSegs[] = { msg, msgSize };
+	const struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
 
 	return Object_Sendx(obj, &sendMsg, replyMsg);
 }

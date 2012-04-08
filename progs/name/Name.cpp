@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <kernel/include/NameFmt.h>
+#include <kernel/include/IOFmt.h>
 #include <kernel/include/Syscalls.h>
 
 #include <vector>
@@ -20,6 +21,13 @@ struct NameEntry {
 	vector<int> objects;
 	vector<NameEntry*> children;
 	vector<int> waiters;
+};
+
+struct OpenDir {
+	struct NameEntry *entry;
+	int entryIdx;
+	vector<int> objects;
+	int objectIdx;
 };
 
 NameEntry root;
@@ -37,7 +45,9 @@ vector<string> splitPath(const string &path)
 		}
 	}
 
-	ret.push_back(path.substr(i));
+	if(i < path.size()) {
+		ret.push_back(path.substr(i));
+	}
 
 	return ret;
 }
@@ -129,6 +139,46 @@ void set(const string &name, int object)
 	cursor->waiters.clear();
 }
 
+struct OpenDir *createOpenDir(const char *name)
+{
+	vector<string> segs = splitPath(name);
+	NameEntry *cursor = &root;
+
+	for(int i=0; i<segs.size(); i++) {
+		bool found = false;
+		for(int j=0; j<cursor->children.size(); j++) {
+			if(cursor->children[j]->name == segs[i]) {
+				cursor = cursor->children[j];
+				found = true;
+				break;
+			}
+		}
+
+		if(!found) {
+			cursor = NULL;
+			break;
+		}
+	}
+
+	struct OpenDir *openDir = new OpenDir;
+	openDir->entry = cursor;
+	openDir->entryIdx = 0;
+	vector<int> objs = lookup(name);
+	for(int i=0; i<objs.size(); i++) {
+		int obj;
+		union NameMsg msg;
+		msg.msg.type = NameMsgTypeOpenDir;
+		strcpy(msg.msg.u.openDir.name, name);
+		Object_Send(objs[i], &msg, sizeof(msg), &obj, sizeof(obj));
+		if(obj != OBJECT_INVALID) {
+			openDir->objects.push_back(obj);
+		}
+	}
+	openDir->objectIdx = 0;
+
+	return openDir;
+}
+
 int main(int argc, char *argv[])
 {
 	int obj = Object_Create(OBJECT_INVALID, NULL);
@@ -145,40 +195,83 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		switch(msg.msg.type) {
-			case NameMsgTypeSet:
-			{
-				set(msg.msg.u.set.name, msg.msg.u.set.obj);
-				Message_Reply(m, 0, NULL, 0);
-				break;
-			}
+		struct MessageInfo info;
+		Message_Info(m, &info);
 
-			case NameMsgTypeOpen:
-			{
-				int ret = OBJECT_INVALID;
-				struct BufferSegment segs[] = { &ret, sizeof(ret) };
-				struct MessageHeader hdr = { segs, 1, 0, 1 };
-				vector<int> objs = lookup(msg.msg.u.open.name);
-				for(int i=objs.size() - 1; i>=0; i--) {
-					Object_Send(objs[i], &msg, sizeof(union NameMsg), &ret, sizeof(ret));
-					if(ret != OBJECT_INVALID) {
-						break;
-					}
-				}
-				Message_Replyx(m, 0, &hdr);
-				Object_Release(ret);
-				break;
-			}
-
-			case NameMsgTypeWait:
-			{
-				vector<int> objs = lookup(msg.msg.u.wait.name);
-				if(objs.size() == 0) {
-					addWaiter(msg.msg.u.wait.name, m);
-				} else {
+		if(info.targetData == NULL) {
+			switch(msg.msg.type) {
+				case NameMsgTypeSet:
+				{
+					set(msg.msg.u.set.name, msg.msg.u.set.obj);
 					Message_Reply(m, 0, NULL, 0);
+					break;
 				}
-				break;
+
+				case NameMsgTypeOpen:
+				{
+					int ret = OBJECT_INVALID;
+					struct BufferSegment segs[] = { &ret, sizeof(ret) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
+					vector<int> objs = lookup(msg.msg.u.open.name);
+					for(int i=objs.size() - 1; i>=0; i--) {
+						Object_Send(objs[i], &msg, sizeof(union NameMsg), &ret, sizeof(ret));
+						if(ret != OBJECT_INVALID) {
+							break;
+						}
+					}
+					Message_Replyx(m, 0, &hdr);
+					Object_Release(ret);
+					break;
+				}
+
+				case NameMsgTypeOpenDir:
+				{
+					struct OpenDir *openDir = createOpenDir(msg.msg.u.openDir.name);
+					int ret = Object_Create(obj, openDir);
+					struct BufferSegment segs[] = { &ret, sizeof(ret) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
+					Message_Replyx(m, 0, &hdr);
+					Object_Release(ret);
+					break;
+				}
+
+				case NameMsgTypeWait:
+				{
+					vector<int> objs = lookup(msg.msg.u.wait.name);
+					if(objs.size() == 0) {
+						addWaiter(msg.msg.u.wait.name, m);
+					} else {
+						Message_Reply(m, 0, NULL, 0);
+					}
+					break;
+				}
+			}
+		} else {
+			struct OpenDir *openDir = (struct OpenDir*)info.targetData;
+			switch(msg.msg.type) {
+				case IOMsgTypeReadDir:
+				{
+					struct IOMsgReadDirRet ret;
+					int status = 1;
+					if(openDir->entry && openDir->entryIdx < openDir->entry->children.size()) {
+						string &name = openDir->entry->children[openDir->entryIdx]->name;
+						strcpy(ret.name, name.c_str());
+						status = 0;
+						openDir->entryIdx++;
+					} else {
+						while(openDir->objectIdx < openDir->objects.size()) {
+							status = Object_Send(openDir->objects[openDir->objectIdx], &msg, sizeof(msg), &ret, sizeof(ret));
+
+							if(status == 1) {
+								openDir->objectIdx++;
+							} else {
+								break;
+							}
+						}
+					}
+					Message_Reply(m, status, &ret, sizeof(ret));
+					break;
+				}
 			}
 		}
 	}

@@ -14,7 +14,7 @@ void Object_Release(int obj)
 	swi(SyscallObjectRelease, obj, 0, 0, 0);
 }
 
-int Object_Sendx(int obj, struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
+int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
 	return swi(SyscallObjectSend, (unsigned int)obj, (unsigned int)sendMsg, (unsigned int)replyMsg, 0);
 }

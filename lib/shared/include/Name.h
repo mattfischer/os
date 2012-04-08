@@ -9,6 +9,7 @@ void Name_Set(const char *name, int obj);
 int Name_Lookup(const char *name);
 int Name_Open(const char *name);
 void Name_Wait(const char *name);
+int Name_OpenDir(const char *name);
 
 #ifdef __cplusplus
 }

@@ -16,7 +16,7 @@
 Slab<MessageEvent> MessageEvent::sSlab;
 
 // Read data from a message into a buffer
-static int readMessage(Process *destProcess, void *dest, Process *srcProcess, struct MessageHeader *src, int offset, int size, int translateCache[])
+static int readMessage(Process *destProcess, void *dest, Process *srcProcess, const struct MessageHeader *src, int offset, int size, int translateCache[])
 {
 	// Iterate through as many source segments as it takes to copy the requested amount of data
 	int copied = 0;
@@ -77,7 +77,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, st
 }
 
 // Copy data from one process's message buffer to another
-static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process *srcProcess, struct MessageHeader *src, int translateCache[])
+static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process *srcProcess, const struct MessageHeader *src, int translateCache[])
 {
 	dest->objectsOffset = src->objectsOffset;
 	dest->objectsSize = src->objectsSize;
@@ -110,7 +110,7 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
  * \param sendMsg Send message data
  * \param replyMsg Reply message data
  */
-Message::Message(Task *sender, Object *target, struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
+Message::Message(Task *sender, Object *target, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
  : MessageBase(TypeMessage, sender, target)
 {
 	mSendMsg = sendMsg;
@@ -144,7 +144,7 @@ int Message::read(struct MessageHeader *header)
  * \param ret Return code
  * \param replyMsg Reply data
  */
-int Message::reply(int ret, struct MessageHeader *replyMsg)
+int Message::reply(int ret, const struct MessageHeader *replyMsg)
 {
 	int translateCache[MESSAGE_MAX_OBJECTS];
 	for(int i=0; i<replyMsg->objectsSize; i++) {
@@ -207,7 +207,7 @@ int Message_Read(int msg, void *buffer, int offset, int size)
  * \param ret Return code
  * \param replyMsg Reply data
  */
-int Message_Replyx(int msg, int ret, struct MessageHeader *replyMsg)
+int Message_Replyx(int msg, int ret, const struct MessageHeader *replyMsg)
 {
 	if(msg == 0) {
 		return 0;

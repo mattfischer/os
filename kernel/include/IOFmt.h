@@ -6,7 +6,8 @@
 enum IOMsgType {
 	IOMsgTypeWrite,
 	IOMsgTypeRead,
-	IOMsgTypeSeek
+	IOMsgTypeSeek,
+	IOMsgTypeReadDir
 };
 
 struct IOMsgReadWriteHdr {
@@ -15,6 +16,10 @@ struct IOMsgReadWriteHdr {
 
 struct IOMsgSeek {
 	int pointer;
+};
+
+struct IOMsgReadDirRet {
+	char name[32];
 };
 
 union IOMsg {

@@ -77,7 +77,24 @@ struct FileInfo {
 	int pointer;
 };
 
-Slab<FileInfo> fileInfoSlab;
+struct DirInfo {
+	struct InitFsFileHeader *header;
+};
+
+enum InfoType {
+	InfoTypeFile,
+	InfoTypeDir
+};
+
+struct Info {
+	InfoType type;
+	union {
+		FileInfo file;
+		DirInfo dir;
+	} u;
+};
+
+Slab<Info> infoSlab;
 
 // InitFS file server.  This also implements a basic proto-name server,
 // which is used until the real userspace name server is started.
@@ -114,10 +131,10 @@ static void server(void *param)
 			continue;
 		}
 
-		struct MessageInfo info;
-		Message_Info(m, &info);
+		struct MessageInfo messageInfo;
+		Message_Info(m, &messageInfo);
 
-		if(info.targetData == NULL) {
+		if(messageInfo.targetData == NULL) {
 			// Call made to the main file server object
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
@@ -134,11 +151,12 @@ static void server(void *param)
 						if(data) {
 							// File was found.  Create an object for the new
 							// file and return it
-							FileInfo *fileInfo = fileInfoSlab.allocate();
-							fileInfo->data = data;
-							fileInfo->size = size;
-							fileInfo->pointer = 0;
-							obj = Object_Create(fileServer, fileInfo);
+							Info *info = infoSlab.allocate();
+							info->type = InfoTypeFile;
+							info->u.file.data = data;
+							info->u.file.size = size;
+							info->u.file.pointer = 0;
+							obj = Object_Create(fileServer, info);
 						}
 					}
 
@@ -171,23 +189,58 @@ static void server(void *param)
 					waiters.addTail(waiter);
 					break;
 				}
+
+				case NameMsgTypeOpenDir:
+				{
+					int size;
+					void *data;
+					int obj = OBJECT_INVALID;
+					char *name = msg.name.msg.u.open.name;
+
+					if(strcmp(name, PREFIX) == 0) {
+						Info *info = infoSlab.allocate();
+						info->type = InfoTypeDir;
+						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
+						obj = Object_Create(fileServer, info);
+					}
+
+					struct BufferSegment segs[] = { &obj, sizeof(obj) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
+
+					Message_Replyx(m, 0, &hdr);
+					break;
+				}
 			}
 		} else {
+			Info *info = (Info*)messageInfo.targetData;
+
 			// Message was sent to an open file handle
 			switch(msg.io.msg.type) {
 				case IOMsgTypeRead:
 				{
-					FileInfo *fileInfo = (FileInfo*)info.targetData;
-					int size = std::min(msg.io.msg.u.rw.size, fileInfo->size - fileInfo->pointer);
-					Message_Reply(m, size, (char*)fileInfo->data + fileInfo->pointer, size);
+					int size = std::min(msg.io.msg.u.rw.size, info->u.file.size - info->u.file.pointer);
+					Message_Reply(m, size, (char*)info->u.file.data + info->u.file.pointer, size);
 					break;
 				}
 
 				case IOMsgTypeSeek:
 				{
-					FileInfo *fileInfo = (FileInfo*)info.targetData;
-					fileInfo->pointer = msg.io.msg.u.seek.pointer;
+					info->u.file.pointer = msg.io.msg.u.seek.pointer;
 					Message_Reply(m, 0, NULL, 0);
+					break;
+				}
+
+				case IOMsgTypeReadDir:
+				{
+					IOMsgReadDirRet ret;
+					int status = 1;
+					if((void*)info->u.dir.header < (void*)__InitFsEnd){
+						status = 0;
+						strcpy(ret.name, info->u.dir.header->name);
+						info->u.dir.header = (struct InitFsFileHeader*)((char*)info->u.dir.header + sizeof(struct InitFsFileHeader) + info->u.dir.header->size);
+					}
+					Message_Reply(m, status, &ret, sizeof(ret));
+					break;
 				}
 			}
 		}
