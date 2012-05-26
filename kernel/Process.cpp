@@ -55,9 +55,7 @@ int Process::refObject(Object *object)
 	for(int i=0; i<16; i++) {
 		if(mObjects[i] == NULL) {
 			mObjects[i] = object;
-
-			// Post a ref event to the object
-			object->post(SysEventObjectRef, 0);
+			object->ref();
 			return i;
 		}
 	}
@@ -79,9 +77,8 @@ int Process::refObjectTo(int obj, Object *object)
 	}
 
 	mObjects[obj] = object;
+	object->ref();
 
-	// Post a ref event
-	object->post(SysEventObjectRef, 0);
 	return obj;
 }
 
@@ -91,11 +88,12 @@ int Process::refObjectTo(int obj, Object *object)
  */
 void Process::unrefObject(int obj)
 {
-	if(obj != OBJECT_INVALID) {
-		if(mObjects[obj]) {
-			// Post an unref event
-			mObjects[obj]->post(SysEventObjectUnref, 0);
-		}
+	if(obj == OBJECT_INVALID) {
+		return;
+	}
+
+	if(mObjects[obj]) {
+		mObjects[obj]->unref();
 		mObjects[obj] = NULL;
 	}
 }

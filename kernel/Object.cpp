@@ -20,6 +20,7 @@ Object::Object(Object *parent, void *data)
 {
 	mParent = parent;
 	mData = data;
+	mRefCount = 0;
 }
 
 // Find an object in the hierarchy which is ready to receive a message
@@ -155,6 +156,22 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 		// from the queue and return.
 		delete (MessageEvent*)message;
 		return NULL;
+	}
+}
+
+void Object::ref()
+{
+	mRefCount++;
+	post(SysEventObjectRef, 0);
+}
+
+void Object::unref()
+{
+	mRefCount--;
+	post(SysEventObjectUnref, 0);
+
+	if(mRefCount == 0) {
+		delete this;
 	}
 }
 

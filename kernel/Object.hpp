@@ -21,6 +21,9 @@ public:
 	void post(unsigned type, unsigned value);
 	Message *receive(struct MessageHeader *recvMsg);
 
+	void ref();
+	void unref();
+
 	/*!
 	 * \brief Get parent of this object
 	 * \return Object parent
@@ -42,6 +45,7 @@ private:
 	List<Object> mSendingChildren; //!< List of children which have pending messages
 	void *mData; //!< Arbitrary data associated with object
 	Object *mParent; //!< Parent of this object
+	int mRefCount;
 
 	Task *findReceiver();
 
