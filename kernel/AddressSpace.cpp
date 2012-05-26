@@ -28,6 +28,17 @@ AddressSpace::AddressSpace(PageTable *pageTable)
 	mPageTable = pageTable;
 }
 
+AddressSpace::~AddressSpace()
+{
+	delete mPageTable;
+
+	struct Mapping *next;
+	for(struct Mapping *mapping = mMappings.head(); mapping != NULL; mapping = next) {
+		next = mMappings.next(mapping);
+		mappingSlab.free(mapping);
+	}
+}
+
 /*!
  * \brief Map a memory area into the address space
  * \param area Area to map

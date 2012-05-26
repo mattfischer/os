@@ -27,6 +27,11 @@ Task::Task(Process *process, Page *stack)
 	mEffectiveAddressSpace = NULL;
 }
 
+Task::~Task()
+{
+	mStack->free();
+}
+
 /*!
  * \brief Allocate memory from the top of the task's stack
  *

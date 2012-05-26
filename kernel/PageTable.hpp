@@ -19,6 +19,7 @@ public:
 
 	PageTable(PageTable *copy);
 	PageTable(Page *pages);
+	~PageTable();
 
 	static void init();
 
@@ -35,6 +36,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { return sSlab.free((PageTable*)p); }
 
 	static const int SectionSize = (1024 * 1024);
 

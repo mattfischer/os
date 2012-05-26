@@ -27,6 +27,7 @@ public:
 	};
 
 	Task(Process *process, Page *stack = NULL);
+	~Task();
 
 	/*!
 	 * \brief Owning process
@@ -69,6 +70,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((Task*)p); }
 
 private:
 	unsigned int mRegs[16]; //!< Saved registers

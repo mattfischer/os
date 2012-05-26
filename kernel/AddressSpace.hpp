@@ -23,6 +23,7 @@ struct Mapping : public ListEntry {
 class AddressSpace {
 public:
 	AddressSpace(PageTable *pageTable = NULL);
+	~AddressSpace();
 
 	static void init();
 
@@ -37,6 +38,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((AddressSpace*)p); }
 
 	static AddressSpace *Kernel;
 

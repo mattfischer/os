@@ -28,6 +28,13 @@ MemAreaPages::MemAreaPages(int size)
 	mPages = Page::allocMulti(MemArea::size() >> PAGE_SHIFT);
 }
 
+MemAreaPages::~MemAreaPages()
+{
+	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
+		page->free();
+	}
+}
+
 void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size)
 {
 	unsigned v = (unsigned)vaddr;

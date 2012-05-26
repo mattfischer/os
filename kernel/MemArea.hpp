@@ -39,6 +39,7 @@ private:
 class MemAreaPages : public MemArea {
 public:
 	MemAreaPages(int size);
+	~MemAreaPages();
 
 	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size);
 
@@ -50,6 +51,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((MemAreaPages*)p); }
 
 private:
 	List<Page> mPages; //!< Page list
@@ -68,6 +70,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((MemAreaPhys*)p); }
 
 private:
 	PAddr mPAddr; //!< Starting physical address of area

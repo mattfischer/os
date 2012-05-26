@@ -16,8 +16,6 @@ class Process {
 public:
 	Process(AddressSpace *addressSpace = NULL);
 
-	static void init();
-
 	/*!
 	 * \brief Address space used by this process
 	 * \return Address space
@@ -78,6 +76,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((Process*)p); }
 
 private:
 	AddressSpace *mAddressSpace; //!< Address space of process

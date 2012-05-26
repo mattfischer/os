@@ -34,6 +34,7 @@ public:
 
 	//! Allocator
 	void *operator new(size_t) { return sSlab.allocate(); }
+	void operator delete(void *p) { sSlab.free((Object*)p); }
 
 private:
 	List<Task> mReceivers; //!< List of receivers waiting on this object

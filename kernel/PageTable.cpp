@@ -34,6 +34,18 @@ PageTable::PageTable(Page *pages)
 	mTablePAddr = mPages->paddr();
 }
 
+PageTable::~PageTable()
+{
+	for(int i=0; i<4; i++) {
+		Page *page = Page::fromNumber(mPages->number() + i);
+		page->free();
+	}
+
+	for(Page *page = mL2Tables.head(); page != NULL; page = mL2Tables.next(page)) {
+		page->free();
+	}
+}
+
 // Allocate a second-level page table
 void PageTable::allocL2Table(void *vaddr)
 {
