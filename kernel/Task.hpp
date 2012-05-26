@@ -26,7 +26,7 @@ public:
 		StateReplyBlock //!< Blocked waiting for message reply
 	};
 
-	Task(Process *process);
+	Task(Process *process, Page *stack = NULL);
 
 	/*!
 	 * \brief Owning process

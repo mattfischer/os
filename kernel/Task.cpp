@@ -11,11 +11,14 @@ Slab<Task> Task::sSlab;
  * \brief Constructor
  * \param process Owning process
  */
-Task::Task(Process *process)
+Task::Task(Process *process, Page *stack)
 {
-	Page *stack = Page::alloc();
+	if(stack == NULL) {
+		mStack = Page::alloc();
+	} else {
+		mStack = stack;
+	}
 
-	mStack = stack;
 	mState = StateInit;
 	memset(mRegs, 0, 16 * sizeof(unsigned int));
 	mRegs[R_SP] = (unsigned)mStack->vaddr() + PAGE_SIZE;

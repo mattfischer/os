@@ -2,14 +2,6 @@
 
 .section .text
 
-# Run first scheduled task.  r0 = new registers
-.globl RunFirstAsm
-.type RunFirstAsm,%function
-RunFirstAsm:
-	# Load them all, including PC
-	ldm r0, {r0-r15}
-.size RunFirstAsm, . - RunFirstAsm
-
 # Switch to new task.  r0 = outgoing registers, r1 = new registers
 .globl SwitchToAsm
 .type SwitchToAsm,%function

@@ -71,18 +71,9 @@ void Sched::runNext()
 	switchTo(next);
 }
 
-/*!
- * \brief Run first task in run queue
- */
-void Sched::runFirst()
+void Sched::setCurrent(Task *task)
 {
-	Task *task = sRunList.removeHead();
-
 	task->setState(Task::StateRunning);
 
-	task->setEffectiveAddressSpace(task->process()->addressSpace());
-	SetMMUBase(task->process()->addressSpace()->pageTable()->tablePAddr());
-
 	sCurrent = task;
-	RunFirstAsm(task->regs());
 }

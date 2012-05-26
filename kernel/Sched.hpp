@@ -10,10 +10,10 @@ class Task;
  */
 class Sched {
 public:
-	static void runFirst();
 	static void runNext();
 	static void add(Task *task);
 	static void switchTo(Task *task);
+	static void setCurrent(Task *task);
 
 	/*!
 	 * \brief Currently-running task

@@ -102,7 +102,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 }
 
 // Main task for process manager
-void ProcessManager::main(void *param)
+void ProcessManager::start()
 {
 	// Create and register the process manager object
 	manager = Object_Create(OBJECT_INVALID, NULL);
@@ -233,26 +233,4 @@ void ProcessManager::main(void *param)
 			}
 		}
 	}
-}
-
-/*!
- * \brief Start the process manager--never returns
- */
-void ProcessManager::start()
-{
-	// Execution up until now has not been in the context of a
-	// task, as the scheduler and task system had not been initialized
-	// yet.  The CPU has thus far been running on InitStack, a statically
-	// allocated stack that is not associated with any task.  We
-	// are now ready to construct an actual task, and begin executing
-	// on its stack instead.  Construct this task now, and get it ready
-	// to begin execution.
-	Task *task = new Task(Kernel::process());
-	task->start(main, NULL);
-
-	// Start the task.  This call never returns--execution will
-	// continue from the task's startup function, main().
-	Sched::runFirst();
-
-	// Poof!
 }

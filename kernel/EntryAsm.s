@@ -41,7 +41,7 @@ EntryAsm:
 	# Set up interrupt-mode stack
 	mov r0, #0xd2
 	msr cpsr, r0
-	ldr sp, =InitStack
+	ldr sp, =IRQStack
 	add sp, #4096
 	mov r0, #0xd3
 	msr cpsr, r0
