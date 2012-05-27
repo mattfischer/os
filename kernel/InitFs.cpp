@@ -255,7 +255,7 @@ void InitFs::start()
 	fileServer = Object_Create(OBJECT_INVALID, NULL);
 	sNameServer = Sched::current()->process()->object(fileServer);
 
-	Task *task = new Task(Kernel::process());
+	Task *task = Kernel::process()->newTask();
 	task->start(server, NULL);
 }
 

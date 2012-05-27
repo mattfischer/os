@@ -158,7 +158,6 @@ int Process::refMessage(Message *message)
 	for(int i=0; i<16; i++) {
 		if(mMessages[i] == NULL) {
 			mMessages[i] = message;
-			message->ref();
 			return i + 1;
 		}
 	}
@@ -172,7 +171,6 @@ int Process::refMessage(Message *message)
  */
 void Process::unrefMessage(int msg)
 {
-	mMessages[msg - 1]->unref();
 	mMessages[msg - 1] = NULL;
 }
 
@@ -194,14 +192,18 @@ void Process::unrefSubscription(int sub)
 	mSubscriptions[sub] = NULL;
 }
 
-void Process::addTask(Task *task)
+Task *Process::newTask(Page *stack)
 {
+	Task *task = new Task(this, stack);
 	mTasks.addHead(task);
 	task->ref();
+
+	return task;
 }
 
-void Process::removeTask(Task *task)
+void Process::killTask(Task *task)
 {
+	task->kill();
 	mTasks.remove(task);
 	task->unref();
 }

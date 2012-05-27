@@ -61,7 +61,6 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 {
 	// Construct a message object, and add it to the list of pending objects
 	Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
-	message->ref();
 	mMessages.addTail(message);
 
 	// See if any tasks are ready to receive on this object or any of its ancestors
@@ -83,7 +82,7 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 	// Message receive and reply has been completed, and control has switched back
 	// to this task.  Return the code from the message reply.
 	int ret = message->ret();
-	message->unref();
+	delete message;
 
 	return ret;
 }
@@ -148,7 +147,8 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 		// If we found a message, then break and process it
 		if(message) {
 			if(message->sender()->state() == Task::StateDead) {
-				message->unref();
+				delete message;
+				message = NULL;
 				continue;
 			} else {
 				break;

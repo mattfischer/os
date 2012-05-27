@@ -65,7 +65,7 @@ void Kernel::init()
 	// Construct a task out of the kernel process and the current stack, and mark it 
 	// as the current task.  As of this point, the scheduler is initialized, and we
 	// can begin switching tasks.
-	Task *task = new Task(sProcess, Page::fromVAddr(InitStack));
+	Task *task = sProcess->newTask(Page::fromVAddr(InitStack));
 	Sched::setCurrent(task);
 }
 

@@ -25,13 +25,11 @@ Task::Task(Process *process, Page *stack)
 	mRegs[R_SP] = (unsigned)mStack->vaddr() + PAGE_SIZE;
 
 	mProcess = process;
-	mProcess->addTask(this);
 	mEffectiveAddressSpace = NULL;
 }
 
 Task::~Task()
 {
-	mStack->free();
 }
 
 /*!
@@ -74,4 +72,12 @@ void Task::unref()
 	if(mRefCount == 0) {
 		delete this;
 	}
+}
+
+void Task::kill()
+{
+	mStack->free();
+	mStack = NULL;
+
+	mState = StateDead;
 }

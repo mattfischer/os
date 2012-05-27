@@ -72,6 +72,8 @@ public:
 	void ref();
 	void unref();
 
+	void kill();
+
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Task*)p); }

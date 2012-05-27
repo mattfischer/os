@@ -91,7 +91,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	process->setProcessObject(processObject);
 
 	// Create a task within the process, and copy the startup info into it
-	Task *task = new Task(process);
+	Task *task = process->newTask();
 
 	struct StartupInfo *startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
 	strcpy(startupInfo->name, name);

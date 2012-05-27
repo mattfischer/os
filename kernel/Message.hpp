@@ -46,9 +46,6 @@ public:
 	 */
 	Object *target() { return mTarget; }
 
-	void ref();
-	void unref();
-
 	/*!
 	 * \brief Abstract method.  Read message contents into header
 	 * \param header Message header

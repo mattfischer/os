@@ -20,24 +20,13 @@ MessageBase::MessageBase(Type type, Task *sender, Object *target)
    mTarget(target)
 {
 	mSender->ref();
+	mTarget->ref();
 }
 
 MessageBase::~MessageBase()
 {
 	mSender->unref();
-}
-
-void MessageBase::ref()
-{
-	mRefCount++;
-}
-
-void MessageBase::unref()
-{
-	mRefCount--;
-	if(mRefCount == 0) {
-		delete this;
-	}
+	mTarget->unref();
 }
 
 // Read data from a message into a buffer
@@ -176,7 +165,9 @@ int Message::reply(int ret, const struct MessageHeader *replyMsg)
 		translateCache[i] = OBJECT_INVALID;
 	}
 
-	if(sender()->state() == Task::StateReplyBlock) {
+	if(sender()->state() == Task::StateDead) {
+		delete this;
+	} else {
 		// Copy contents into sending process's reply buffer
 		copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
 		mRet = ret;
