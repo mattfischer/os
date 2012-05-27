@@ -23,7 +23,8 @@ public:
 		StateReady, //!< Ready to be run by the scheduler
 		StateReceiveBlock, //!< Blocked on a message receive
 		StateSendBlock, //!< Blocked on a message send
-		StateReplyBlock //!< Blocked waiting for message reply
+		StateReplyBlock, //!< Blocked waiting for message reply
+		StateDead
 	};
 
 	Task(Process *process, Page *stack = NULL);
@@ -68,6 +69,9 @@ public:
 	void *stackAllocate(int size);
 	void start(void (*start)(void *), void *param);
 
+	void ref();
+	void unref();
+
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Task*)p); }
@@ -80,6 +84,8 @@ private:
 	Page *mStack; //!< Stack page
 	Process *mProcess; //!< Owning process
 	AddressSpace *mEffectiveAddressSpace; //!< Effective address space
+
+	int mRefCount;
 
 	static Slab<Task> sSlab;
 };

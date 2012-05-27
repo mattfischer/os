@@ -11,9 +11,34 @@
 
 #include <string.h>
 
-//! Slab allocator for event messages.  Normal messages don't need one, because
-//! they're always stack allocated.
 Slab<MessageEvent> MessageEvent::sSlab;
+Slab<Message> Message::sSlab;
+
+MessageBase::MessageBase(Type type, Task *sender, Object *target)
+ : mType(type),
+   mSender(sender),
+   mTarget(target)
+{
+	mSender->ref();
+}
+
+MessageBase::~MessageBase()
+{
+	mSender->unref();
+}
+
+void MessageBase::ref()
+{
+	mRefCount++;
+}
+
+void MessageBase::unref()
+{
+	mRefCount--;
+	if(mRefCount == 0) {
+		delete this;
+	}
+}
 
 // Read data from a message into a buffer
 static int readMessage(Process *destProcess, void *dest, Process *srcProcess, const struct MessageHeader *src, int offset, int size, int translateCache[])
@@ -151,14 +176,16 @@ int Message::reply(int ret, const struct MessageHeader *replyMsg)
 		translateCache[i] = OBJECT_INVALID;
 	}
 
-	// Copy contents into sending process's reply buffer
-	copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
-	mRet = ret;
+	if(sender()->state() == Task::StateReplyBlock) {
+		// Copy contents into sending process's reply buffer
+		copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
+		mRet = ret;
 
-	// Switch back to the sending process, so that the corresponding send
-	// call can return
-	Sched::add(Sched::current());
-	Sched::switchTo(sender());
+		// Switch back to the sending process, so that the corresponding send
+		// call can return
+		Sched::add(Sched::current());
+		Sched::switchTo(sender());
+	}
 
 	return 0;
 }

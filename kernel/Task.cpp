@@ -62,3 +62,16 @@ void Task::start(void (*start)(void *), void *param)
 	// Add the task to the scheduler queue
 	Sched::add(this);
 }
+
+void Task::ref()
+{
+	mRefCount++;
+}
+
+void Task::unref()
+{
+	mRefCount--;
+	if(mRefCount == 0) {
+		delete this;
+	}
+}

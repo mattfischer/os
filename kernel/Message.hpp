@@ -27,11 +27,8 @@ public:
 	 * \param sender Sending task
 	 * \param target Target object
 	 */
-	MessageBase(Type type, Task *sender, Object *target)
-	 : mType(type),
-	   mSender(sender),
-	   mTarget(target)
-	{}
+	MessageBase(Type type, Task *sender, Object *target);
+	virtual ~MessageBase();
 
 	/*!
 	 * \brief Return message type
@@ -49,17 +46,25 @@ public:
 	 */
 	Object *target() { return mTarget; }
 
+	void ref();
+	void unref();
+
 	/*!
 	 * \brief Abstract method.  Read message contents into header
 	 * \param header Message header
 	 * \return Number of bytes copied
 	 */
 	virtual int read(struct MessageHeader *header) = 0;
+	virtual void free() = 0;
+
+	void operator delete(void *p) { ((MessageBase*)p)->free(); }
 
 private:
 	Type mType; //!< Message type
 	Task *mSender; //!< Sending task
 	Object *mTarget; //!< Target object
+
+	int mRefCount;
 };
 
 /*!
@@ -93,11 +98,18 @@ public:
 
 	void info(struct MessageInfo *info);
 
+	//! Allocator
+	void *operator new(size_t size) { return sSlab.allocate(); }
+	void operator delete(void *p) { ((Message*)p)->free(); }
+	virtual void free() { sSlab.free(this); }
+
 private:
 	struct MessageHeader mSendMsg; //!< Data area for sent message
 	struct MessageHeader mReplyMsg; //!< Data area for message reply
 	int mRet; //!< Return code
 	int mTranslateCache[MESSAGE_MAX_OBJECTS]; //!< Cache of translated objects
+
+	static Slab<Message> sSlab;
 };
 
 /*!
@@ -115,7 +127,8 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
-	void operator delete(void *p) { sSlab.free((MessageEvent*)p); }
+	void operator delete(void *p) { ((MessageEvent*)p)->free(); }
+	virtual void free() { sSlab.free(this); }
 
 private:
 	unsigned mType; //!< Event type

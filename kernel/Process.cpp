@@ -3,6 +3,7 @@
 #include "Slab.hpp"
 #include "Object.hpp"
 #include "AddressSpace.hpp"
+#include "Message.hpp"
 
 #include <string.h>
 
@@ -154,6 +155,7 @@ int Process::refMessage(Message *message)
 	for(int i=0; i<16; i++) {
 		if(mMessages[i] == NULL) {
 			mMessages[i] = message;
+			message->ref();
 			return i + 1;
 		}
 	}
@@ -167,6 +169,7 @@ int Process::refMessage(Message *message)
  */
 void Process::unrefMessage(int msg)
 {
+	mMessages[msg - 1]->unref();
 	mMessages[msg - 1] = NULL;
 }
 
@@ -186,4 +189,16 @@ int Process::refSubscription(Interrupt::Subscription *subscription)
 void Process::unrefSubscription(int sub)
 {
 	mSubscriptions[sub] = NULL;
+}
+
+void Process::addTask(Task *task)
+{
+	mTasks.addHead(task);
+	task->ref();
+}
+
+void Process::removeTask(Task *task)
+{
+	mTasks.remove(task);
+	task->unref();
 }

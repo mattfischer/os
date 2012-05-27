@@ -27,16 +27,22 @@ Object::Object(Object *parent, void *data)
 Task *Object::findReceiver()
 {
 	for(Object *object = this; object != NULL; object = object->parent()) {
-		if(!object->mReceivers.empty()) {
+		while(!object->mReceivers.empty()) {
 			// Found a receiver.  Remove it from the list and return it.
-			return object->mReceivers.removeHead();
-		} else {
-			Object *parent = object->parent();
-			if(parent) {
-				// Add this object to the end of the parent's send list
-				parent->mSendingChildren.remove(object);
-				parent->mSendingChildren.addTail(object);
+			Task *receiver = object->mReceivers.removeHead();
+			if(receiver->state() == Task::StateDead) {
+				receiver->unref();
+				continue;
+			} else {
+				return receiver;
 			}
+		}
+
+		Object *parent = object->parent();
+		if(parent) {
+			// Add this object to the end of the parent's send list
+			parent->mSendingChildren.remove(object);
+			parent->mSendingChildren.addTail(object);
 		}
 	}
 
@@ -53,8 +59,9 @@ Task *Object::findReceiver()
 int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
 	// Construct a message object, and add it to the list of pending objects
-	Message message(Sched::current(), this, *sendMsg, *replyMsg);
-	mMessages.addTail(&message);
+	Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
+	message->ref();
+	mMessages.addTail(message);
 
 	// See if any tasks are ready to receive on this object or any of its ancestors
 	Task *task = findReceiver();
@@ -65,6 +72,7 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 	if(task) {
 		// Switch to the receiving task
 		Sched::switchTo(task);
+		task->unref();
 	} else {
 		// Switch away from this task.  We will be woken up when another task attempts
 		// to receive on this object.
@@ -73,7 +81,10 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 
 	// Message receive and reply has been completed, and control has switched back
 	// to this task.  Return the code from the message reply.
-	return message.ret();
+	int ret = message->ret();
+	message->unref();
+
+	return ret;
 }
 
 /*!
@@ -93,6 +104,7 @@ void Object::post(unsigned type, unsigned value)
 	// If a receiver was found, wake it up
 	if(task) {
 		Sched::add(task);
+		task->unref();
 	}
 }
 
@@ -133,12 +145,18 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 
 		// If we found a message, then break and process it
 		if(message) {
-			break;
+			if(message->sender()->state() == Task::StateDead) {
+				message->unref();
+				continue;
+			} else {
+				break;
+			}
 		}
 
 		// Otherwise, block until a message comes in.  Add ourselves to the object's
 		// receiver list, and switch away from this task.
 		mReceivers.addTail(Sched::current());
+		Sched::current()->ref();
 		Sched::current()->setState(Task::StateReceiveBlock);
 		Sched::runNext();
 	}

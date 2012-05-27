@@ -75,8 +75,8 @@ public:
 	Object *processObject() { return mProcessObject; }
 	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
 
-	void addTask(Task *task) { mTasks.addHead(task); }
-	void removeTask(Task *task) { mTasks.remove(task); }
+	void addTask(Task *task);
+	void removeTask(Task *task);
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
