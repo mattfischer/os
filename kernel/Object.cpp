@@ -43,6 +43,7 @@ Task *Object::findReceiver()
 			// Add this object to the end of the parent's send list
 			parent->mSendingChildren.remove(object);
 			parent->mSendingChildren.addTail(object);
+			object->ref();
 		}
 	}
 
@@ -133,6 +134,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 						// This object has no sending children itself, and no messages in its queue.
 						// Therefore, it no longer belongs in its parent's sending children list.
 						object->parent()->mSendingChildren.remove(object);
+						object->unref();
 					} else {
 						// No changes need to be made to this object's parent, so no changes can
 						// occur to any further parent.  Therefore, it's ok to stop searching now.
@@ -180,13 +182,11 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 void Object::ref()
 {
 	mRefCount++;
-	post(SysEventObjectRef, 0);
 }
 
 void Object::unref()
 {
 	mRefCount--;
-	post(SysEventObjectUnref, 0);
 
 	if(mRefCount == 0) {
 		delete this;
