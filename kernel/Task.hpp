@@ -72,6 +72,8 @@ public:
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Task*)p); }
 
+	ListEntryAux<Task> mProcessListEntry;
+
 private:
 	unsigned int mRegs[16]; //!< Saved registers
 	State mState; //!< Task state

@@ -3,6 +3,7 @@
 
 #include "Slab.hpp"
 #include "Interrupt.hpp"
+#include "Task.hpp"
 
 class Object;
 class Message;
@@ -74,6 +75,9 @@ public:
 	Object *processObject() { return mProcessObject; }
 	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
 
+	void addTask(Task *task) { mTasks.addHead(task); }
+	void removeTask(Task *task) { mTasks.remove(task); }
+
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Process*)p); }
@@ -87,6 +91,7 @@ private:
 	Message *mMessages[16]; //!< Outstanding messages
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
 	Object *mProcessObject;
+	ListAux<Task, &Task::mProcessListEntry> mTasks;
 
 	static Slab<Process> sSlab;
 };

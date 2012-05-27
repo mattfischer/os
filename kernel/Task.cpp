@@ -1,6 +1,7 @@
 #include "Task.hpp"
 
 #include "Sched.hpp"
+#include "Process.hpp"
 
 #include <string.h>
 
@@ -24,6 +25,7 @@ Task::Task(Process *process, Page *stack)
 	mRegs[R_SP] = (unsigned)mStack->vaddr() + PAGE_SIZE;
 
 	mProcess = process;
+	mProcess->addTask(this);
 	mEffectiveAddressSpace = NULL;
 }
 
