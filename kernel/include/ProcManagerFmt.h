@@ -9,7 +9,8 @@ enum ProcManagerMsgType {
 	ProcManagerSpawnProcess,
 	ProcManagerSubInt,
 	ProcManagerUnsubInt,
-	ProcManagerAckInt
+	ProcManagerAckInt,
+	ProcManagerKill
 };
 
 struct ProcManagerMsgMapPhys {

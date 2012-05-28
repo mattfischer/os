@@ -2,6 +2,7 @@
 #include <Object.h>
 #include <Kernel.h>
 
+#include <stdlib.h>
 extern int main(int argc, char *argv[]);
 
 int __ProcessManager;
@@ -14,4 +15,5 @@ void _start()
   __ProcessManager = Kernel_GetObject(KernelObjectProcManager);
 
   int ret = main(argc, argv);
+  _exit(ret);
 }

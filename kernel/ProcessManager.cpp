@@ -198,6 +198,13 @@ void ProcessManager::start()
 				Message_Reply(msg, 0, NULL, 0);
 				break;
 			}
+
+			case ProcManagerKill:
+			{
+				delete process;
+				Message_Reply(msg, 0, NULL, 0);
+				break;
+			}
 		}
 	}
 }
