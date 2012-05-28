@@ -24,7 +24,8 @@ struct StartupInfo {
 class EventSubscription : public Interrupt::Subscription
 {
 public:
-	EventSubscription(Object *object, unsigned type, unsigned value)
+	EventSubscription(int irq, Object *object, unsigned type, unsigned value)
+	: Interrupt::Subscription(irq)
 	{
 		mObject = object;
 		mType = type;
@@ -205,8 +206,8 @@ void ProcessManager::start()
 
 			case ProcManagerSubInt:
 			{
-				EventSubscription *subscription = new EventSubscription(Sched::current()->process()->object(message.msg.u.subInt.object), message.msg.u.subInt.type, message.msg.u.subInt.value);
-				Interrupt::subscribe(message.msg.u.subInt.irq, subscription);
+				EventSubscription *subscription = new EventSubscription(message.msg.u.subInt.irq, Sched::current()->process()->object(message.msg.u.subInt.object), message.msg.u.subInt.type, message.msg.u.subInt.value);
+				Interrupt::subscribe(subscription);
 				Object_Release(message.msg.u.subInt.object);
 
 				int sub = process->refSubscription(subscription);
@@ -217,7 +218,7 @@ void ProcessManager::start()
 			case ProcManagerUnsubInt:
 			{
 				Interrupt::Subscription *subscription = process->subscription(message.msg.u.unsubInt.sub);
-				Interrupt::unsubscribe(message.msg.u.unsubInt.irq, subscription);
+				Interrupt::unsubscribe(subscription);
 
 				process->unrefSubscription(message.msg.u.unsubInt.sub);
 				Message_Reply(msg, 0, NULL, 0);
@@ -227,7 +228,7 @@ void ProcessManager::start()
 			case ProcManagerAckInt:
 			{
 				Interrupt::Subscription *subscription = process->subscription(message.msg.u.ackInt.sub);
-				Interrupt::acknowledge(message.msg.u.ackInt.irq, subscription);
+				Interrupt::acknowledge(subscription);
 				Message_Reply(msg, 0, NULL, 0);
 				break;
 			}

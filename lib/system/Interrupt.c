@@ -31,24 +31,22 @@ int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 	return ret;
 }
 
-void Interrupt_Unsubscribe(unsigned irq, int sub)
+void Interrupt_Unsubscribe(int sub)
 {
 	union ProcManagerMsg msg;
 	int ret;
 
 	msg.msg.type = ProcManagerUnsubInt;
-	msg.msg.u.unsubInt.irq = irq;
 	msg.msg.u.unsubInt.sub = sub;
 
 	Object_Send(__ProcessManager, &msg, sizeof(msg), &ret, sizeof(ret));
 }
 
-void Interrupt_Acknowledge(unsigned irq, int sub)
+void Interrupt_Acknowledge(int sub)
 {
 	union ProcManagerMsg msg;
 
 	msg.msg.type = ProcManagerAckInt;
-	msg.msg.u.ackInt.irq = irq;
 	msg.msg.u.ackInt.sub = sub;
 
 	Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);

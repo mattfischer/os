@@ -11,7 +11,9 @@ public:
 	class Subscription : public ListEntry
 	{
 	public:
-		Subscription() { mAcknowledged = false; }
+		Subscription(int irq);
+
+		int irq() { return mIrq; }
 
 		virtual void dispatch() = 0;
 		bool acknowledged() { return mAcknowledged; }
@@ -19,11 +21,12 @@ public:
 
 	private:
 		bool mAcknowledged;
+		int mIrq;
 	};
 
-	static void subscribe(unsigned irq, Subscription *subscription);
-	static void unsubscribe(unsigned irq, Subscription *subscription);
-	static void acknowledge(unsigned irq, Subscription *subscription);
+	static void subscribe(Subscription *subscription);
+	static void unsubscribe(Subscription *subscription);
+	static void acknowledge(Subscription *subscription);
 
 	static void dispatch();
 };

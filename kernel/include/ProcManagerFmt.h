@@ -37,12 +37,10 @@ struct ProcManagerMsgSubInt {
 };
 
 struct ProcManagerMsgUnsubInt {
-	unsigned irq;
 	int sub;
 };
 
 struct ProcManagerMsgAckInt {
-	unsigned irq;
 	int sub;
 };
 

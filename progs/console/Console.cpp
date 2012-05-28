@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 						}
 					}
 
-					Interrupt_Acknowledge(1, sub);
+					Interrupt_Acknowledge(sub);
 					break;
 				}
 			}

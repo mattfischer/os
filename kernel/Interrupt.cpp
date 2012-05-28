@@ -24,22 +24,34 @@ static void unmask(unsigned irq)
 	*PIC_IRQ_ENABLESET = 1 << irq;
 }
 
-void Interrupt::subscribe(unsigned irq, Subscription *subscription)
+Interrupt::Subscription::Subscription(int irq)
 {
+	mAcknowledged = false;
+	mIrq = irq;
+}
+
+void Interrupt::subscribe(Subscription *subscription)
+{
+	int irq = subscription->irq();
+
 	subscriptions[irq].addTail(subscription);
 	unmask(irq);
 }
 
-void Interrupt::unsubscribe(unsigned irq, Subscription *subscription)
+void Interrupt::unsubscribe(Subscription *subscription)
 {
+	int irq = subscription->irq();
+
 	subscriptions[irq].remove(subscription);
 	if(subscriptions[irq].empty()) {
 		mask(irq);
 	}
 }
 
-void Interrupt::acknowledge(unsigned irq, Subscription *subscription)
+void Interrupt::acknowledge(Subscription *subscription)
 {
+	int irq = subscription->irq();
+
 	if(!subscription->acknowledged()) {
 		subscription->setAcknowledged(true);
 		outstanding[irq]--;
