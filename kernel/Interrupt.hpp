@@ -19,6 +19,9 @@ public:
 		bool acknowledged() { return mAcknowledged; }
 		void setAcknowledged(bool acknowledged) { mAcknowledged = acknowledged; }
 
+		void operator delete(void *p) { ((Subscription*)p)->free(); }
+		virtual void free() = 0;
+
 	private:
 		bool mAcknowledged;
 		int mIrq;

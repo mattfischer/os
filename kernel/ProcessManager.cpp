@@ -39,7 +39,8 @@ public:
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
-	void operator delete(void *p) { sSlab.free((EventSubscription*)p); }
+	void operator delete(void *p) { ((EventSubscription*)p)->free(); }
+	virtual void free() { sSlab.free(this); }
 
 private:
 	Object *mObject;

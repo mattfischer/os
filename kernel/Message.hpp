@@ -92,6 +92,7 @@ public:
 	virtual int read(struct MessageHeader *header);
 
 	int reply(int ret, const struct MessageHeader *replyMsg);
+	void cancel();
 
 	void info(struct MessageInfo *info);
 

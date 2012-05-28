@@ -16,6 +16,7 @@ class AddressSpace;
 class Process {
 public:
 	Process(AddressSpace *addressSpace = NULL);
+	~Process();
 
 	/*!
 	 * \brief Address space used by this process

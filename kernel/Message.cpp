@@ -181,6 +181,12 @@ int Message::reply(int ret, const struct MessageHeader *replyMsg)
 	return 0;
 }
 
+void Message::cancel()
+{
+	MessageHeader replyMsg = { NULL, 0, 0, 0 };
+	reply(0, &replyMsg);
+}
+
 /*!
  * \brief Get information on this message
  * \param info Structure to fill

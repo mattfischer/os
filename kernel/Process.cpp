@@ -4,6 +4,7 @@
 #include "Object.hpp"
 #include "AddressSpace.hpp"
 #include "Message.hpp"
+#include "MemArea.hpp"
 
 #include <string.h>
 
@@ -25,6 +26,40 @@ Process::Process(AddressSpace *addressSpace)
 	mHeapTop = NULL;
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
+}
+
+Process::~Process()
+{
+	Task *next;
+	for(Task *task = mTasks.head(); task != NULL; task = next)
+	{
+		next = mTasks.next(task);
+		killTask(task);
+	}
+
+	delete mAddressSpace;
+
+	if(mHeap != NULL) {
+		delete mHeap;
+	}
+
+	for(int i=0; i<16; i++) {
+		unrefObject(i);
+	}
+
+	for(int i=0; i<16; i++) {
+		if(mMessages[i] != NULL) {
+			mMessages[i]->cancel();
+			unrefMessage(i);
+		}
+	}
+
+	for(int i=0; i<16; i++) {
+		if(mSubscriptions[i] != NULL) {
+			Interrupt::unsubscribe(mSubscriptions[i]);
+			delete mSubscriptions[i];
+		}
+	}
 }
 
 /*!
