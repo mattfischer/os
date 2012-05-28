@@ -25,37 +25,11 @@ public:
 	AddressSpace *addressSpace() { return mAddressSpace; }
 
 	/*!
-	 * \brief Memory area containing process heap
-	 * \return Heap
-	 */
-	MemAreaPages *heap() { return mHeap; }
-	/*!
-	 * \brief Set heap area
-	 * \param heap Heap area
-	 */
-	void setHeap(MemAreaPages *heap) { mHeap = heap; }
-
-	/*!
 	 * \brief Address of the top of the heap
 	 * \return Heap top
 	 */
 	char *heapTop() { return mHeapTop; }
-	/*!
-	 * \brief Set top of heap
-	 * \param heapTop Top of heap
-	 */
-	void setHeapTop(char *heapTop) { mHeapTop = heapTop; }
-
-	/*!
-	 * \brief Top of heap memory area
-	 * \return Heap area top
-	 */
-	char *heapAreaTop() { return mHeapAreaTop; }
-	/*!
-	 * \brief Set top of heap area
-	 * \param heapAreaTop Top of heap area
-	 */
-	void setHeapAreaTop(char *heapAreaTop) { mHeapAreaTop = heapAreaTop; }
+	void growHeap(int increment);
 
 	Object *object(int obj);
 	int refObject(Object *object);

@@ -151,43 +151,8 @@ void ProcessManager::start()
 			case ProcManagerSbrk:
 			{
 				// Expand heap request.
-				int increment = message.msg.u.sbrk.increment;
-				int ret;
-
-				if(process->heapTop() == NULL) {
-					// No heap allocated yet.  Create a new memory segment and map it
-					// into the process.
-					int size = PAGE_SIZE_ROUND_UP(increment);
-
-					process->setHeap(new MemAreaPages(size));
-					process->setHeapTop((char*)(0x10000000 + increment));
-					process->setHeapAreaTop((char*)(0x10000000 + size));
-					process->addressSpace()->map(process->heap(), (void*)0x10000000, 0, size);
-					ret = 0x10000000;
-				} else {
-					if(process->heapTop() + increment < process->heapAreaTop()) {
-						// Request can be serviced without expanding the heap area.  Just
-						// record the new heap top and return.
-						ret = (int)process->heapTop();
-						process->setHeapTop(process->heapTop() + increment);
-					} else {
-						// We must expand the heap area in order to service the request.
-						int size = PAGE_SIZE_ROUND_UP(increment);
-						int extraPages = size >> PAGE_SHIFT;
-
-						// Allocate new pages, link them into the heap area, and map them into the process
-						for(int i=0; i<extraPages; i++) {
-							Page *page = Page::alloc();
-							process->heap()->pages().addTail(page);
-							process->addressSpace()->pageTable()->mapPage(process->heapAreaTop(), page->paddr(), PageTable::PermissionRW);
-							process->setHeapAreaTop(process->heapAreaTop() + PAGE_SIZE);
-						}
-
-						// Return old heap top, and increment.
-						ret = (int)process->heapTop();
-						process->setHeapTop(process->heapTop() + increment);
-					}
-				}
+				int ret = (int)process->heapTop();
+				process->growHeap(message.msg.u.sbrk.increment);
 
 				Message_Reply(msg, ret, NULL, 0);
 				break;
