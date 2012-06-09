@@ -2,3 +2,4 @@ def build(ctx):
 	ctx.userprogram(target='clientA', source='ClientA.c')
 	ctx.userprogram(target='clientB', source='ClientB.c')
 	ctx.userprogram(target='echo', source='Echo.c')
+	ctx.userprogram(target='hello', source='Hello.c')

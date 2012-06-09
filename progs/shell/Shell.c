@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 char cwd[PATH_MAX];
 char dir[PATH_MAX];
@@ -92,6 +93,19 @@ void cd(const char *cmd)
 	strcpy(cwd, dir);
 }
 
+void runProgram(const char *cmd)
+{
+	struct stat st;
+
+	sprintf(dir, "%s/%s", cwd, cmd);
+	if(stat(dir, &st) != 0 || !S_ISREG(st.st_mode)) {
+		printf("%s is not an executable program\n", cmd);
+		return;
+	}
+
+	SpawnProcess(dir, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
+}
+
 void processCommand(const char *cmd)
 {
 	if(strncmp(cmd, "ls", 2) == 0) {
@@ -101,7 +115,7 @@ void processCommand(const char *cmd)
 	} else if(strncmp(cmd, "pwd", 3) == 0) {
 		printf("%s\n", cwd);
 	} else {
-		printf("Invalid command '%s'\n", cmd);
+		runProgram(cmd);
 	}
 }
 

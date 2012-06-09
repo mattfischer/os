@@ -56,7 +56,7 @@ void _exit(int code)
 {
 	union ProcManagerMsg msg;
 
-	msg.msg.type = ProcManagerSbrk;
+	msg.msg.type = ProcManagerKill;
 	Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
 	while(1) {}
 }
