@@ -103,7 +103,14 @@ vecSWI:
 
 vecPrefetchAbort:
 vecDataAbort:
-	b vecDataAbort
+	# Abort entry.  Switch back to Supervisor mode, and transfer
+	# to C++ abort handler
+	mrs r2, cpsr
+	bic r2, #0xf
+	orr r2, #0x3
+	msr cpsr, r2
+	ldr ip, AbortEntryAddr
+	bx ip
 
 vecIRQ:
 	# IRQ entry. Save the caller-saved registers
@@ -124,5 +131,7 @@ SysEntryAddr:
 	.word SysEntry
 IRQEntryAddr:
 	.word IRQEntry
+AbortEntryAddr:
+	.word AbortEntry
 .globl vectorEnd
 vectorEnd:

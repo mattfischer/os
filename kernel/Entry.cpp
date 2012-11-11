@@ -2,7 +2,13 @@
 #include "ProcessManager.hpp"
 #include "Interrupt.hpp"
 #include "Page.hpp"
+#include "Sched.hpp"
+#include "Task.hpp"
+#include "Process.hpp"
+#include "Object.hpp"
 
+#include "include/ProcManagerFmt.h"
+#include "include/MessageFmt.h"
 #include "include/Syscalls.h"
 
 /*!
@@ -15,6 +21,7 @@ extern "C" {
 	void Entry();
 	int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3);
 	void IRQEntry();
+	void AbortEntry();
 }
 
 // These symbols are created in the linker script, to point to the constructor list.
@@ -58,7 +65,31 @@ int SysEntry(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned i
 	return Kernel::syscall(code, arg0, arg1, arg2, arg3);
 }
 
+/*!
+ * \brief IRQ entry point for C++ code, called from assembly shim
+ */
 void IRQEntry()
 {
 	Interrupt::dispatch();
+}
+
+/*!
+ * \brief Abort entry point for C++ code, called from assembly shim
+ */
+void AbortEntry()
+{
+	// Just kill the process
+	Object *object = Sched::current()->process()->processObject();
+	ProcManagerMsg message;
+
+	message.msg.type = ProcManagerKill;
+
+	struct BufferSegment sendSegs[] = { &message, sizeof(message) };
+	struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
+	struct BufferSegment replySegs[] = { NULL, 0 };
+	struct MessageHeader replyMsg = { replySegs, 1, 0, 0 };
+
+	object->send(&sendMsg, &replyMsg);
+
+	// Poof!
 }

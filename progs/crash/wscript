@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.userprogram(target='crash', source='Crash.c')

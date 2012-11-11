@@ -82,4 +82,4 @@ def build(ctx):
 
 	ctx.add_group('kernel')
 	ctx.recurse('kernel')
-	ctx.initfs(files='init console name clientA clientB echo shell hello', attach='kernel')
+	ctx.initfs(files='init console name clientA clientB echo shell hello crash', attach='kernel')
