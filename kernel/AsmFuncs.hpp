@@ -9,6 +9,7 @@ extern "C" {
 	void SwitchToAsm(unsigned *regsCurrent, unsigned *regsNext);
 	void RunFirstAsm(unsigned *regs);
 	void FlushTLB();
+	void WaitForInterrupt();
 }
 
 #endif

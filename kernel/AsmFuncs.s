@@ -86,3 +86,12 @@ clearLoop:
 
 	# Poof!
 .size EnterUser, . - EnterUser
+
+# Wait for an interrupt to be received
+.globl WaitForInterrupt
+.type WaitForInterrupt,%function
+WaitForInterrupt:
+	mov r0, #0
+	wfi
+	bx lr
+.size WaitForInterrupt, . - WaitForInterrupt
