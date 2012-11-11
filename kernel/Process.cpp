@@ -131,7 +131,9 @@ int Process::refObject(Object *object)
 		if(mObjects[i] == NULL) {
 			mObjects[i] = object;
 			object->ref();
-			object->post(SysEventObjectRef, 0);
+			if(object->owner() != this) {
+				object->clientRef();
+			}
 			return i;
 		}
 	}
@@ -153,8 +155,10 @@ int Process::refObjectTo(int obj, Object *object)
 	}
 
 	mObjects[obj] = object;
-	object->ref();
-	object->post(SysEventObjectRef, 0);
+	mObjects[obj]->ref();
+	if(mObjects[obj]->owner() != this) {
+		mObjects[obj]->clientRef();
+	}
 
 	return obj;
 }
@@ -170,7 +174,12 @@ void Process::unrefObject(int obj)
 	}
 
 	if(mObjects[obj]) {
-		mObjects[obj]->post(SysEventObjectUnref, 0);
+		if(mObjects[obj]->owner() != this) {
+			mObjects[obj]->clientUnref();
+			if(mObjects[obj]->clientRefCount() == 0) {
+				mObjects[obj]->post(SysEventObjectClosed, 0);
+			}
+		}
 		mObjects[obj]->unref();
 		mObjects[obj] = NULL;
 	}

@@ -25,6 +25,7 @@ struct NameEntry {
 
 struct OpenDir {
 	struct NameEntry *entry;
+	int obj;
 	int entryIdx;
 	vector<int> objects;
 	int objectIdx;
@@ -198,6 +199,20 @@ int main(int argc, char *argv[])
 		m = Object_Receive(obj, &msg, sizeof(msg));
 
 		if(m == 0) {
+			switch(msg.event.type) {
+				case SysEventObjectClosed:
+				{
+					struct OpenDir *openDir = (struct OpenDir*)msg.event.targetData;
+					if(openDir) {
+						for(int i = 0; i < openDir->objects.size(); i++) {
+							Object_Release(openDir->objects[i]);
+						}
+						Object_Release(openDir->obj);
+						delete openDir;
+					}
+					break;
+				}
+			}
 			continue;
 		}
 
@@ -236,11 +251,11 @@ int main(int argc, char *argv[])
 					int ret = OBJECT_INVALID;
 					if(openDir) {
 						ret = Object_Create(obj, openDir);
+						openDir->obj = ret;
 					}
 					struct BufferSegment segs[] = { &ret, sizeof(ret) };
 					struct MessageHeader hdr = { segs, 1, 0, 1 };
 					Message_Replyx(m, 0, &hdr);
-					Object_Release(ret);
 					break;
 				}
 

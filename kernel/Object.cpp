@@ -16,11 +16,13 @@ Slab<Object> Object::sSlab;
  * \param parent Object parent, or NULL
  * \param data Arbitrary data pointer
  */
-Object::Object(Object *parent, void *data)
+Object::Object(Process *owner, Object *parent, void *data)
 {
+	mOwner = owner;
 	mParent = parent;
 	mData = data;
 	mRefCount = 0;
+	mClientRefCount = 0;
 }
 
 // Find an object in the hierarchy which is ready to receive a message
@@ -193,6 +195,16 @@ void Object::unref()
 	}
 }
 
+void Object::clientRef()
+{
+	mClientRefCount++;
+}
+
+void Object::clientUnref()
+{
+	mClientRefCount--;
+}
+
 /*!
  * \brief Create an object
  * \param parent Object parent
@@ -201,8 +213,9 @@ void Object::unref()
  */
 int Object_Create(int parent, void *data)
 {
-	Object *p = Sched::current()->process()->object(parent);
-	Object *object = new Object(p, data);
+	Process *owner = Sched::current()->process();
+	Object *p = owner->object(parent);
+	Object *object = new Object(owner, p, data);
 	return Sched::current()->process()->refObject(object);
 }
 

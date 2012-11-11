@@ -26,8 +26,7 @@ struct Event {
 };
 
 enum SysEvent {
-	SysEventObjectRef,
-	SysEventObjectUnref,
+	SysEventObjectClosed,
 	SysEventLast
 };
 

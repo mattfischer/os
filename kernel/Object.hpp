@@ -9,13 +9,14 @@
 class Task;
 class MessageBase;
 class Message;
+class Process;
 
 /*!
  * \brief A kernel object, to which userspace can send/receive messages
  */
 class Object : public ListEntry {
 public:
-	Object(Object *parent, void *data);
+	Object(Process *owner, Object *parent, void *data);
 
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	void post(unsigned type, unsigned value);
@@ -23,6 +24,10 @@ public:
 
 	void ref();
 	void unref();
+
+	void clientRef();
+	void clientUnref();
+	int clientRefCount() { return mClientRefCount; }
 
 	/*!
 	 * \brief Get parent of this object
@@ -34,6 +39,11 @@ public:
 	 * \return Data
 	 */
 	void *data() { return mData; }
+	/*!
+	 * \brief Get owning process
+	 * \return Owner
+	 */
+	Process *owner() { return mOwner; }
 
 	//! Allocator
 	void *operator new(size_t) { return sSlab.allocate(); }
@@ -45,7 +55,9 @@ private:
 	List<Object> mSendingChildren; //!< List of children which have pending messages
 	void *mData; //!< Arbitrary data associated with object
 	Object *mParent; //!< Parent of this object
-	int mRefCount;
+	Process *mOwner; //!< Owning process
+	int mRefCount; //!< Ref count
+	int mClientRefCount; //!< Client ref count
 
 	Task *findReceiver();
 

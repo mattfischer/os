@@ -89,7 +89,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	Object *processObject = new Object(Kernel::process()->object(manager), process);
+	Object *processObject = new Object(Kernel::process(), Kernel::process()->object(manager), process);
 	process->setProcessObject(processObject);
 
 	// Create a task within the process, and copy the startup info into it

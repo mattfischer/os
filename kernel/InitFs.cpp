@@ -88,6 +88,7 @@ enum InfoType {
 
 struct Info {
 	InfoType type;
+	int obj;
 	union {
 		FileInfo file;
 		DirInfo dir;
@@ -109,6 +110,16 @@ static void server(void *param)
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
+				case SysEventObjectClosed:
+				{
+					Info *info = (Info*)msg.name.event.targetData;
+					if(info) {
+						Object_Release(info->obj);
+						infoSlab.free(info);
+					}
+					break;
+				}
+
 				case RegisterEvent:
 				{
 					// The new name server has been started.  Connect this file server
@@ -157,6 +168,7 @@ static void server(void *param)
 							info->u.file.size = size;
 							info->u.file.pointer = 0;
 							obj = Object_Create(fileServer, info);
+							info->obj = obj;
 						}
 					}
 
@@ -202,6 +214,7 @@ static void server(void *param)
 						info->type = InfoTypeDir;
 						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
 						obj = Object_Create(fileServer, info);
+						info->obj = obj;
 					}
 
 					struct BufferSegment segs[] = { &obj, sizeof(obj) };
