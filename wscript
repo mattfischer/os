@@ -22,8 +22,8 @@ def configure(ctx):
 	ctx.find_program('arm-none-eabi-objcopy', var='OBJCOPY')
 
 	ctx.load('gcc gxx gas')
-	ctx.env.append_value('CPPFLAGS', '-g')
-	ctx.env.append_value('CXXFLAGS', ['-fno-exceptions', '-fno-rtti'])
+	ctx.env.append_value('CFLAGS', ['-g', '-Werror'])
+	ctx.env.append_value('CXXFLAGS', ['-g', '-fno-exceptions', '-fno-rtti', '-Werror'])
 	ctx.env.cxxprogram_PATTERN = '%s'
 	ctx.env.LINKFLAGS = ''
 

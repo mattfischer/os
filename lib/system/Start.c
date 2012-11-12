@@ -3,6 +3,7 @@
 #include <Kernel.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 extern int main(int argc, char *argv[]);
 
 void _start()
