@@ -19,7 +19,7 @@ void Name_Set(const char *name, int obj)
 	strcpy(msg.msg.u.set.name, name);
 	msg.msg.u.set.obj = obj;
 
-	server = Kernel_GetObject(KernelObjectNameServer);
+	server = Kernel_GetNameServer();
 
 	Object_Sendxs(server, &hdr, NULL, 0);
 	Object_Release(server);
@@ -35,7 +35,7 @@ int Name_Lookup(const char *name)
 	msgSend.msg.type = NameMsgTypeLookup;
 	strcpy(msgSend.msg.u.lookup.name, name);
 
-	server = Kernel_GetObject(KernelObjectNameServer);
+	server = Kernel_GetNameServer();
 
 	Object_Send(server, &msgSend, sizeof(msgSend), &object, sizeof(object));
 	Object_Release(server);
@@ -50,7 +50,7 @@ int Name_Open(const char *name)
 	int ret;
 	int server;
 
-	server = Kernel_GetObject(KernelObjectNameServer);
+	server = Kernel_GetNameServer();
 
 	msg.msg.type = NameMsgTypeOpen;
 	strcpy(msg.msg.u.open.name, name);
@@ -68,7 +68,7 @@ int Name_OpenDir(const char *name)
 	int ret;
 	int server;
 
-	server = Kernel_GetObject(KernelObjectNameServer);
+	server = Kernel_GetNameServer();
 
 	msg.msg.type = NameMsgTypeOpenDir;
 	strcpy(msg.msg.u.open.name, name);
@@ -91,7 +91,7 @@ void Name_Wait(const char *name)
 
 	ret = -1;
 	while(ret == -1) {
-		server = Kernel_GetObject(KernelObjectNameServer);
+		server = Kernel_GetNameServer();
 		ret = Object_Send(server, &msg, sizeof(msg), NULL, 0);
 		Object_Release(server);
 	}

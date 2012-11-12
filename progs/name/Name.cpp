@@ -189,8 +189,7 @@ struct OpenDir *createOpenDir(const char *name)
 int main(int argc, char *argv[])
 {
 	int obj = Object_Create(OBJECT_INVALID, NULL);
-
-	Kernel_SetObject(KernelObjectNameServer, obj);
+	Kernel_SetNameServer(obj);
 
 	while(1) {
 		union NameMsg msg;

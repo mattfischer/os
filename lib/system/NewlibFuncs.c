@@ -2,12 +2,12 @@
 #include <IO.h>
 #include <Name.h>
 
+#include "Internal.h"
+
 #include <kernel/include/ProcManagerFmt.h>
 
 #include <sys/stat.h>
 #include <stddef.h>
-
-extern int __ProcessManager;
 
 int _open(const char *name, int flags, int mode)
 {
@@ -20,7 +20,7 @@ void *_sbrk(int inc)
 
 	msg.msg.type = ProcManagerSbrk;
 	msg.msg.u.sbrk.increment = inc;
-	return (void*)Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
+	return (void*)Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
 }
 
 int _write(int fd, char *buffer, int len)
@@ -57,7 +57,7 @@ void _exit(int code)
 	union ProcManagerMsg msg;
 
 	msg.msg.type = ProcManagerKill;
-	Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
+	Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
 	while(1) {}
 }
 

@@ -16,8 +16,8 @@ enum Syscall {
 	SyscallMessageRead,
 	SyscallMessageReply,
 	SyscallMessageInfo,
-	SyscallKernelGetObject,
-	SyscallKernelSetObject
+	SyscallKernelGetNameServer,
+	SyscallKernelSetNameServer
 };
 
 #endif

@@ -7,8 +7,8 @@
 extern "C" {
 #endif
 
-int Kernel_GetObject(enum KernelObject idx);
-void Kernel_SetObject(enum KernelObject idx, int obj);
+int Kernel_GetNameServer();
+void Kernel_SetNameServer(int obj);
 
 #ifdef __cplusplus
 }

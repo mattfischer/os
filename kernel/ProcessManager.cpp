@@ -81,16 +81,19 @@ static void startUser(void *param)
 // Start the named process in userspace
 static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
-	// Create a new process, and duplicate the handles into it
+	// Create a new process
 	Process *process = new Process();
-	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
-	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
-	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
 	Object *processObject = new Object(Kernel::process(), Kernel::process()->object(manager), process);
 	process->setProcessObject(processObject);
+
+	// Duplicate handles into the newly-created process
+	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
+	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
+	process->refObjectTo(3, processObject);
 
 	// Create a task within the process, and copy the startup info into it
 	Task *task = process->newTask();

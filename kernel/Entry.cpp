@@ -79,17 +79,9 @@ void IRQEntry()
 void AbortEntry()
 {
 	// Just kill the process
-	Object *object = Sched::current()->process()->processObject();
 	ProcManagerMsg message;
-
 	message.msg.type = ProcManagerKill;
-
-	struct BufferSegment sendSegs[] = { &message, sizeof(message) };
-	struct MessageHeader sendMsg = { sendSegs, 1, 0, 0 };
-	struct BufferSegment replySegs[] = { NULL, 0 };
-	struct MessageHeader replyMsg = { replySegs, 1, 0, 0 };
-
-	object->send(&sendMsg, &replyMsg);
+	Object_Send(3, &message, sizeof(message), NULL, 0);
 
 	// Poof!
 }

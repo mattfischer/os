@@ -27,7 +27,7 @@ int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 	hdr.objectsOffset = offsetof(union ProcManagerMsg, msg.u.subInt.object);
 	hdr.objectsSize = 1;
 
-	Object_Sendxs(__ProcessManager, &hdr, &ret, sizeof(ret));
+	Object_Sendxs(PROCMAN_NO, &hdr, &ret, sizeof(ret));
 	return ret;
 }
 
@@ -39,7 +39,7 @@ void Interrupt_Unsubscribe(int sub)
 	msg.msg.type = ProcManagerUnsubInt;
 	msg.msg.u.unsubInt.sub = sub;
 
-	Object_Send(__ProcessManager, &msg, sizeof(msg), &ret, sizeof(ret));
+	Object_Send(PROCMAN_NO, &msg, sizeof(msg), &ret, sizeof(ret));
 }
 
 void Interrupt_Acknowledge(int sub)
@@ -49,5 +49,5 @@ void Interrupt_Acknowledge(int sub)
 	msg.msg.type = ProcManagerAckInt;
 	msg.msg.u.ackInt.sub = sub;
 
-	Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
+	Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
 }

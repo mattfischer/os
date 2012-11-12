@@ -70,37 +70,6 @@ void Kernel::init()
 }
 
 /*!
- * \brief Set a special kernel object
- * \param idx Kernel object index
- * \param obj Object index
- */
-void Kernel::setObject(enum KernelObject idx, int obj)
-{
-	switch(idx) {
-		case KernelObjectNameServer:
-			InitFs::setNameServer(Sched::current()->process()->object(obj));
-			break;
-	}
-}
-
-int Kernel::getObject(enum KernelObject idx)
-{
-	Object *obj;
-
-	switch(idx) {
-		case KernelObjectProcManager:
-			obj = Sched::current()->process()->processObject();
-			break;
-
-		case KernelObjectNameServer:
-			obj = InitFs::nameServer();
-			break;
-	}
-
-	return Sched::current()->process()->refObject(obj);
-}
-
-/*!
  * \brief Syscall handler
  */
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
@@ -137,23 +106,23 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			Message_Info(arg0, (struct MessageInfo*)arg1);
 			return 0;
 
-		case SyscallKernelGetObject:
-			return Kernel_GetObject((KernelObject)arg0);
+		case SyscallKernelGetNameServer:
+			return Kernel_GetNameServer();
 
-		case SyscallKernelSetObject:
-			Kernel_SetObject((KernelObject)arg0, (int)arg1);
+		case SyscallKernelSetNameServer:
+			Kernel_SetNameServer(arg0);
 			return 0;
 	}
 }
 
-int Kernel_GetObject(enum KernelObject idx)
+int Kernel_GetNameServer()
 {
-	return Kernel::getObject(idx);
+	return Sched::current()->process()->refObject(InitFs::nameServer());
 }
 
-void Kernel_SetObject(enum KernelObject idx, int obj)
+void Kernel_SetNameServer(int obj)
 {
-	Kernel::setObject(idx, obj);
+	InitFs::setNameServer(Sched::current()->process()->object(obj));
 }
 
 /*!

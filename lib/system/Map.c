@@ -15,5 +15,5 @@ void MapPhys(void *vaddr, unsigned int paddr, unsigned int size)
 	msg.msg.u.mapPhys.vaddr = (unsigned int)vaddr;
 	msg.msg.u.mapPhys.paddr = paddr;
 	msg.msg.u.mapPhys.size = size;
-	Object_Send(__ProcessManager, &msg, sizeof(msg), NULL, 0);
+	Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
 }
