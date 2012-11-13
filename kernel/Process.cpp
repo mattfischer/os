@@ -30,6 +30,7 @@ Process::Process(AddressSpace *addressSpace)
 	mHeapAreaTop = HEAP_START;
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
+	memset(mWaiters, 0, sizeof(int) * 16);
 }
 
 Process::~Process()
@@ -273,6 +274,16 @@ int Process::refSubscription(Interrupt::Subscription *subscription)
 void Process::unrefSubscription(int sub)
 {
 	mSubscriptions[sub] = NULL;
+}
+
+void Process::addWaiter(int msg)
+{
+	for(int i=0; i<16; i++) {
+		if(mWaiters[i] == 0) {
+			mWaiters[i] = msg;
+			break;
+		}
+	}
 }
 
 Task *Process::newTask(Page *stack)

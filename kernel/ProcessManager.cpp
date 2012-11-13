@@ -79,7 +79,7 @@ static void startUser(void *param)
 }
 
 // Start the named process in userspace
-static void startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
+static Process *startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
 	// Create a new process
 	Process *process = new Process();
@@ -104,6 +104,7 @@ static void startUserProcess(const char *name, int stdinObject, int stdoutObject
 	// Start the task--it will load the executable on its own thread, to avoid
 	// blocking this task.
 	task->start(startUser, startupInfo);
+	return process;
 }
 
 // Main task for process manager
@@ -164,12 +165,16 @@ void ProcessManager::start()
 			case ProcManagerSpawnProcess:
 			{
 				// Spawn a new process.
-				startUserProcess(message.msg.u.spawn.name, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				Process *childProcess = startUserProcess(message.msg.u.spawn.name, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
 				Object_Release(message.msg.u.spawn.stdinObject);
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
 
-				Message_Reply(msg, 0, NULL, 0);
+				int obj = Kernel::process()->refObject(childProcess->processObject());
+				struct BufferSegment replySegs[] = { &obj, sizeof(obj) };
+				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
+				Message_Replyx(msg, 0, &replyHdr);
+				Object_Release(obj);
 				break;
 			}
 
@@ -204,8 +209,20 @@ void ProcessManager::start()
 
 			case ProcManagerKill:
 			{
+				for(int i=0; i<16; i++) {
+					int m = process->waiter(i);
+					if(m != 0) {
+						Message_Reply(m, 0, NULL, 0);
+					}
+				}
 				delete process;
 				Message_Reply(msg, 0, NULL, 0);
+				break;
+			}
+
+			case ProcManagerWait:
+			{
+				process->addWaiter(msg);
 				break;
 			}
 		}

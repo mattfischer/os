@@ -103,7 +103,8 @@ void runProgram(const char *cmd)
 		return;
 	}
 
-	SpawnProcess(dir, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
+	int child = SpawnProcess(dir, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
+	WaitProcess(child);
 }
 
 void processCommand(const char *cmd)

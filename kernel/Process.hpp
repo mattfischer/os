@@ -47,6 +47,9 @@ public:
 	int refSubscription(Interrupt::Subscription *subscription);
 	void unrefSubscription(int sub);
 
+	void addWaiter(int msg);
+	int waiter(int waiter) { return mWaiters[waiter]; }
+
 	Object *processObject() { return mProcessObject; }
 	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
 
@@ -64,6 +67,7 @@ private:
 	char *mHeapAreaTop; //!< Top of heap area
 	Object *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
+	int mWaiters[16]; //!< Waiting processes
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
 	Object *mProcessObject;
 	ListAux<Task, &Task::mProcessListEntry> mTasks;

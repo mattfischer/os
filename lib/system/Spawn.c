@@ -9,11 +9,12 @@
 #include <string.h>
 #include <stddef.h>
 
-void SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
+int SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
 {
 	struct MessageHeader hdr;
 	union ProcManagerMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
+	int child;
 
 	msg.msg.type = ProcManagerSpawnProcess;
 	strcpy(msg.msg.u.spawn.name, name);
@@ -26,5 +27,13 @@ void SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stder
 	hdr.objectsOffset = offsetof(union ProcManagerMsg, msg.u.spawn.stdinObject);
 	hdr.objectsSize = 3;
 
-	Object_Sendxs(PROCMAN_NO, &hdr, NULL, 0);
+	Object_Sendxs(PROCMAN_NO, &hdr, &child, sizeof(child));
+	return child;
+}
+
+void WaitProcess(int process)
+{
+	union ProcManagerMsg msg;
+	msg.msg.type = ProcManagerWait;
+	Object_Send(process, &msg, sizeof(msg), NULL, 0);
 }
