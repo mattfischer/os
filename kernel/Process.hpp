@@ -15,8 +15,15 @@ class AddressSpace;
  */
 class Process {
 public:
+	enum State {
+		StateRunning, //!< Running
+		StateDead     //!< Dead
+	};
+
 	Process(AddressSpace *addressSpace = NULL);
 	~Process();
+
+	State state() { return mState; }
 
 	/*!
 	 * \brief Address space used by this process
@@ -50,11 +57,13 @@ public:
 	void addWaiter(int msg);
 	int waiter(int waiter) { return mWaiters[waiter]; }
 
-	Object *processObject() { return mProcessObject; }
-	void setProcessObject(Object *processObject) { mProcessObject = processObject; }
+	int processObject() { return mProcessObject; }
+	void setProcessObject(int processObject) { mProcessObject = processObject; }
 
 	Task *newTask(Page *stack = NULL);
 	void killTask(Task *task);
+
+	void kill();
 
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
@@ -69,8 +78,9 @@ private:
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
-	Object *mProcessObject;
+	int mProcessObject;
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
+	State mState;
 
 	static Slab<Process> sSlab;
 };

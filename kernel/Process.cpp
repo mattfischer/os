@@ -28,6 +28,7 @@ Process::Process(AddressSpace *addressSpace)
 	mHeap = NULL;
 	mHeapTop = HEAP_START;
 	mHeapAreaTop = HEAP_START;
+	mState = StateRunning;
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
 	memset(mWaiters, 0, sizeof(int) * 16);
@@ -35,36 +36,6 @@ Process::Process(AddressSpace *addressSpace)
 
 Process::~Process()
 {
-	Task *next;
-	for(Task *task = mTasks.head(); task != NULL; task = next)
-	{
-		next = mTasks.next(task);
-		killTask(task);
-	}
-
-	delete mAddressSpace;
-
-	if(mHeap != NULL) {
-		delete mHeap;
-	}
-
-	for(int i=0; i<16; i++) {
-		unrefObject(i);
-	}
-
-	for(int i=0; i<16; i++) {
-		if(mMessages[i] != NULL) {
-			mMessages[i]->cancel();
-			unrefMessage(i);
-		}
-	}
-
-	for(int i=0; i<16; i++) {
-		if(mSubscriptions[i] != NULL) {
-			Interrupt::unsubscribe(mSubscriptions[i]);
-			delete mSubscriptions[i];
-		}
-	}
 }
 
 void Process::growHeap(int increment)
@@ -300,4 +271,40 @@ void Process::killTask(Task *task)
 	task->kill();
 	mTasks.remove(task);
 	task->unref();
+}
+
+void Process::kill()
+{
+	mState = StateDead;
+
+	Task *next;
+	for(Task *task = mTasks.head(); task != NULL; task = next)
+	{
+		next = mTasks.next(task);
+		killTask(task);
+	}
+
+	delete mAddressSpace;
+
+	if(mHeap != NULL) {
+		delete mHeap;
+	}
+
+	for(int i=0; i<16; i++) {
+		unrefObject(i);
+	}
+
+	for(int i=0; i<16; i++) {
+		if(mMessages[i] != NULL) {
+			mMessages[i]->cancel();
+			unrefMessage(i);
+		}
+	}
+
+	for(int i=0; i<16; i++) {
+		if(mSubscriptions[i] != NULL) {
+			Interrupt::unsubscribe(mSubscriptions[i]);
+			delete mSubscriptions[i];
+		}
+	}
 }

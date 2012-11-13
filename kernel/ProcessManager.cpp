@@ -86,14 +86,14 @@ static Process *startUserProcess(const char *name, int stdinObject, int stdoutOb
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	Object *processObject = new Object(Kernel::process(), Kernel::process()->object(manager), process);
+	int processObject = Object_Create(manager, process);
 	process->setProcessObject(processObject);
 
 	// Duplicate handles into the newly-created process
 	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
 	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
 	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
-	process->refObjectTo(3, processObject);
+	process->dupObjectRefTo(3, Sched::current()->process(), processObject);
 
 	// Create a task within the process, and copy the startup info into it
 	Task *task = process->newTask();
@@ -130,7 +130,15 @@ void ProcessManager::start()
 		int msg = Object_Receivex(manager, &recvHdr);
 
 		if(msg == 0) {
-			// Received an event--ignore it.
+			switch(message.event.type) {
+				case SysEventObjectClosed:
+				{
+					Process *process = (Process*)message.event.targetData;
+					Object_Release(process->processObject());
+					delete process;
+					break;
+				}
+			}
 			continue;
 		}
 
@@ -170,7 +178,7 @@ void ProcessManager::start()
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
 
-				int obj = Kernel::process()->refObject(childProcess->processObject());
+				int obj = childProcess->processObject();
 				struct BufferSegment replySegs[] = { &obj, sizeof(obj) };
 				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
 				Message_Replyx(msg, 0, &replyHdr);
@@ -215,7 +223,7 @@ void ProcessManager::start()
 						Message_Reply(m, 0, NULL, 0);
 					}
 				}
-				delete process;
+				process->kill();
 				Message_Reply(msg, 0, NULL, 0);
 				break;
 			}
