@@ -61,7 +61,6 @@ public:
 	void setProcessObject(int processObject) { mProcessObject = processObject; }
 
 	Task *newTask(Page *stack = NULL);
-	void killTask(Task *task);
 
 	void kill();
 

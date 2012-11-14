@@ -266,13 +266,6 @@ Task *Process::newTask(Page *stack)
 	return task;
 }
 
-void Process::killTask(Task *task)
-{
-	task->kill();
-	mTasks.remove(task);
-	task->unref();
-}
-
 void Process::kill()
 {
 	mState = StateDead;
@@ -281,7 +274,9 @@ void Process::kill()
 	for(Task *task = mTasks.head(); task != NULL; task = next)
 	{
 		next = mTasks.next(task);
-		killTask(task);
+		task->kill();
+		mTasks.remove(task);
+		task->unref();
 	}
 
 	delete mAddressSpace;
