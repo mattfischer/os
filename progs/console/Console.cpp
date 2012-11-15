@@ -4,6 +4,7 @@
 #include <Name.h>
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include <kernel/include/IOFmt.h>
 #include <kernel/include/NameFmt.h>
@@ -11,11 +12,12 @@
 #include <algorithm>
 #include <list>
 
-#define UARTBASE (volatile unsigned*)0x16000000
-#define UARTDR   (UARTBASE + 0)
-#define UARTIMSC (UARTBASE + 14)
-#define UARTMIS  (UARTBASE + 16)
-#define UARTICR  (UARTBASE + 17)
+volatile unsigned *uartbase;
+
+#define UARTDR   (uartbase + 0)
+#define UARTIMSC (uartbase + 14)
+#define UARTMIS  (uartbase + 16)
+#define UARTICR  (uartbase + 17)
 
 struct Waiter {
 	int m;
@@ -67,7 +69,8 @@ int main(int argc, char *argv[])
 
 	Name_Set("/dev/console", obj);
 
-	MapPhys((void*)UARTBASE, 0x16000000, 4096);
+	sscanf(argv[1], "0x%x", &uartbase);
+	MapPhys((void*)uartbase, (int)uartbase, 4096);
 	*UARTIMSC = 0x10;
 	sub = Interrupt_Subscribe(1, obj, IRQEvent, 0);
 

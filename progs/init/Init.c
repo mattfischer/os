@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
 	int console;
 	int child;
-	const char *childArgv[2];
+	const char *childArgv[3];
 
 	childArgv[0] = "/boot/name";
 	childArgv[1] = NULL;
@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
 	Object_Release(child);
 
 	childArgv[0] = "/boot/console";
-	childArgv[1] = NULL;
+	childArgv[1] = "0x16000000";
+	childArgv[2] = NULL;
 	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
 
