@@ -12,6 +12,7 @@
 #include "Interrupt.hpp"
 #include "MemArea.hpp"
 #include "PageTable.hpp"
+#include "Log.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
 
@@ -120,6 +121,10 @@ void ProcessManager::start()
 	// Start the InitFs file server, to serve up files from the
 	// built-in filesystem that is compiled into the kernel
 	InitFs::start();
+
+	Log::start();
+
+	Log::puts("Log initialized\n");
 
 	// Kernel initialization is now complete.  Start the first userspace process.
 	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);

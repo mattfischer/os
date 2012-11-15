@@ -17,7 +17,8 @@ def build(ctx):
 				'ProcessManager.cpp',
 				'AsmFuncs.s',
 				'EntryAsm.s',
-				'Interrupt.cpp']
+				'Interrupt.cpp',
+				'Log.cpp']
 
 	ldscript = ctx.path.find_resource('ldscript')
 	ctx.crossprogram(target='kernel', source=source, use='shared', linkflags = '-nostdlib -T %s' % ldscript.bldpath())

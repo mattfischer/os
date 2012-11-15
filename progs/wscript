@@ -1,2 +1,2 @@
 def build(ctx):
-	ctx.recurse('init console name test shell crash')
+	ctx.recurse('init console name test shell crash log')
