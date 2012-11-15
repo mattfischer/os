@@ -24,8 +24,9 @@ struct ProcManagerMsgSbrk {
 	unsigned int increment;
 };
 
+#define PROC_MANAGER_CMDLINE_LEN 64
 struct ProcManagerMsgSpawnProcess {
-	char name[20];
+	char cmdline[PROC_MANAGER_CMDLINE_LEN];
 	int stdinObject;
 	int stdoutObject;
 	int stderrObject;

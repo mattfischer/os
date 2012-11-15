@@ -18,7 +18,7 @@
 #include <string.h>
 
 struct StartupInfo {
-	char name[16];
+	char cmdline[PROC_MANAGER_CMDLINE_LEN];
 };
 
 class EventSubscription : public Interrupt::Subscription
@@ -67,19 +67,23 @@ static void startUser(void *param)
 	char *stackVAddr = (char*)(KERNEL_START - stackArea->size());
 	process->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
 
+	// Copy the command line into the top of the userspace stack
+	char *cmdlineVAddr = (char*)(KERNEL_START - PROC_MANAGER_CMDLINE_LEN);
+	memcpy(cmdlineVAddr, startupInfo->cmdline, PROC_MANAGER_CMDLINE_LEN);
+
 	// Load the executable into the process
-	Elf::Entry entry = Elf::load(process->addressSpace(), startupInfo->name);
+	Elf::Entry entry = Elf::load(process->addressSpace(), startupInfo->cmdline);
 
 	// Everything is now set up in the new process.  The time has come at last
 	// to enter userspace.  This call never returns--any transfer back to kernel
 	// mode from this task will come in the form of syscalls.
-	EnterUser(entry, stackVAddr + stackSize);
+	EnterUser(entry, cmdlineVAddr, cmdlineVAddr);
 
 	// Poof!
 }
 
 // Start the named process in userspace
-static Process *startUserProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
+static Process *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
 {
 	// Create a new process
 	Process *process = new Process();
@@ -99,7 +103,7 @@ static Process *startUserProcess(const char *name, int stdinObject, int stdoutOb
 	Task *task = process->newTask();
 
 	struct StartupInfo *startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
-	strcpy(startupInfo->name, name);
+	memcpy(startupInfo->cmdline, cmdline, PROC_MANAGER_CMDLINE_LEN);
 
 	// Start the task--it will load the executable on its own thread, to avoid
 	// blocking this task.
@@ -173,7 +177,7 @@ void ProcessManager::start()
 			case ProcManagerSpawnProcess:
 			{
 				// Spawn a new process.
-				Process *childProcess = startUserProcess(message.msg.u.spawn.name, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				Process *childProcess = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
 				Object_Release(message.msg.u.spawn.stdinObject);
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);

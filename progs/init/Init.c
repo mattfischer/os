@@ -1,21 +1,31 @@
 #include <System.h>
 #include <Object.h>
 
+#include <stdlib.h>
+
 extern int __NameServer;
 int main(int argc, char *argv[])
 {
 	int console;
 	int child;
+	const char *childArgv[2];
 
-	child = SpawnProcess("/boot/name", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	childArgv[0] = "/boot/name";
+	childArgv[1] = NULL;
+	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
 
-	child = SpawnProcess("/boot/console", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	childArgv[0] = "/boot/console";
+	childArgv[1] = NULL;
+	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
 
 	Name_Wait("/dev/console");
 	console = open("/dev/console");
-	child = SpawnProcess("/boot/shell", console, console, console);
+
+	childArgv[0] = "/boot/shell";
+	childArgv[1] = NULL;
+	child = SpawnProcess(childArgv, console, console, console);
 	Object_Release(child);
 
 	while(1) {

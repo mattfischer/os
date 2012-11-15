@@ -50,32 +50,35 @@ FlushTLB:
 .type EnterUser,%function
 EnterUser:
 	# Prepare the usermode CPSR by clearing the mode bits
-	mrs r2, cpsr
-	bic r2, #0x8f
-	msr spsr, r2
+	mrs r5, cpsr
+	bic r5, #0x8f
+	msr spsr, r5
 
 	# Carve out a space on the stack to use for initializing
 	# the registers
-	sub r2, sp, #60
+	sub r5, sp, #60
 	mov r3, #0
 
 	# Now zero them all out
 	mov r4, #16
 clearLoop:
 	sub r4, r4, #1
-	str r3, [r2, r4, lsl #2]
+	str r3, [r5, r4, lsl #2]
 	cmp r4, #0
 	bne clearLoop
 
 	# Save the starting stack value into the slot for sp
-	str r1, [r2, #52]
+	str r1, [r5, #52]
+
+	# Save the command line into the slot for r0
+	str r2, [r5]
 
 	# Move starting pc into lr, since it's not banked
 	mov lr, r0
 
 	# Now initialize all usermode registers to the values
 	# prepared above
-	ldm r2, {r0-r14}^
+	ldm r5, {r0-r14}^
 
 	# ARM manual says to nop between accessing different
 	# register banks

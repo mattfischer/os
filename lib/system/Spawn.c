@@ -9,15 +9,25 @@
 #include <string.h>
 #include <stddef.h>
 
-int SpawnProcess(const char *name, int stdinObject, int stdoutObject, int stderrObject)
+int SpawnProcess(const char *argv[], int stdinObject, int stdoutObject, int stderrObject)
 {
 	struct MessageHeader hdr;
 	union ProcManagerMsg msg;
 	struct BufferSegment segs[] = { &msg, sizeof(msg) };
 	int child;
+	int i;
+	char *c;
 
 	msg.msg.type = ProcManagerSpawnProcess;
-	strcpy(msg.msg.u.spawn.name, name);
+
+	// Construct the command line out of the passed-in argv
+	c = msg.msg.u.spawn.cmdline;
+	for(i=0; argv[i] != NULL; i++) {
+		strcpy(c, argv[i]);
+		c += strlen(argv[i]) + 1;
+	}
+	*c = '\0';
+
 	msg.msg.u.spawn.stdinObject = stdinObject;
 	msg.msg.u.spawn.stdoutObject = stdoutObject;
 	msg.msg.u.spawn.stderrObject = stderrObject;

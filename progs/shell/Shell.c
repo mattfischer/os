@@ -96,6 +96,7 @@ void cd(const char *cmd)
 void runProgram(const char *cmd)
 {
 	struct stat st;
+	const char *argv[2];
 
 	sprintf(dir, "%s/%s", cwd, cmd);
 	if(stat(dir, &st) != 0 || !S_ISREG(st.st_mode)) {
@@ -103,7 +104,9 @@ void runProgram(const char *cmd)
 		return;
 	}
 
-	int child = SpawnProcess(dir, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
+	argv[0] = dir;
+	argv[1] = NULL;
+	int child = SpawnProcess(argv, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
 	WaitProcess(child);
 }
 

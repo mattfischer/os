@@ -4,7 +4,7 @@
 #include "Task.hpp"
 
 extern "C" {
-	void EnterUser(void (*userStart)(), void* userStack);
+	void EnterUser(void (*userStart)(), void* userStack, void *cmdline);
 	void SetMMUBase(PAddr table);
 	void SwitchToAsm(unsigned *regsCurrent, unsigned *regsNext);
 	void RunFirstAsm(unsigned *regs);
