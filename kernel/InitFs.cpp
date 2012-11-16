@@ -95,7 +95,7 @@ struct Info {
 	} u;
 };
 
-Slab<Info> infoSlab;
+static Slab<Info> infoSlab;
 
 // InitFS file server.  This also implements a basic proto-name server,
 // which is used until the real userspace name server is started.

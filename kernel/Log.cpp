@@ -3,6 +3,7 @@
 #include "Task.hpp"
 #include "Kernel.hpp"
 #include "Process.hpp"
+#include "Slab.hpp"
 
 #include "include/NameFmt.h"
 #include "include/IOFmt.h"
@@ -17,8 +18,15 @@
 #define LOG_BUFFER_SIZE 4096
 char buffer[LOG_BUFFER_SIZE];
 int writePointer = 0;
-int readPointer = 0;
+bool full = false;
 int logServer;
+
+struct Info {
+	int obj;
+	int pointer;
+};
+
+static Slab<Info> infoSlab;
 
 void Log::puts(const char *s)
 {
@@ -28,6 +36,7 @@ void Log::puts(const char *s)
 	writePointer += len;
 	if(writePointer == LOG_BUFFER_SIZE) {
 		writePointer = 0;
+		full = true;
 	}
 
 	if(len < size) {
@@ -46,34 +55,66 @@ static void server(void *param)
 		int m = Object_Receive(logServer, &msg, sizeof(msg));
 
 		if(m == 0) {
+			switch(msg.name.event.type) {
+				case SysEventObjectClosed:
+				{
+					Info *info = (Info*)msg.name.event.targetData;
+					if(info) {
+						Object_Release(info->obj);
+						infoSlab.free(info);
+					}
+				}
+			}
 			continue;
 		}
 
-		switch(msg.name.msg.type) {
-			case NameMsgTypeOpen:
-			{
-				struct BufferSegment segs[] = { &logServer, sizeof(logServer) };
-				struct MessageHeader hdr = { segs, 1, 0, 1 };
+		MessageInfo messageInfo;
+		Message_Info(m, &messageInfo);
+		Info *info = (Info*)messageInfo.targetData;
 
-				Message_Replyx(m, 0, &hdr);
-				break;
+		if(info == NULL) {
+			switch(msg.name.msg.type) {
+				case NameMsgTypeOpen:
+				{
+					int obj;
+					info = infoSlab.allocate();
+					obj = Object_Create(logServer, info);
+
+					info->obj = obj;
+					info->pointer = 0;
+
+					struct BufferSegment segs[] = { &obj, sizeof(obj) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
+
+					Message_Replyx(m, 0, &hdr);
+					break;
+				}
 			}
+		} else {
+			switch(msg.name.msg.type) {
+				case IOMsgTypeRead:
+				{
+					int len;
+					int start;
 
-			case IOMsgTypeRead:
-			{
-				int len;
-				if(writePointer >= readPointer) {
-					len = writePointer - readPointer;
-				} else {
-					len = LOG_BUFFER_SIZE - readPointer;
+					if(full) {
+						start = writePointer;
+						len = LOG_BUFFER_SIZE;
+					} else {
+						start = 0;
+						len = writePointer;
+					}
+
+					start += info->pointer;
+					start %= LOG_BUFFER_SIZE;
+
+					int size = std::min(msg.io.msg.u.rw.size, len - start);
+					size = std::min(size, LOG_BUFFER_SIZE - start);
+
+					Message_Reply(m, size, (char*)buffer + start, size);
+					info->pointer += size;
+					break;
 				}
-				int size = std::min(msg.io.msg.u.rw.size, len);
-				Message_Reply(m, size, (char*)buffer + readPointer, size);
-				readPointer += size;
-				if(readPointer == LOG_BUFFER_SIZE) {
-					readPointer = 0;
-				}
-				break;
 			}
 		}
 	}
