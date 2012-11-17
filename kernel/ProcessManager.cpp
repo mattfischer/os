@@ -86,6 +86,8 @@ static void startUser(void *param)
 // Start the named process in userspace
 static Process *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
 {
+	Log::printf("processManager: start process %s\n", cmdline);
+
 	// Create a new process
 	Process *process = new Process();
 
@@ -122,9 +124,8 @@ void ProcessManager::start()
 	// built-in filesystem that is compiled into the kernel
 	InitFs::start();
 
+	// Start the log buffer
 	Log::start();
-
-	Log::puts("Log initialized\n");
 
 	// Kernel initialization is now complete.  Start the first userspace process.
 	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);

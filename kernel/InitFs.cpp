@@ -6,6 +6,7 @@
 #include "Sched.hpp"
 #include "Task.hpp"
 #include "Process.hpp"
+#include "Log.hpp"
 
 #include <kernel/include/InitFsFmt.h>
 #include <kernel/include/NameFmt.h>
@@ -101,6 +102,8 @@ static Slab<Info> infoSlab;
 // which is used until the real userspace name server is started.
 static void server(void *param)
 {
+	Log::printf("initf: Starting server\n");
+
 	while(1) {
 		union {
 			union NameMsg name;
@@ -122,6 +125,8 @@ static void server(void *param)
 
 				case RegisterEvent:
 				{
+					Log::printf("initfs: Handing off to userspace server\n");
+
 					// The new name server has been started.  Connect this file server
 					// into it.
 					Name_Set(PREFIX, fileServer);
@@ -156,6 +161,8 @@ static void server(void *param)
 					char *name = msg.name.msg.u.open.name;
 
 					if(strncmp(name, PREFIX, strlen(PREFIX)) == 0) {
+						Log::printf("initfs: Open file %s\n", name);
+
 						// Look up the requested file name in the InitFS
 						name += strlen(PREFIX) + 1;
 						data = lookup(name, &size);

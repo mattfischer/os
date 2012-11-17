@@ -21,4 +21,4 @@ def build(ctx):
 				'Log.cpp']
 
 	ldscript = ctx.path.find_resource('ldscript')
-	ctx.crossprogram(target='kernel', source=source, use='shared', linkflags = '-nostdlib -T %s' % ldscript.bldpath())
+	ctx.crossprogram(target='kernel', source=source, use='shared', lib = 'gcc', linkflags = '-nostdlib -T %s' % ldscript.bldpath())
