@@ -82,4 +82,4 @@ def build(ctx):
 
 	ctx.add_group('kernel')
 	ctx.recurse('kernel')
-	ctx.initfs(files='init console name clientA clientB echo shell hello crash log', attach='kernel')
+	ctx.initfs(files='init uart-pl011 name clientA clientB echo shell hello crash log', attach='kernel')

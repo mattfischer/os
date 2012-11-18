@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
 	std::list<Waiter> waiters;
 	int obj = Object_Create(OBJECT_INVALID, NULL);
 
-	Name_Set("/dev/console", obj);
+	Name_Set(argv[1], obj);
 
-	sscanf(argv[1], "0x%x", &uartbase);
+	sscanf(argv[2], "0x%x", &uartbase);
 	MapPhys((void*)uartbase, (int)uartbase, 4096);
 	*UARTIMSC = 0x10;
 	sub = Interrupt_Subscribe(1, obj, IRQEvent, 0);

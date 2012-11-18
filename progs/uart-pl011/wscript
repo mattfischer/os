@@ -1,0 +1,2 @@
+def build(ctx):
+	ctx.userprogram(target='uart-pl011', source='uart-pl011.cpp', baseaddr='0x10000')

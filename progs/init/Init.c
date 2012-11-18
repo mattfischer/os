@@ -8,16 +8,17 @@ int main(int argc, char *argv[])
 {
 	int console;
 	int child;
-	const char *childArgv[3];
+	const char *childArgv[4];
 
 	childArgv[0] = "/boot/name";
 	childArgv[1] = NULL;
 	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
 
-	childArgv[0] = "/boot/console";
-	childArgv[1] = "0x16000000";
-	childArgv[2] = NULL;
+	childArgv[0] = "/boot/uart-pl011";
+	childArgv[1] = "/dev/console";
+	childArgv[2] = "0x16000000";
+	childArgv[3] = NULL;
 	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
 
