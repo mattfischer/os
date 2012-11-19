@@ -74,7 +74,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 			}
 
 			// Translate the object reference into the destination buffer
-			*d = translateCache[i];
+			*d = translateCache[j];
 		}
 
 		// Record how much data was copied from this source segment
