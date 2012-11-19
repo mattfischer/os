@@ -29,6 +29,9 @@ char buffer[BUFFER_SIZE];
 int readPointer = 0;
 int writePointer = 0;
 
+struct Info {
+	int obj;
+};
 
 void PrintUart(char *buffer, int size)
 {
@@ -65,14 +68,14 @@ int main(int argc, char *argv[])
 {
 	int sub;
 	std::list<Waiter> waiters;
-	int obj = Object_Create(OBJECT_INVALID, NULL);
+	int server = Object_Create(OBJECT_INVALID, NULL);
 
-	Name_Set(argv[1], obj);
+	Name_Set(argv[1], server);
 
 	sscanf(argv[2], "0x%x", &uartbase);
 	MapPhys((void*)uartbase, (int)uartbase, 4096);
 	*UARTIMSC = 0x10;
-	sub = Interrupt_Subscribe(1, obj, IRQEvent, 0);
+	sub = Interrupt_Subscribe(1, server, IRQEvent, 0);
 
 	while(1) {
 		union {
@@ -82,25 +85,27 @@ int main(int argc, char *argv[])
 		struct MessageInfo info;
 		int m;
 
-		m = Object_Receive(obj, &msg, sizeof(msg));
+		m = Object_Receive(server, &msg, sizeof(msg));
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
+				case SysEventObjectClosed:
+				{
+					struct Info *info = (struct Info*)msg.name.event.targetData;
+					Object_Release(info->obj);
+					delete info;
+					break;
+				}
+
 				case IRQEvent:
 				{
 					unsigned status = *UARTMIS;
 					if(status & 0x10) {
 						char input = (char)*UARTDR;
 						if(writePointer != readPointer - 1) {
-							if(input == '\r') {
-								input = '\n';
-							}
 							buffer[writePointer] = input;
 							writePointer++;
 							writePointer %= BUFFER_SIZE;
-							if(input != '\n') {
-								*UARTDR = input;
-							}
 						}
 
 						if(!waiters.empty()) {
@@ -123,11 +128,13 @@ int main(int argc, char *argv[])
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
 				{
-					int child;
-					struct BufferSegment segs[] = { &child, sizeof(child) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
+					int obj;
+					struct Info *info = new Info;
+					obj = Object_Create(server, info);
+					info->obj = obj;
 
-					child = Object_Create(obj, (void*)0x1234);
+					struct BufferSegment segs[] = { &obj, sizeof(obj) };
+					struct MessageHeader hdr = { segs, 1, 0, 1 };
 
 					Message_Replyx(m, 0, &hdr);
 					break;

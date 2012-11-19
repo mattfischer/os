@@ -86,9 +86,19 @@ int main(int argc, char *argv[])
 				case IOMsgTypeRead:
 				{
 					char buffer[256];
-					int len = std::min((int)sizeof(buffer), msg.io.msg.u.rw.size);
-					int size = read(uart, buffer, len);
-					Message_Reply(m, size, buffer, size);
+					int n = 0;
+					char c;
+					while(true) {
+						read(uart, &c, 1);
+						if(c == '\r') {
+							buffer[n++] = '\n';
+							break;
+						} else {
+							buffer[n++] = c;
+							write(uart, &c, 1);
+						}
+					}
+					Message_Reply(m, n, buffer, n);
 				}
 			}
 		}

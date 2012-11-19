@@ -108,6 +108,7 @@ void runProgram(const char *cmd)
 	argv[1] = NULL;
 	int child = SpawnProcess(argv, STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO);
 	WaitProcess(child);
+	Object_Release(child);
 }
 
 void processCommand(const char *cmd)
