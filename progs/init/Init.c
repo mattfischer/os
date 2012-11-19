@@ -16,8 +16,17 @@ int main(int argc, char *argv[])
 	Object_Release(child);
 
 	childArgv[0] = "/boot/uart-pl011";
-	childArgv[1] = "/dev/console";
+	childArgv[1] = "/dev/uart0";
 	childArgv[2] = "0x16000000";
+	childArgv[3] = NULL;
+	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	Object_Release(child);
+
+	Name_Wait("/dev/uart0");
+
+	childArgv[0] = "/boot/tty";
+	childArgv[1] = "/dev/console";
+	childArgv[2] = "/dev/uart0";
 	childArgv[3] = NULL;
 	child = SpawnProcess(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 	Object_Release(child);
