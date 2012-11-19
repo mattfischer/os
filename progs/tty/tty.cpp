@@ -93,6 +93,11 @@ int main(int argc, char *argv[])
 						if(c == '\r') {
 							buffer[n++] = '\n';
 							break;
+						} else if(c == 127) {
+							if(n > 0) {
+								n--;
+								write(uart, "\x8 \x8", 3);
+							}
 						} else {
 							buffer[n++] = c;
 							write(uart, &c, 1);
