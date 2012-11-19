@@ -57,9 +57,6 @@ public:
 	void addWaiter(int msg);
 	int waiter(int waiter) { return mWaiters[waiter]; }
 
-	int processObject() { return mProcessObject; }
-	void setProcessObject(int processObject) { mProcessObject = processObject; }
-
 	Task *newTask(Page *stack = NULL);
 
 	void kill();
@@ -77,7 +74,6 @@ private:
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
-	int mProcessObject;
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
 	State mState;
 

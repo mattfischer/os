@@ -84,7 +84,7 @@ static void startUser(void *param)
 }
 
 // Start the named process in userspace
-static Process *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
+static int startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
 {
 	Log::printf("processManager: start process %s\n", cmdline);
 
@@ -94,7 +94,6 @@ static Process *startUserProcess(const char *cmdline, int stdinObject, int stdou
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
 	int processObject = Object_Create(manager, process);
-	process->setProcessObject(processObject);
 
 	// Duplicate handles into the newly-created process
 	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
@@ -111,7 +110,7 @@ static Process *startUserProcess(const char *cmdline, int stdinObject, int stdou
 	// Start the task--it will load the executable on its own thread, to avoid
 	// blocking this task.
 	task->start(startUser, startupInfo);
-	return process;
+	return processObject;
 }
 
 // Main task for process manager
@@ -128,7 +127,8 @@ void ProcessManager::start()
 	Log::start();
 
 	// Kernel initialization is now complete.  Start the first userspace process.
-	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	int obj = startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	Object_Release(obj);
 
 	// Now that userspace is up and running, the only remaining role of this task
 	// is to service messages that it sends to us.
@@ -144,7 +144,6 @@ void ProcessManager::start()
 				case SysEventObjectClosed:
 				{
 					Process *process = (Process*)message.event.targetData;
-					Object_Release(process->processObject());
 					delete process;
 					break;
 				}
@@ -183,16 +182,15 @@ void ProcessManager::start()
 			case ProcManagerSpawnProcess:
 			{
 				// Spawn a new process.
-				Process *childProcess = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				int processObject = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
 				Object_Release(message.msg.u.spawn.stdinObject);
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
 
-				int obj = childProcess->processObject();
-				struct BufferSegment replySegs[] = { &obj, sizeof(obj) };
+				struct BufferSegment replySegs[] = { &processObject, sizeof(processObject) };
 				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
 				Message_Replyx(msg, 0, &replyHdr);
-				Object_Release(obj);
+				Object_Release(processObject);
 				break;
 			}
 
