@@ -179,10 +179,7 @@ static void server(void *param)
 						}
 					}
 
-					struct BufferSegment segs[] = { &obj, sizeof(obj) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
-
-					Message_Replyx(m, 0, &hdr);
+					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					break;
 				}
 
@@ -224,10 +221,7 @@ static void server(void *param)
 						info->obj = obj;
 					}
 
-					struct BufferSegment segs[] = { &obj, sizeof(obj) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
-
-					Message_Replyx(m, 0, &hdr);
+					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					break;
 				}
 			}

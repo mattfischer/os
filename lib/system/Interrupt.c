@@ -11,9 +11,7 @@
 
 int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 {
-	struct MessageHeader hdr;
 	union ProcManagerMsg msg;
-	struct BufferSegment segs[] = { &msg, sizeof(msg) };
 	int ret;
 
 	msg.msg.type = ProcManagerSubInt;
@@ -22,12 +20,8 @@ int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 	msg.msg.u.subInt.type = type;
 	msg.msg.u.subInt.value = value;
 
-	hdr.segments = segs;
-	hdr.numSegments = 1;
-	hdr.objectsOffset = offsetof(union ProcManagerMsg, msg.u.subInt.object);
-	hdr.objectsSize = 1;
-
-	Object_Sendxs(PROCMAN_NO, &hdr, &ret, sizeof(ret));
+	int objectsOffset = offsetof(union ProcManagerMsg, msg.u.subInt.object);
+	Object_Sendhs(PROCMAN_NO, &msg, sizeof(msg), objectsOffset, 1, &ret, sizeof(ret));
 	return ret;
 }
 

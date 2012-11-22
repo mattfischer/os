@@ -135,9 +135,7 @@ void ProcessManager::start()
 	while(1) {
 		// Wait on the process manager object for incoming messages
 		union ProcManagerMsg message;
-		struct BufferSegment recvSegs[] = { &message, sizeof(message) };
-		struct MessageHeader recvHdr = { recvSegs, 1, 0, 0 };
-		int msg = Object_Receivex(manager, &recvHdr);
+		int msg = Object_Receive(manager, &message, sizeof(message));
 
 		if(msg == 0) {
 			switch(message.event.type) {
@@ -187,9 +185,7 @@ void ProcessManager::start()
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
 
-				struct BufferSegment replySegs[] = { &processObject, sizeof(processObject) };
-				struct MessageHeader replyHdr = { replySegs, 1, 0, 1 };
-				Message_Replyx(msg, 0, &replyHdr);
+				Message_Replyh(msg, 0, &processObject, sizeof(processObject), 0, 1);
 				Object_Release(processObject);
 				break;
 			}

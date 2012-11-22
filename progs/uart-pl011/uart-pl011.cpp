@@ -132,11 +132,7 @@ int main(int argc, char *argv[])
 					struct Info *info = new Info;
 					obj = Object_Create(server, info);
 					info->obj = obj;
-
-					struct BufferSegment segs[] = { &obj, sizeof(obj) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
-
-					Message_Replyx(m, 0, &hdr);
+					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					break;
 				}
 			}

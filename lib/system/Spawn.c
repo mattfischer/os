@@ -11,9 +11,7 @@
 
 int SpawnProcess(const char *argv[], int stdinObject, int stdoutObject, int stderrObject)
 {
-	struct MessageHeader hdr;
 	union ProcManagerMsg msg;
-	struct BufferSegment segs[] = { &msg, sizeof(msg) };
 	int child;
 	int i;
 	char *c;
@@ -32,12 +30,8 @@ int SpawnProcess(const char *argv[], int stdinObject, int stdoutObject, int stde
 	msg.msg.u.spawn.stdoutObject = stdoutObject;
 	msg.msg.u.spawn.stderrObject = stderrObject;
 
-	hdr.segments = segs;
-	hdr.numSegments = 1;
-	hdr.objectsOffset = offsetof(union ProcManagerMsg, msg.u.spawn.stdinObject);
-	hdr.objectsSize = 3;
-
-	Object_Sendxs(PROCMAN_NO, &hdr, &child, sizeof(child));
+	int objectsOffset = offsetof(union ProcManagerMsg, msg.u.spawn.stdinObject);
+	Object_Sendhs(PROCMAN_NO, &msg, sizeof(msg), objectsOffset, 3, &child, sizeof(child));
 	return child;
 }
 

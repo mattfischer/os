@@ -11,8 +11,6 @@
 void Name_Set(const char *name, int obj)
 {
 	union NameMsg msg;
-	struct BufferSegment segs[] = { &msg, sizeof(msg) };
-	struct MessageHeader hdr = { segs, 1, offsetof(union NameMsg, msg.u.set.obj), 1 };
 	int server;
 
 	msg.msg.type = NameMsgTypeSet;
@@ -21,7 +19,8 @@ void Name_Set(const char *name, int obj)
 
 	server = Kernel_GetNameServer();
 
-	Object_Sendxs(server, &hdr, NULL, 0);
+	int objectsOffset = offsetof(union NameMsg, msg.u.set.obj);
+	Object_Sendhs(server, &msg, sizeof(msg), objectsOffset, 1, NULL, 0);
 	Object_Release(server);
 }
 

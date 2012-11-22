@@ -14,7 +14,9 @@ void Object_Release(int obj);
 
 int Object_Send(int obj, const void *msg, int msgSize, void *reply, int replySize);
 int Object_Sendxs(int obj, const struct MessageHeader *sendMsg, void *reply, int replySize);
+int Object_Sendhs(int obj, const void *msg, int msgSize, int objectsOffset, int objectsSize, void *reply, int replySize);
 int Object_Sendsx(int obj, const void *msg, int msgSize, struct MessageHeader *replyMsg);
+int Object_Sendhx(int obj, const void *msg, int msgSize, int objectsOffset, int objectsSize, struct MessageHeader *replyMsg);
 int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 
 int Object_Receive(int obj, void *recv, int recvSize);

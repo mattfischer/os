@@ -230,8 +230,6 @@ int main(int argc, char *argv[])
 				case NameMsgTypeOpen:
 				{
 					int ret = OBJECT_INVALID;
-					struct BufferSegment segs[] = { &ret, sizeof(ret) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
 					vector<int> objs = lookup(msg.msg.u.open.name);
 					for(int i=objs.size() - 1; i>=0; i--) {
 						Object_Send(objs[i], &msg, sizeof(union NameMsg), &ret, sizeof(ret));
@@ -239,7 +237,7 @@ int main(int argc, char *argv[])
 							break;
 						}
 					}
-					Message_Replyx(m, 0, &hdr);
+					Message_Replyh(m, 0, &ret, sizeof(ret), 0, 1);
 					Object_Release(ret);
 					break;
 				}
@@ -252,9 +250,7 @@ int main(int argc, char *argv[])
 						ret = Object_Create(obj, openDir);
 						openDir->obj = ret;
 					}
-					struct BufferSegment segs[] = { &ret, sizeof(ret) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
-					Message_Replyx(m, 0, &hdr);
+					Message_Replyh(m, 0, &ret, sizeof(ret), 0, 1);
 					break;
 				}
 
