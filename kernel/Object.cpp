@@ -11,18 +11,39 @@
 //! Slab allocator for objects
 Slab<Object> Object::sSlab;
 
+Object::Handle::Handle(Object *object, Type type)
+{
+	mType = type;
+	mObject = object;
+}
+
+void Object::Handle::ref()
+{
+	mRefCount++;
+	mObject->ref();
+}
+
+void Object::Handle::unref()
+{
+	mRefCount--;
+	if(mRefCount == 0) {
+		mObject->onHandleUnref(mType);
+	}
+	mObject->unref();
+}
+
 /*!
  * \brief Constructor
  * \param parent Object parent, or NULL
  * \param data Arbitrary data pointer
  */
-Object::Object(Process *owner, Object *parent, void *data)
+Object::Object(Object *parent, void *data)
+ : mClientHandle(this, Handle::TypeClient),
+   mServerHandle(this, Handle::TypeServer)
 {
-	mOwner = owner;
 	mParent = parent;
 	mData = data;
 	mRefCount = 0;
-	mClientRefCount = 0;
 }
 
 // Find an object in the hierarchy which is ready to receive a message
@@ -195,14 +216,26 @@ void Object::unref()
 	}
 }
 
-void Object::clientRef()
+Object::Handle *Object::handle(Handle::Type type)
 {
-	mClientRefCount++;
+	switch(type) {
+		case Handle::TypeClient:
+			return &mClientHandle;
+
+		case Handle::TypeServer:
+			return &mServerHandle;
+	}
 }
 
-void Object::clientUnref()
+void Object::onHandleUnref(Handle::Type type)
 {
-	mClientRefCount--;
+	switch(type) {
+		case Handle::TypeClient:
+			post(SysEventObjectClosed, 0);
+			break;
+		case Handle::TypeServer:
+			break;
+	}
 }
 
 /*!
@@ -213,10 +246,10 @@ void Object::clientUnref()
  */
 int Object_Create(int parent, void *data)
 {
-	Process *owner = Sched::current()->process();
-	Object *p = owner->object(parent);
-	Object *object = new Object(owner, p, data);
-	return Sched::current()->process()->refObject(object);
+	Process *process = Sched::current()->process();
+	Object *p = process->object(parent);
+	Object *object = new Object(p, data);
+	return process->refObject(object, Object::Handle::TypeServer);
 }
 
 /*!

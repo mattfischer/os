@@ -83,7 +83,7 @@ Object *Process::object(int obj)
 	if(obj == OBJECT_INVALID) {
 		return NULL;
 	} else {
-		return mObjects[obj];
+		return mObjects[obj]->object();
 	}
 }
 
@@ -92,7 +92,7 @@ Object *Process::object(int obj)
  * \param object Object
  * \return Index of new object, or OBJECT_INVALID
  */
-int Process::refObject(Object *object)
+int Process::refObject(Object *object, Object::Handle::Type type)
 {
 	if(object == NULL) {
 		return OBJECT_INVALID;
@@ -101,11 +101,9 @@ int Process::refObject(Object *object)
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
 		if(mObjects[i] == NULL) {
-			mObjects[i] = object;
-			object->ref();
-			if(object->owner() != this) {
-				object->clientRef();
-			}
+			Object::Handle *handle = object->handle(type);
+			handle->ref();
+			mObjects[i] = handle;
 			return i;
 		}
 	}
@@ -119,18 +117,16 @@ int Process::refObject(Object *object)
  * \param object Object
  * \return Index of new object, or OBJECT_INVALID
  */
-int Process::refObjectTo(int obj, Object *object)
+int Process::refObjectTo(int obj, Object *object, Object::Handle::Type type)
 {
 	// Check if slot is empty
 	if(mObjects[obj] != NULL || object == NULL) {
 		return OBJECT_INVALID;
 	}
 
-	mObjects[obj] = object;
-	mObjects[obj]->ref();
-	if(mObjects[obj]->owner() != this) {
-		mObjects[obj]->clientRef();
-	}
+	Object::Handle *handle = object->handle(type);
+	handle->ref();
+	mObjects[obj] = handle;
 
 	return obj;
 }
@@ -146,12 +142,6 @@ void Process::unrefObject(int obj)
 	}
 
 	if(mObjects[obj]) {
-		if(mObjects[obj]->owner() != this) {
-			mObjects[obj]->clientUnref();
-			if(mObjects[obj]->clientRefCount() == 0) {
-				mObjects[obj]->post(SysEventObjectClosed, 0);
-			}
-		}
 		mObjects[obj]->unref();
 		mObjects[obj] = NULL;
 	}
@@ -163,13 +153,13 @@ void Process::unrefObject(int obj)
  * \param sourceObj Object number in source process
  * \return Object index in new process, or OBJECT_INVALID
  */
-int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
+int Process::dupObjectRef(Process *sourceProcess, int sourceObj, Object::Handle::Type type)
 {
 	if(sourceObj == OBJECT_INVALID) {
 		return OBJECT_INVALID;
 	}
 
-	return refObject(sourceProcess->object(sourceObj));
+	return refObject(sourceProcess->object(sourceObj), type);
 }
 
 /*!
@@ -179,13 +169,13 @@ int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
  * \param sourceObj Object number in source process
  * \return Object index in new process, or OBJECT_INVALID
  */
-int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
+int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj, Object::Handle::Type type)
 {
 	if(sourceObj == OBJECT_INVALID) {
 		return OBJECT_INVALID;
 	}
 
-	return refObjectTo(obj, sourceProcess->object(sourceObj));
+	return refObjectTo(obj, sourceProcess->object(sourceObj), type);
 }
 
 /*!

@@ -70,7 +70,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 
 			if(translateCache[j] == OBJECT_INVALID) {
 				// Duplicate the object into the destination process
-				translateCache[j] = destProcess->dupObjectRef(srcProcess, obj);
+				translateCache[j] = destProcess->dupObjectRef(srcProcess, obj, Object::Handle::TypeClient);
 			}
 
 			// Translate the object reference into the destination buffer

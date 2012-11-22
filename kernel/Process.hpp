@@ -4,8 +4,8 @@
 #include "Slab.hpp"
 #include "Interrupt.hpp"
 #include "Task.hpp"
+#include "Object.hpp"
 
-class Object;
 class Message;
 class MemAreaPages;
 class AddressSpace;
@@ -39,12 +39,12 @@ public:
 	void growHeap(int increment);
 
 	Object *object(int obj);
-	int refObject(Object *object);
-	int refObjectTo(int obj, Object *object);
+	int refObject(Object *object, Object::Handle::Type type);
+	int refObjectTo(int obj, Object *object, Object::Handle::Type type);
 	void unrefObject(int obj);
 
-	int dupObjectRef(Process *sourceProcess, int sourceObj);
-	int dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj);
+	int dupObjectRef(Process *sourceProcess, int sourceObj, Object::Handle::Type type);
+	int dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj, Object::Handle::Type type);
 
 	Message *message(int msg);
 	int refMessage(Message *message);
@@ -70,7 +70,7 @@ private:
 	MemAreaPages *mHeap; //!< Memory area for heap
 	char *mHeapTop; //!< Top of heap
 	char *mHeapAreaTop; //!< Top of heap area
-	Object *mObjects[16]; //!< Object list
+	Object::Handle *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions

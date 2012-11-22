@@ -9,14 +9,35 @@
 class Task;
 class MessageBase;
 class Message;
-class Process;
 
 /*!
  * \brief A kernel object, to which userspace can send/receive messages
  */
 class Object : public ListEntry {
 public:
-	Object(Process *owner, Object *parent, void *data);
+	class Handle {
+	public:
+		enum Type {
+			TypeServer,
+			TypeClient
+		};
+
+		Type type() { return mType; }
+		Object *object() { return mObject; }
+
+		void ref();
+		void unref();
+
+		friend class Object;
+	protected:
+		Handle(Object *object, Type type);
+
+		Object *mObject;
+		Type mType;
+		int mRefCount;
+	};
+
+	Object(Object *parent, void *data);
 
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	void post(unsigned type, unsigned value);
@@ -25,29 +46,30 @@ public:
 	void ref();
 	void unref();
 
-	void clientRef();
-	void clientUnref();
-	int clientRefCount() { return mClientRefCount; }
-
 	/*!
 	 * \brief Get parent of this object
 	 * \return Object parent
 	 */
 	Object *parent() { return mParent; }
+
 	/*!
 	 * \brief Get data associated with object
 	 * \return Data
 	 */
 	void *data() { return mData; }
+
 	/*!
-	 * \brief Get owning process
-	 * \return Owner
+	 * \brief Get a handle of the specified type
+	 * \param type Type of handle
+	 * \return Handle
 	 */
-	Process *owner() { return mOwner; }
+	Handle *handle(Handle::Type type);
 
 	//! Allocator
 	void *operator new(size_t) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Object*)p); }
+
+	friend class Handle;
 
 private:
 	List<Task> mReceivers; //!< List of receivers waiting on this object
@@ -55,11 +77,12 @@ private:
 	List<Object> mSendingChildren; //!< List of children which have pending messages
 	void *mData; //!< Arbitrary data associated with object
 	Object *mParent; //!< Parent of this object
-	Process *mOwner; //!< Owning process
 	int mRefCount; //!< Ref count
-	int mClientRefCount; //!< Client ref count
+	Handle mClientHandle; //!< Client handle
+	Handle mServerHandle; //!< Server handle
 
 	Task *findReceiver();
+	void onHandleUnref(Handle::Type type);
 
 	static Slab<Object> sSlab;
 };
