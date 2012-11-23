@@ -17,18 +17,14 @@ Object::Handle::Handle(Object *object, Type type)
 	mObject = object;
 }
 
-void Object::Handle::ref()
+void Object::Handle::onFirstRef()
 {
-	mRefCount++;
 	mObject->ref();
 }
 
-void Object::Handle::unref()
+void Object::Handle::onLastRef()
 {
-	mRefCount--;
-	if(mRefCount == 0) {
-		mObject->onHandleUnref(mType);
-	}
+	mObject->onHandleClosed(mType);
 	mObject->unref();
 }
 
@@ -43,7 +39,6 @@ Object::Object(Object *parent, void *data)
 {
 	mParent = parent;
 	mData = data;
-	mRefCount = 0;
 }
 
 // Find an object in the hierarchy which is ready to receive a message
@@ -202,20 +197,6 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 	}
 }
 
-void Object::ref()
-{
-	mRefCount++;
-}
-
-void Object::unref()
-{
-	mRefCount--;
-
-	if(mRefCount == 0) {
-		delete this;
-	}
-}
-
 Object::Handle *Object::handle(Handle::Type type)
 {
 	switch(type) {
@@ -227,7 +208,12 @@ Object::Handle *Object::handle(Handle::Type type)
 	}
 }
 
-void Object::onHandleUnref(Handle::Type type)
+void Object::onLastRef()
+{
+	delete this;
+}
+
+void Object::onHandleClosed(Handle::Type type)
 {
 	switch(type) {
 		case Handle::TypeClient:

@@ -61,17 +61,9 @@ void Task::start(void (*start)(void *), void *param)
 	Sched::add(this);
 }
 
-void Task::ref()
+void Task::onLastRef()
 {
-	mRefCount++;
-}
-
-void Task::unref()
-{
-	mRefCount--;
-	if(mRefCount == 0) {
-		delete this;
-	}
+	delete this;
 }
 
 void Task::kill()

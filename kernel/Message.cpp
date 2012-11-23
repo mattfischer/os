@@ -19,14 +19,6 @@ MessageBase::MessageBase(Type type, Task *sender, Object *target)
    mSender(sender),
    mTarget(target)
 {
-	mSender->ref();
-	mTarget->ref();
-}
-
-MessageBase::~MessageBase()
-{
-	mSender->unref();
-	mTarget->unref();
 }
 
 // Read data from a message into a buffer
@@ -175,7 +167,7 @@ int Message::reply(int ret, const struct MessageHeader *replyMsg)
 		// Switch back to the sending process, so that the corresponding send
 		// call can return
 		Sched::add(Sched::current());
-		Sched::switchTo(sender());
+		Sched::switchTo(sender().ptr());
 	}
 
 	return 0;

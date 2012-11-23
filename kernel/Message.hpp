@@ -3,6 +3,7 @@
 
 #include "List.hpp"
 #include "Slab.hpp"
+#include "Ref.hpp"
 
 #include <kernel/include/MessageFmt.h>
 
@@ -28,7 +29,6 @@ public:
 	 * \param target Target object
 	 */
 	MessageBase(Type type, Task *sender, Object *target);
-	virtual ~MessageBase();
 
 	/*!
 	 * \brief Return message type
@@ -39,12 +39,12 @@ public:
 	 * \brief Return message sender
 	 * \return Sender
 	 */
-	Task *sender() { return mSender; }
+	Ref<Task> sender() { return mSender; }
 	/*!
 	 * \brief Return message target
 	 * \return Target
 	 */
-	Object *target() { return mTarget; }
+	Ref<Object> target() { return mTarget; }
 
 	/*!
 	 * \brief Abstract method.  Read message contents into header
@@ -58,10 +58,8 @@ public:
 
 private:
 	Type mType; //!< Message type
-	Task *mSender; //!< Sending task
-	Object *mTarget; //!< Target object
-
-	int mRefCount;
+	Ref<Task> mSender; //!< Sending task
+	Ref<Object> mTarget; //!< Target object
 };
 
 /*!

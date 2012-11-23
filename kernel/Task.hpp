@@ -4,6 +4,7 @@
 #include "Page.hpp"
 #include "List.hpp"
 #include "Slab.hpp"
+#include "Ref.hpp"
 
 #define R_SP 13
 #define R_PC 15
@@ -14,7 +15,7 @@ class AddressSpace;
 /*!
  * \brief A single thread of execution
  */
-class Task : public ListEntry {
+class Task : public ListEntry, public RefObject {
 public:
 	//! Task state
 	enum State {
@@ -28,7 +29,7 @@ public:
 	};
 
 	Task(Process *process, Page *stack = NULL);
-	~Task();
+	virtual ~Task();
 
 	/*!
 	 * \brief Owning process
@@ -69,8 +70,7 @@ public:
 	void *stackAllocate(int size);
 	void start(void (*start)(void *), void *param);
 
-	void ref();
-	void unref();
+	virtual void onLastRef();
 
 	void kill();
 
@@ -86,8 +86,6 @@ private:
 	Page *mStack; //!< Stack page
 	Process *mProcess; //!< Owning process
 	AddressSpace *mEffectiveAddressSpace; //!< Effective address space
-
-	int mRefCount;
 
 	static Slab<Task> sSlab;
 };

@@ -3,6 +3,7 @@
 
 #include "List.hpp"
 #include "Slab.hpp"
+#include "Ref.hpp"
 
 #include <lib/shared/include/Object.h>
 
@@ -13,9 +14,9 @@ class Message;
 /*!
  * \brief A kernel object, to which userspace can send/receive messages
  */
-class Object : public ListEntry {
+class Object : public ListEntry, public RefObject {
 public:
-	class Handle {
+	class Handle : public RefObject {
 	public:
 		enum Type {
 			TypeServer,
@@ -25,8 +26,8 @@ public:
 		Type type() { return mType; }
 		Object *object() { return mObject; }
 
-		void ref();
-		void unref();
+		virtual void onFirstRef();
+		virtual void onLastRef();
 
 		friend class Object;
 	protected:
@@ -34,7 +35,6 @@ public:
 
 		Object *mObject;
 		Type mType;
-		int mRefCount;
 	};
 
 	Object(Object *parent, void *data);
@@ -42,9 +42,6 @@ public:
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	void post(unsigned type, unsigned value);
 	Message *receive(struct MessageHeader *recvMsg);
-
-	void ref();
-	void unref();
 
 	/*!
 	 * \brief Get parent of this object
@@ -65,6 +62,8 @@ public:
 	 */
 	Handle *handle(Handle::Type type);
 
+	virtual void onLastRef();
+
 	//! Allocator
 	void *operator new(size_t) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((Object*)p); }
@@ -77,12 +76,11 @@ private:
 	List<Object> mSendingChildren; //!< List of children which have pending messages
 	void *mData; //!< Arbitrary data associated with object
 	Object *mParent; //!< Parent of this object
-	int mRefCount; //!< Ref count
 	Handle mClientHandle; //!< Client handle
 	Handle mServerHandle; //!< Server handle
 
 	Task *findReceiver();
-	void onHandleUnref(Handle::Type type);
+	void onHandleClosed(Handle::Type type);
 
 	static Slab<Object> sSlab;
 };
