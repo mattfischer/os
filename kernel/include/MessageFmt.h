@@ -30,4 +30,11 @@ enum SysEvent {
 	SysEventLast
 };
 
+enum SysError {
+	SysErrorSuccess = 0,
+	SysErrorObjectDead = -1,
+	SysErrorAccessDenied = -2,
+	SysErrorLast = -3
+};
+
 #endif

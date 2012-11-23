@@ -22,7 +22,7 @@ int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHea
 int Object_Receive(int obj, void *recv, int recvSize);
 int Object_Receivex(int obj, struct MessageHeader *recvMsg);
 
-void Object_Post(int obj, unsigned type, unsigned value);
+int Object_Post(int obj, unsigned type, unsigned value);
 
 #ifdef __cplusplus
 }

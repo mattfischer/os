@@ -40,7 +40,7 @@ public:
 	Object(Object *parent, void *data);
 
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
-	void post(unsigned type, unsigned value);
+	int post(unsigned type, unsigned value);
 	Message *receive(struct MessageHeader *recvMsg);
 
 	/*!

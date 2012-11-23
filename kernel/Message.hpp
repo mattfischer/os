@@ -84,7 +84,7 @@ public:
 	 * \brief Return code from message
 	 * \return Return code
 	 */
-	int ret() { return mRet; }
+	int result() { return mResult; }
 
 	int read(void *buffer, int offset, int size);
 	virtual int read(struct MessageHeader *header);
@@ -102,7 +102,7 @@ public:
 private:
 	struct MessageHeader mSendMsg; //!< Data area for sent message
 	struct MessageHeader mReplyMsg; //!< Data area for message reply
-	int mRet; //!< Return code
+	int mResult; //!< Return code
 	int mTranslateCache[MESSAGE_MAX_OBJECTS]; //!< Cache of translated objects
 
 	static Slab<Message> sSlab;

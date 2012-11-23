@@ -77,36 +77,38 @@ Task *Object::findReceiver()
  */
 int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	// If there are no server references to this object, the message can never
-	// be received, so just return with an error now
-	if(mServerHandle.refCount() == 0) {
-		return 0;
-	}
+	int ret;
 
-	// Construct a message object, and add it to the list of pending objects
-	Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
-	mMessages.addTail(message);
+	if(mServerHandle.refCount() > 0) {
+		// Construct a message object, and add it to the list of pending objects
+		Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
+		mMessages.addTail(message);
 
-	// See if any tasks are ready to receive on this object or any of its ancestors
-	Task *task = findReceiver();
+		// See if any tasks are ready to receive on this object or any of its ancestors
+		Task *task = findReceiver();
 
-	// Mark ourselves as send-blocked
-	Sched::current()->setState(Task::StateSendBlock);
+		// Mark ourselves as send-blocked
+		Sched::current()->setState(Task::StateSendBlock);
 
-	if(task) {
-		// Switch to the receiving task
-		Sched::switchTo(task);
-		task->unref();
+		if(task) {
+			// Switch to the receiving task
+			Sched::switchTo(task);
+			task->unref();
+		} else {
+			// Switch away from this task.  We will be woken up when another task attempts
+			// to receive on this object.
+			Sched::runNext();
+		}
+
+		// Message receive and reply has been completed, and control has switched back
+		// to this task.  Return the code from the message reply.
+		ret = message->result();
+		delete message;
 	} else {
-		// Switch away from this task.  We will be woken up when another task attempts
-		// to receive on this object.
-		Sched::runNext();
+		// If there are no server references to this object, the message can never
+		// be received, so just return with an error now
+		ret = SysErrorObjectDead;
 	}
-
-	// Message receive and reply has been completed, and control has switched back
-	// to this task.  Return the code from the message reply.
-	int ret = message->ret();
-	delete message;
 
 	return ret;
 }
@@ -116,26 +118,32 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
  * \param type Event type
  * \param value Event value
  */
-void Object::post(unsigned type, unsigned value)
+int Object::post(unsigned type, unsigned value)
 {
-	// If there are no server references to this object, the message can never
-	// be received, so just return now
-	if(mServerHandle.refCount() == 0) {
-		return;
+	int ret;
+
+	if(mServerHandle.refCount() > 0) {
+		// Construct an event message, and add it to the queue
+		MessageEvent *event = new MessageEvent(Sched::current(), this, type, value);
+		mMessages.addTail(event);
+
+		// See if any receivers are waiting on this object
+		Task *task = findReceiver();
+
+		// If a receiver was found, wake it up
+		if(task) {
+			Sched::add(task);
+			task->unref();
+		}
+
+		ret =SysErrorSuccess;
+	} else {
+		// If there are no server references to this object, the message can never
+		// be received, so just return now
+		ret = SysErrorObjectDead;
 	}
 
-	// Construct an event message, and add it to the queue
-	MessageEvent *event = new MessageEvent(Sched::current(), this, type, value);
-	mMessages.addTail(event);
-
-	// See if any receivers are waiting on this object
-	Task *task = findReceiver();
-
-	// If a receiver was found, wake it up
-	if(task) {
-		Sched::add(task);
-		task->unref();
-	}
+	return ret;
 }
 
 /*!
@@ -281,7 +289,9 @@ void Object_Release(int obj)
  */
 int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
-	struct Object *object = Sched::current()->process()->object(obj);
+	Process *process = Sched::current()->process();
+	Object *object = process->object(obj);
+
 	return object->send(sendMsg, replyMsg);
 }
 
@@ -291,10 +301,12 @@ int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHea
  * \param type Event type
  * \param value Event data
  */
-void Object_Post(int obj, unsigned int type, unsigned int value)
+int Object_Post(int obj, unsigned int type, unsigned int value)
 {
-	struct Object *object = Sched::current()->process()->object(obj);
-	object->post(type, value);
+	Process *process = Sched::current()->process();
+	Object *object = process->object(obj);
+
+	return object->post(type, value);
 }
 
 /*!
@@ -305,7 +317,16 @@ void Object_Post(int obj, unsigned int type, unsigned int value)
  */
 int Object_Receivex(int obj, struct MessageHeader *recvMsg)
 {
-	struct Object *object = Sched::current()->process()->object(obj);
-	struct Message *message = object->receive(recvMsg);
-	return Sched::current()->process()->refMessage(message);
+	Process *process = Sched::current()->process();
+	Object::Handle *handle = process->objectHandle(obj);
+	int ret;
+
+	if(handle->type() == Object::Handle::TypeServer) {
+		struct Message *message = handle->object()->receive(recvMsg);
+		ret = process->refMessage(message);
+	} else {
+		ret = SysErrorAccessDenied;
+	}
+
+	return ret;
 }

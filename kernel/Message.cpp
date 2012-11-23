@@ -121,7 +121,7 @@ Message::Message(Task *sender, Object *target, const struct MessageHeader &sendM
 {
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
-	mRet = 0;
+	mResult = 0;
 
 	for(int i=0; i<mSendMsg.objectsSize; i++) {
 		mTranslateCache[i] = OBJECT_INVALID;
@@ -150,33 +150,37 @@ int Message::read(struct MessageHeader *header)
  * \param ret Return code
  * \param replyMsg Reply data
  */
-int Message::reply(int ret, const struct MessageHeader *replyMsg)
+int Message::reply(int result, const struct MessageHeader *replyMsg)
 {
 	int translateCache[MESSAGE_MAX_OBJECTS];
 	for(int i=0; i<replyMsg->objectsSize; i++) {
 		translateCache[i] = OBJECT_INVALID;
 	}
 
+	int ret;
+
 	if(sender()->state() == Task::StateDead) {
 		delete this;
+		ret = SysErrorObjectDead;
 	} else {
 		// Copy contents into sending process's reply buffer
 		copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
-		mRet = ret;
+		mResult = result;
 
 		// Switch back to the sending process, so that the corresponding send
 		// call can return
 		Sched::add(Sched::current());
 		Sched::switchTo(sender().ptr());
+		ret = SysErrorSuccess;
 	}
 
-	return 0;
+	return ret;
 }
 
 void Message::cancel()
 {
 	MessageHeader replyMsg = { NULL, 0, 0, 0 };
-	reply(0, &replyMsg);
+	reply(SysErrorObjectDead, &replyMsg);
 	delete this;
 }
 

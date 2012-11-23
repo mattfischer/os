@@ -39,6 +39,8 @@ public:
 	void growHeap(int increment);
 
 	Object *object(int obj);
+	Object::Handle *objectHandle(int obj);
+
 	int refObject(Object *object, Object::Handle::Type type);
 	int refObjectTo(int obj, Object *object, Object::Handle::Type type);
 	void unrefObject(int obj);

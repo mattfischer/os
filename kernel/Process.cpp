@@ -80,10 +80,25 @@ void Process::growHeap(int increment)
  */
 Object *Process::object(int obj)
 {
+	Object::Handle *handle = objectHandle(obj);
+	if(handle) {
+		return handle->object();
+	} else {
+		return NULL;
+	}
+}
+
+/*!
+ * \brief Retrieve object handle
+ * \param obj Object number
+ * \return Object handle, or NULL
+ */
+Object::Handle *Process::objectHandle(int obj)
+{
 	if(obj == OBJECT_INVALID) {
 		return NULL;
 	} else {
-		return mObjects[obj]->object();
+		return mObjects[obj];
 	}
 }
 
