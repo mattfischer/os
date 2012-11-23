@@ -24,6 +24,8 @@ public:
 		}
 	}
 
+	int refCount() { return mRefCount; }
+
 	virtual void onFirstRef() {}
 	virtual void onLastRef() {}
 

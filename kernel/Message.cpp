@@ -177,6 +177,7 @@ void Message::cancel()
 {
 	MessageHeader replyMsg = { NULL, 0, 0, 0 };
 	reply(0, &replyMsg);
+	delete this;
 }
 
 /*!

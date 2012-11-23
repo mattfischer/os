@@ -77,6 +77,12 @@ Task *Object::findReceiver()
  */
 int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg)
 {
+	// If there are no server references to this object, the message can never
+	// be received, so just return with an error now
+	if(mServerHandle.refCount() == 0) {
+		return 0;
+	}
+
 	// Construct a message object, and add it to the list of pending objects
 	Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
 	mMessages.addTail(message);
@@ -112,6 +118,12 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
  */
 void Object::post(unsigned type, unsigned value)
 {
+	// If there are no server references to this object, the message can never
+	// be received, so just return now
+	if(mServerHandle.refCount() == 0) {
+		return;
+	}
+
 	// Construct an event message, and add it to the queue
 	MessageEvent *event = new MessageEvent(Sched::current(), this, type, value);
 	mMessages.addTail(event);
@@ -219,7 +231,20 @@ void Object::onHandleClosed(Handle::Type type)
 		case Handle::TypeClient:
 			post(SysEventObjectClosed, 0);
 			break;
+
 		case Handle::TypeServer:
+			MessageBase *next;
+			for(MessageBase *message = mMessages.head(); message != 0; message = next) {
+				next = mMessages.next(message);
+				if(message->type() == Message::TypeMessage) {
+					Message *m = (Message*)message;
+					m->cancel();
+				}
+			}
+
+			if(mParent && mSendingChildren.empty()) {
+				mParent->mSendingChildren.remove(this);
+			}
 			break;
 	}
 }

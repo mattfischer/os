@@ -18,6 +18,13 @@
 
 #include <string.h>
 
+struct ProcessInfo {
+	Process *process;
+	int obj;
+};
+
+Slab<ProcessInfo> processInfoSlab;
+
 struct StartupInfo {
 	char cmdline[PROC_MANAGER_CMDLINE_LEN];
 };
@@ -84,22 +91,26 @@ static void startUser(void *param)
 }
 
 // Start the named process in userspace
-static int startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
+static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
 {
 	Log::printf("processManager: start process %s\n", cmdline);
 
 	// Create a new process
 	Process *process = new Process();
 
+	ProcessInfo *processInfo = (ProcessInfo*)processInfoSlab.allocate();
+	processInfo->process = process;
+
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	int processObject = Object_Create(manager, process);
+	int obj = Object_Create(manager, processInfo);
+	processInfo->obj = obj;
 
 	// Duplicate handles into the newly-created process
 	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject, Object::Handle::TypeClient);
 	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject, Object::Handle::TypeClient);
 	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject, Object::Handle::TypeClient);
-	process->dupObjectRefTo(3, Sched::current()->process(), processObject, Object::Handle::TypeClient);
+	process->dupObjectRefTo(3, Sched::current()->process(), obj, Object::Handle::TypeClient);
 
 	// Create a task within the process, and copy the startup info into it
 	Task *task = process->newTask();
@@ -110,7 +121,7 @@ static int startUserProcess(const char *cmdline, int stdinObject, int stdoutObje
 	// Start the task--it will load the executable on its own thread, to avoid
 	// blocking this task.
 	task->start(startUser, startupInfo);
-	return processObject;
+	return processInfo;
 }
 
 // Main task for process manager
@@ -127,8 +138,7 @@ void ProcessManager::start()
 	Log::start();
 
 	// Kernel initialization is now complete.  Start the first userspace process.
-	int obj = startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
-	Object_Release(obj);
+	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
 	// Now that userspace is up and running, the only remaining role of this task
 	// is to service messages that it sends to us.
@@ -141,8 +151,9 @@ void ProcessManager::start()
 			switch(message.event.type) {
 				case SysEventObjectClosed:
 				{
-					Process *process = (Process*)message.event.targetData;
-					delete process;
+					ProcessInfo *processInfo = (ProcessInfo*)message.event.targetData;
+					Object_Release(processInfo->obj);
+					delete processInfo->process;
 					break;
 				}
 			}
@@ -151,9 +162,9 @@ void ProcessManager::start()
 
 		// Grab the process to which this message was directed
 		struct MessageInfo info;
-		Process *process;
 		Message_Info(msg, &info);
-		process = (Process*)info.targetData;
+		ProcessInfo *processInfo = (ProcessInfo*)info.targetData;
+		Process *process = processInfo->process;
 
 		switch(message.msg.type) {
 			case ProcManagerMapPhys:
@@ -180,13 +191,13 @@ void ProcessManager::start()
 			case ProcManagerSpawnProcess:
 			{
 				// Spawn a new process.
-				int processObject = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				ProcessInfo *processInfo = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
 				Object_Release(message.msg.u.spawn.stdinObject);
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
 
-				Message_Replyh(msg, 0, &processObject, sizeof(processObject), 0, 1);
-				Object_Release(processObject);
+				int obj = processInfo->obj;
+				Message_Replyh(msg, 0, &obj, sizeof(obj), 0, 1);
 				break;
 			}
 
