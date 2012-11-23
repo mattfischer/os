@@ -30,7 +30,7 @@ void Object::Handle::onLastRef()
 
 /*!
  * \brief Constructor
- * \param parent Object parent, or NULL
+ * \param parent Object parent, or 0
  * \param data Arbitrary data pointer
  */
 Object::Object(Object *parent, void *data)
@@ -44,7 +44,7 @@ Object::Object(Object *parent, void *data)
 // Find an object in the hierarchy which is ready to receive a message
 Task *Object::findReceiver()
 {
-	for(Object *object = this; object != NULL; object = object->parent()) {
+	for(Object *object = this; object != 0; object = object->parent()) {
 		while(!object->mReceivers.empty()) {
 			// Found a receiver.  Remove it from the list and return it.
 			Task *receiver = object->mReceivers.removeHead();
@@ -66,7 +66,7 @@ Task *Object::findReceiver()
 	}
 
 	// No receivers found
-	return NULL;
+	return 0;
 }
 
 /*!
@@ -155,9 +155,9 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 {
 	// Search down the object hierarchy, looking for a pending message
 	// in this object or any of its children
-	MessageBase *message = NULL;
+	MessageBase *message = 0;
 	while(!message) {
-		for(Object *object = this; object != NULL; object = object->mSendingChildren.head()) {
+		for(Object *object = this; object != 0; object = object->mSendingChildren.head()) {
 			if(!object->mMessages.empty()) {
 				// Found an object with a non-empty message queue.  Remove the message.
 				message = object->mMessages.removeHead();
@@ -166,7 +166,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 				// be removed from its parent's sendingChildren list.  This may in turn cause
 				// other ancestors to be removed from their parents' lists as well.  Move up the
 				// rest of the tree and check if any sending children lists need to be updated
-				for(; object != NULL; object = object->parent()) {
+				for(; object != 0; object = object->parent()) {
 					if(object->mSendingChildren.empty() && object->mMessages.empty() && object->parent()) {
 						// This object has no sending children itself, and no messages in its queue.
 						// Therefore, it no longer belongs in its parent's sending children list.
@@ -186,7 +186,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 		if(message) {
 			if(message->sender()->state() == Task::StateDead) {
 				delete message;
-				message = NULL;
+				message = 0;
 				continue;
 			} else {
 				break;
@@ -213,7 +213,7 @@ Message *Object::receive(struct MessageHeader *recvMsg)
 		// Received message was an event.  No reply is required, so delete the message
 		// from the queue and return.
 		delete (MessageEvent*)message;
-		return NULL;
+		return 0;
 	}
 }
 

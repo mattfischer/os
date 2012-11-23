@@ -4,6 +4,8 @@
 #include "List.hpp"
 #include "Slab.hpp"
 
+#include <stddef.h>
+
 class PageTable;
 class MemArea;
 
@@ -22,7 +24,7 @@ struct Mapping : public ListEntry {
  */
 class AddressSpace {
 public:
-	AddressSpace(PageTable *pageTable = NULL);
+	AddressSpace(PageTable *pageTable = 0);
 	~AddressSpace();
 
 	static void init();

@@ -69,7 +69,7 @@ void Interrupt::dispatch()
 		if(status & 0x1) {
 			outstanding[i] = 0;
 			Subscription *subscription;
-			for(subscription = subscriptions[i].head(); subscription != NULL; subscription = subscriptions[i].next(subscription)) {
+			for(subscription = subscriptions[i].head(); subscription != 0; subscription = subscriptions[i].next(subscription)) {
 				subscription->setAcknowledged(false);
 				subscription->dispatch();
 				outstanding[i]++;

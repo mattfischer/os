@@ -5,6 +5,8 @@
 #include "Slab.hpp"
 #include "Page.hpp"
 
+#include <stddef.h>
+
 class PageTable;
 
 /*!

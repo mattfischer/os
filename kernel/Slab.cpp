@@ -37,7 +37,7 @@ SlabBase::SlabBase(int size)
 void *SlabBase::allocate()
 {
 	// Search through the list of pages for one with a non-full bitfield
-	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
+	for(Page *page = mPages.head(); page != 0; page = mPages.next(page)) {
 		struct SlabHead *head = (struct SlabHead*)page->vaddr();
 
 		// Search for an open slot

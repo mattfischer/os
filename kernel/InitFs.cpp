@@ -68,7 +68,7 @@ static void *lookup(const char *name, int *size)
 		header = (struct InitFsFileHeader*)((char*)header + sizeof(struct InitFsFileHeader) + header->size);
 	}
 
-	return NULL;
+	return 0;
 }
 
 // Open file information structure
@@ -132,14 +132,14 @@ static void server(void *param)
 					Name_Set(PREFIX, fileServer);
 
 					// Forward along any registered names to the new name server
-					for(RegisteredName *registeredName = registeredNames.head(); registeredName != NULL; registeredName = registeredNames.next(registeredName)) {
+					for(RegisteredName *registeredName = registeredNames.head(); registeredName != 0; registeredName = registeredNames.next(registeredName)) {
 						Name_Set(registeredName->name, registeredName->obj);
 						Object_Release(registeredName->obj);
 					}
 
 					// Fail any waiters so that they will retry the wait with the new name server
-					for(Waiter *waiter = waiters.head(); waiter != NULL; waiter = waiters.next(waiter)) {
-						Message_Reply(waiter->message, -1, NULL, 0);
+					for(Waiter *waiter = waiters.head(); waiter != 0; waiter = waiters.next(waiter)) {
+						Message_Reply(waiter->message, -1, 0, 0);
 					}
 					break;
 				}
@@ -150,7 +150,7 @@ static void server(void *param)
 		struct MessageInfo messageInfo;
 		Message_Info(m, &messageInfo);
 
-		if(messageInfo.targetData == NULL) {
+		if(messageInfo.targetData == 0) {
 			// Call made to the main file server object
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
@@ -192,7 +192,7 @@ static void server(void *param)
 					strcpy(registeredName->name, msg.name.msg.u.set.name);
 					registeredName->obj = msg.name.msg.u.set.obj;
 					registeredNames.addTail(registeredName);
-					Message_Reply(m, -1, NULL, 0);
+					Message_Reply(m, -1, 0, 0);
 					break;
 				}
 
@@ -240,7 +240,7 @@ static void server(void *param)
 				case IOMsgTypeSeek:
 				{
 					info->u.file.pointer = msg.io.msg.u.seek.pointer;
-					Message_Reply(m, 0, NULL, 0);
+					Message_Reply(m, 0, 0, 0);
 					break;
 				}
 
@@ -266,11 +266,11 @@ static void server(void *param)
  */
 void InitFs::start()
 {
-	fileServer = Object_Create(OBJECT_INVALID, NULL);
+	fileServer = Object_Create(OBJECT_INVALID, 0);
 	sNameServer = Sched::current()->process()->object(fileServer);
 
 	Task *task = Kernel::process()->newTask();
-	task->start(server, NULL);
+	task->start(server, 0);
 }
 
 /*!

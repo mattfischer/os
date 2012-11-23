@@ -14,7 +14,7 @@ Slab<Task> Task::sSlab;
  */
 Task::Task(Process *process, Page *stack)
 {
-	if(stack == NULL) {
+	if(stack == 0) {
 		mStack = Page::alloc();
 	} else {
 		mStack = stack;
@@ -25,7 +25,7 @@ Task::Task(Process *process, Page *stack)
 	mRegs[R_SP] = (unsigned)mStack->vaddr() + PAGE_SIZE;
 
 	mProcess = process;
-	mEffectiveAddressSpace = NULL;
+	mEffectiveAddressSpace = 0;
 }
 
 Task::~Task()
@@ -69,7 +69,7 @@ void Task::onLastRef()
 void Task::kill()
 {
 	mStack->free();
-	mStack = NULL;
+	mStack = 0;
 
 	mState = StateDead;
 }

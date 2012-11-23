@@ -169,7 +169,7 @@ static void server(void *param)
 		Message_Info(m, &messageInfo);
 		Info *info = (Info*)messageInfo.targetData;
 
-		if(info == NULL) {
+		if(info == 0) {
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
 				{
@@ -219,9 +219,9 @@ static void server(void *param)
 
 void Log::start()
 {
-	logServer = Object_Create(OBJECT_INVALID, NULL);
+	logServer = Object_Create(OBJECT_INVALID, 0);
 	Name_Set("/dev/log", logServer);
 
 	Task *task = Kernel::process()->newTask();
-	task->start(server, NULL);
+	task->start(server, 0);
 }

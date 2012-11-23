@@ -1,8 +1,6 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include <stddef.h>
-
 /*!
  * \brief Intrusive list entry to be included within a class.
  *
@@ -16,27 +14,27 @@ struct ListEntryAux {
 
 	//! Constructor
 	ListEntryAux() {
-		prev = NULL;
-		next = NULL;
+		prev = 0;
+		next = 0;
 	}
 };
 
 /*!
  * \brief Intrusive list.  Uses ListEntryAux to store list pointers
  */
-template<typename T, ListEntryAux<T> T::*member = NULL>
+template<typename T, ListEntryAux<T> T::*member = 0>
 class ListAux {
 public:
 	//! Constructor
 	ListAux() {
-		mHead = NULL;
-		mTail = NULL;
+		mHead = 0;
+		mTail = 0;
 	}
 
 	//! Initialize
 	void init() {
-		mHead = NULL;
-		mTail = NULL;
+		mHead = 0;
+		mTail = 0;
 	}
 
 	/*!
@@ -55,23 +53,23 @@ public:
 	 * \param entry Current item
 	 * \return Next item
 	 */
-	T *next(T *entry) { return (entry->*member).next ? (entry->*member).next : NULL; }
+	T *next(T *entry) { return (entry->*member).next ? (entry->*member).next : 0; }
 	/*!
 	 * \brief Get previous item in list
 	 * \param entry Current item
 	 * \return Previous item
 	 */
-	T *prev(T *entry) { return (entry->*member).prev ? (entry->*member).prev : NULL; }
+	T *prev(T *entry) { return (entry->*member).prev ? (entry->*member).prev : 0; }
 
 	/*!
 	 * \brief Add item to head of list
 	 * \param entry Item to add
 	 */
 	void addHead(T *entry) {
-		(entry->*member).prev = NULL;
+		(entry->*member).prev = 0;
 		(entry->*member).next = mHead;
 
-		if(mHead == NULL) {
+		if(mHead == 0) {
 			mHead = entry;
 			mTail = entry;
 		} else {
@@ -86,9 +84,9 @@ public:
 	 */
 	void addTail(T *entry) {
 		(entry->*member).prev = mTail;
-		(entry->*member).next = NULL;
+		(entry->*member).next = 0;
 
-		if(mHead == NULL) {
+		if(mHead == 0) {
 			mHead = entry;
 			mTail = entry;
 		} else {
@@ -154,22 +152,22 @@ public:
 			mTail = (entry->*member).prev;
 		}
 
-		(entry->*member).next = NULL;
-		(entry->*member).prev = NULL;
+		(entry->*member).next = 0;
+		(entry->*member).prev = 0;
 	}
 
 	/*!
 	 * \brief Determines if list is empty
 	 * \return True if empty, false otherwise
 	 */
-	bool empty() { return mHead == NULL; }
+	bool empty() { return mHead == 0; }
 
 	/*!
 	 * \brief Determine if an item is contained in the list
 	 * \param target Item
 	 */
 	bool contains(T *target) {
-		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
+		for(T *cursor = head(); cursor != 0; cursor = next(cursor)) {
 			if(cursor == target) {
 				return true;
 			}
@@ -195,8 +193,8 @@ struct ListEntry {
 	ListEntry *next; //!< Next item
 
 	ListEntry() {
-		prev = NULL;
-		next = NULL;
+		prev = 0;
+		next = 0;
 	}
 };
 
@@ -208,49 +206,49 @@ class List {
 public:
 	//! Constructor
 	List() {
-		mHead = NULL;
-		mTail = NULL;
+		mHead = 0;
+		mTail = 0;
 	}
 
 	//! Initialize
 	void init() {
-		mHead = NULL;
-		mTail = NULL;
+		mHead = 0;
+		mTail = 0;
 	}
 
 	/*!
 	 * \brief List head
 	 * \return Head
 	 */
-	T *head() { return mHead ? static_cast<T*>(mHead) : NULL; }
+	T *head() { return mHead ? static_cast<T*>(mHead) : 0; }
 	/*!
 	 * \brief List tail
 	 * \return Tail
 	 */
-	T *tail() { return mTail ? static_cast<T*>(mTail) : NULL; }
+	T *tail() { return mTail ? static_cast<T*>(mTail) : 0; }
 
 	/*!
 	 * \brief Get next item in list
 	 * \param entry Current item
 	 * \return Next item
 	 */
-	T *next(ListEntry *entry) { return entry->next ? static_cast<T*>(entry->next) : NULL; }
+	T *next(ListEntry *entry) { return entry->next ? static_cast<T*>(entry->next) : 0; }
 	/*!
 	 * \brief Get previous item in list
 	 * \param entry Current item
 	 * \return Previous item
 	 */
-	T *prev(ListEntry *entry) { return entry->prev ? static_cast<T*>(entry->prev) : NULL; }
+	T *prev(ListEntry *entry) { return entry->prev ? static_cast<T*>(entry->prev) : 0; }
 
 	/*!
 	 * \brief Add item to head of list
 	 * \param entry Item to add
 	 */
 	void addHead(ListEntry *entry) {
-		entry->prev = NULL;
+		entry->prev = 0;
 		entry->next = mHead;
 
-		if(mHead == NULL) {
+		if(mHead == 0) {
 			mHead = entry;
 			mTail = entry;
 		} else {
@@ -265,9 +263,9 @@ public:
 	 */
 	void addTail(ListEntry *entry) {
 		entry->prev = mTail;
-		entry->next = NULL;
+		entry->next = 0;
 
-		if(mHead == NULL) {
+		if(mHead == 0) {
 			mHead = entry;
 			mTail = entry;
 		} else {
@@ -333,8 +331,8 @@ public:
 			mTail = entry->prev;
 		}
 
-		entry->next = NULL;
-		entry->prev = NULL;
+		entry->next = 0;
+		entry->prev = 0;
 	}
 
 	/*!
@@ -369,14 +367,14 @@ public:
 	 * \brief Determines if list is empty
 	 * \return True if empty, false otherwise
 	 */
-	bool empty() { return mHead == NULL; }
+	bool empty() { return mHead == 0; }
 
 	/*!
 	 * \brief Determine if an item is contained in the list
 	 * \param target Item
 	 */
 	bool contains(T *target) {
-		for(T *cursor = head(); cursor != NULL; cursor = next(cursor)) {
+		for(T *cursor = head(); cursor != 0; cursor = next(cursor)) {
 			if(cursor == target) {
 				return true;
 			}

@@ -20,7 +20,7 @@ public:
 		StateDead     //!< Dead
 	};
 
-	Process(AddressSpace *addressSpace = NULL);
+	Process(AddressSpace *addressSpace = 0);
 	~Process();
 
 	State state() { return mState; }
@@ -59,7 +59,7 @@ public:
 	void addWaiter(int msg);
 	int waiter(int waiter) { return mWaiters[waiter]; }
 
-	Task *newTask(Page *stack = NULL);
+	Task *newTask(Page *stack = 0);
 
 	void kill();
 

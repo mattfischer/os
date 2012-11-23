@@ -14,7 +14,7 @@
 List<Task> Sched::sRunList;
 
 //! Currently running task
-Task *Sched::sCurrent = NULL;
+Task *Sched::sCurrent = 0;
 
 /*!
  * \brief Add a task to the run queue

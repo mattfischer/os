@@ -16,16 +16,16 @@ Slab<Process> Process::sSlab;
 
 /*!
  * \brief Constructor
- * \param addressSpace Address space to use for process, or NULL to allocate a new one
+ * \param addressSpace Address space to use for process, or 0 to allocate a new one
  */
 Process::Process(AddressSpace *addressSpace)
 {
-	if(addressSpace == NULL) {
+	if(addressSpace == 0) {
 		addressSpace = new AddressSpace();
 	}
 
 	mAddressSpace = addressSpace;
-	mHeap = NULL;
+	mHeap = 0;
 	mHeapTop = HEAP_START;
 	mHeapAreaTop = HEAP_START;
 	mState = StateRunning;
@@ -40,7 +40,7 @@ Process::~Process()
 
 void Process::growHeap(int increment)
 {
-	if(mHeap == NULL) {
+	if(mHeap == 0) {
 		// No heap allocated yet.  Create a new memory segment and map it
 		// into the process.
 		int size = PAGE_SIZE_ROUND_UP(increment);
@@ -76,7 +76,7 @@ void Process::growHeap(int increment)
 /*!
  * \brief Retrieve object
  * \param obj Object number
- * \return Object, or NULL
+ * \return Object, or 0
  */
 Object *Process::object(int obj)
 {
@@ -84,19 +84,19 @@ Object *Process::object(int obj)
 	if(handle) {
 		return handle->object();
 	} else {
-		return NULL;
+		return 0;
 	}
 }
 
 /*!
  * \brief Retrieve object handle
  * \param obj Object number
- * \return Object handle, or NULL
+ * \return Object handle, or 0
  */
 Object::Handle *Process::objectHandle(int obj)
 {
 	if(obj == OBJECT_INVALID) {
-		return NULL;
+		return 0;
 	} else {
 		return mObjects[obj];
 	}
@@ -109,13 +109,13 @@ Object::Handle *Process::objectHandle(int obj)
  */
 int Process::refObject(Object *object, Object::Handle::Type type)
 {
-	if(object == NULL) {
+	if(object == 0) {
 		return OBJECT_INVALID;
 	}
 
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
-		if(mObjects[i] == NULL) {
+		if(mObjects[i] == 0) {
 			Object::Handle *handle = object->handle(type);
 			handle->ref();
 			mObjects[i] = handle;
@@ -135,7 +135,7 @@ int Process::refObject(Object *object, Object::Handle::Type type)
 int Process::refObjectTo(int obj, Object *object, Object::Handle::Type type)
 {
 	// Check if slot is empty
-	if(mObjects[obj] != NULL || object == NULL) {
+	if(mObjects[obj] != 0 || object == 0) {
 		return OBJECT_INVALID;
 	}
 
@@ -158,7 +158,7 @@ void Process::unrefObject(int obj)
 
 	if(mObjects[obj]) {
 		mObjects[obj]->unref();
-		mObjects[obj] = NULL;
+		mObjects[obj] = 0;
 	}
 }
 
@@ -196,7 +196,7 @@ int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj, Obje
 /*!
  * \brief Retrieve a message by index
  * \param msg Message index
- * \return Message, or NULL
+ * \return Message, or 0
  */
 struct Message *Process::message(int msg)
 {
@@ -216,7 +216,7 @@ int Process::refMessage(Message *message)
 
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
-		if(mMessages[i] == NULL) {
+		if(mMessages[i] == 0) {
 			mMessages[i] = message;
 			return i + 1;
 		}
@@ -231,14 +231,14 @@ int Process::refMessage(Message *message)
  */
 void Process::unrefMessage(int msg)
 {
-	mMessages[msg - 1] = NULL;
+	mMessages[msg - 1] = 0;
 }
 
 int Process::refSubscription(Interrupt::Subscription *subscription)
 {
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
-		if(mSubscriptions[i] == NULL) {
+		if(mSubscriptions[i] == 0) {
 			mSubscriptions[i] = subscription;
 			return i;
 		}
@@ -249,7 +249,7 @@ int Process::refSubscription(Interrupt::Subscription *subscription)
 
 void Process::unrefSubscription(int sub)
 {
-	mSubscriptions[sub] = NULL;
+	mSubscriptions[sub] = 0;
 }
 
 void Process::addWaiter(int msg)
@@ -276,7 +276,7 @@ void Process::kill()
 	mState = StateDead;
 
 	Task *next;
-	for(Task *task = mTasks.head(); task != NULL; task = next)
+	for(Task *task = mTasks.head(); task != 0; task = next)
 	{
 		next = mTasks.next(task);
 		task->kill();
@@ -286,7 +286,7 @@ void Process::kill()
 
 	delete mAddressSpace;
 
-	if(mHeap != NULL) {
+	if(mHeap != 0) {
 		delete mHeap;
 	}
 
@@ -295,14 +295,14 @@ void Process::kill()
 	}
 
 	for(int i=0; i<16; i++) {
-		if(mMessages[i] != NULL) {
+		if(mMessages[i] != 0) {
 			mMessages[i]->cancel();
 			unrefMessage(i);
 		}
 	}
 
 	for(int i=0; i<16; i++) {
-		if(mSubscriptions[i] != NULL) {
+		if(mSubscriptions[i] != 0) {
 			Interrupt::unsubscribe(mSubscriptions[i]);
 			delete mSubscriptions[i];
 		}

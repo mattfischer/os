@@ -5,6 +5,8 @@
 #include "Page.hpp"
 #include "List.hpp"
 
+#include <stddef.h>
+
 /*!
  * \brief Represents a page table.
  */

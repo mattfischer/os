@@ -30,7 +30,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 	for(int i=0; i<src->numSegments; i++) {
 		// First, copy segment data out of the source message
 		struct BufferSegment segment;
-		AddressSpace::memcpy(NULL, &segment, srcProcess->addressSpace(), src->segments + i, sizeof(struct BufferSegment));
+		AddressSpace::memcpy(0, &segment, srcProcess->addressSpace(), src->segments + i, sizeof(struct BufferSegment));
 
 		// If this segment lies entirely before the offset of the source data, skip past it
 		if(srcOffset + segment.size < offset) {
@@ -93,7 +93,7 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
 	for(int i=0; i<dest->numSegments; i++) {
 		// First, get the segment information itself from the source message
 		struct BufferSegment segment;
-		AddressSpace::memcpy(NULL, &segment, destProcess->addressSpace(), dest->segments + i, sizeof(struct BufferSegment));
+		AddressSpace::memcpy(0, &segment, destProcess->addressSpace(), dest->segments + i, sizeof(struct BufferSegment));
 
 		// Now, fill this segment with data from the source message
 		int segmentCopied = readMessage(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
@@ -179,7 +179,7 @@ int Message::reply(int result, const struct MessageHeader *replyMsg)
 
 void Message::cancel()
 {
-	MessageHeader replyMsg = { NULL, 0, 0, 0 };
+	MessageHeader replyMsg = { 0, 0, 0, 0 };
 	reply(SysErrorObjectDead, &replyMsg);
 	delete this;
 }

@@ -30,7 +30,7 @@ MemAreaPages::MemAreaPages(int size)
 
 MemAreaPages::~MemAreaPages()
 {
-	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
+	for(Page *page = mPages.head(); page != 0; page = mPages.next(page)) {
 		page->free();
 	}
 }
@@ -39,7 +39,7 @@ void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsig
 {
 	unsigned v = (unsigned)vaddr;
 	unsigned int skipPages = offset >> PAGE_SHIFT;
-	for(Page *page = mPages.head(); page != NULL; page = mPages.next(page)) {
+	for(Page *page = mPages.head(); page != 0; page = mPages.next(page)) {
 		// Skip pages until we get to the one containing the beginning of the mapping
 		if(skipPages > 0) {
 			skipPages--;

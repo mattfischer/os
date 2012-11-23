@@ -81,7 +81,7 @@ void AbortEntry()
 	// Just kill the process
 	ProcManagerMsg message;
 	message.msg.type = ProcManagerKill;
-	Object_Send(3, &message, sizeof(message), NULL, 0);
+	Object_Send(3, &message, sizeof(message), 0, 0);
 
 	// Poof!
 }

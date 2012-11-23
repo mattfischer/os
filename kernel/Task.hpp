@@ -6,6 +6,8 @@
 #include "Slab.hpp"
 #include "Ref.hpp"
 
+#include <stddef.h>
+
 #define R_SP 13
 #define R_PC 15
 
@@ -28,7 +30,7 @@ public:
 		StateDead
 	};
 
-	Task(Process *process, Page *stack = NULL);
+	Task(Process *process, Page *stack = 0);
 	virtual ~Task();
 
 	/*!

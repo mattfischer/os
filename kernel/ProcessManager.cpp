@@ -128,7 +128,7 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 void ProcessManager::start()
 {
 	// Create and register the process manager object
-	manager = Object_Create(OBJECT_INVALID, NULL);
+	manager = Object_Create(OBJECT_INVALID, 0);
 
 	// Start the InitFs file server, to serve up files from the
 	// built-in filesystem that is compiled into the kernel
@@ -174,7 +174,7 @@ void ProcessManager::start()
 				MemArea *area = new MemAreaPhys(message.msg.u.mapPhys.size, message.msg.u.mapPhys.paddr);
 				process->addressSpace()->map(area, (void*)message.msg.u.mapPhys.vaddr, 0, area->size());
 
-				Message_Reply(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, 0, 0);
 				break;
 			}
 
@@ -184,7 +184,7 @@ void ProcessManager::start()
 				int ret = (int)process->heapTop();
 				process->growHeap(message.msg.u.sbrk.increment);
 
-				Message_Reply(msg, ret, NULL, 0);
+				Message_Reply(msg, ret, 0, 0);
 				break;
 			}
 
@@ -218,7 +218,7 @@ void ProcessManager::start()
 				Interrupt::unsubscribe(subscription);
 
 				process->unrefSubscription(message.msg.u.unsubInt.sub);
-				Message_Reply(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, 0, 0);
 				break;
 			}
 
@@ -226,7 +226,7 @@ void ProcessManager::start()
 			{
 				Interrupt::Subscription *subscription = process->subscription(message.msg.u.ackInt.sub);
 				Interrupt::acknowledge(subscription);
-				Message_Reply(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, 0, 0);
 				break;
 			}
 
@@ -235,11 +235,11 @@ void ProcessManager::start()
 				for(int i=0; i<16; i++) {
 					int m = process->waiter(i);
 					if(m != 0) {
-						Message_Reply(m, 0, NULL, 0);
+						Message_Reply(m, 0, 0, 0);
 					}
 				}
 				process->kill();
-				Message_Reply(msg, 0, NULL, 0);
+				Message_Reply(msg, 0, 0, 0);
 				break;
 			}
 

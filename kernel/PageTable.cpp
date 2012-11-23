@@ -41,7 +41,7 @@ PageTable::~PageTable()
 		page->free();
 	}
 
-	for(Page *page = mL2Tables.head(); page != NULL; page = mL2Tables.next(page)) {
+	for(Page *page = mL2Tables.head(); page != 0; page = mL2Tables.next(page)) {
 		page->free();
 	}
 }
@@ -53,7 +53,7 @@ void PageTable::allocL2Table(void *vaddr)
 	int idx = (unsigned int)vaddr >> PAGE_TABLE_SECTION_SHIFT;
 
 	// Search through the list of L2 tables and attempt to find an unused one
-	for(Page *L2Page = mL2Tables.head(); L2Page != NULL; L2Page = mL2Tables.next(L2Page)) {
+	for(Page *L2Page = mL2Tables.head(); L2Page != 0; L2Page = mL2Tables.next(L2Page)) {
 		unsigned *L2Table = (unsigned*)L2Page->vaddr();
 		// Each 4kb page contains 4 1kb second-level tables
 		for(int i=0; i<4; i++) {

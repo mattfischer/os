@@ -38,7 +38,7 @@ Page *Page::alloc()
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 /*!
@@ -92,7 +92,7 @@ Page *Page::allocContig(int align, int num)
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 /*!
@@ -110,7 +110,7 @@ void Page::free()
 void Page::freeList(List<Page> list)
 {
 	Page *next;
-	for(Page *page = list.head(); page != NULL; page = next)
+	for(Page *page = list.head(); page != 0; page = next)
 	{
 		next = list.next(page);
 		list.remove(page);

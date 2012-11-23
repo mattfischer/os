@@ -9,6 +9,8 @@
 
 #include <lib/shared/include/Message.h>
 
+#include <stddef.h>
+
 class Task;
 class Object;
 

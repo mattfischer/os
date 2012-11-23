@@ -17,11 +17,11 @@ static Slab<struct Mapping> mappingSlab;
 
 /*!
  * \brief Constructor
- * \param Page table to use, or NULL to allocate a new one
+ * \param Page table to use, or 0 to allocate a new one
  */
 AddressSpace::AddressSpace(PageTable *pageTable)
 {
-	if(pageTable == NULL) {
+	if(pageTable == 0) {
 		pageTable = new PageTable(Kernel::process()->addressSpace()->pageTable());
 	}
 
@@ -33,7 +33,7 @@ AddressSpace::~AddressSpace()
 	delete mPageTable;
 
 	struct Mapping *next;
-	for(struct Mapping *mapping = mMappings.head(); mapping != NULL; mapping = next) {
+	for(struct Mapping *mapping = mMappings.head(); mapping != 0; mapping = next) {
 		next = mMappings.next(mapping);
 		mappingSlab.free(mapping);
 	}
@@ -58,7 +58,7 @@ void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned
 	area->map(mPageTable, vaddr, mapping->offset, mapping->size);
 
 	// Now add the mapping into the list of mappings, in sorted order
-	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != NULL; mappingCursor = mMappings.next(mappingCursor)) {
+	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != 0; mappingCursor = mMappings.next(mappingCursor)) {
 		if(mappingCursor->vaddr > mapping->vaddr) {
 			mMappings.addAfter(mapping, mappingCursor);
 			break;
@@ -77,9 +77,9 @@ static unsigned nextPageBoundary(unsigned addr)
 
 /*!
  * \brief Copy data between two address spaces
- * \param destSpace Destination address space, or NULL for kernel address
+ * \param destSpace Destination address space, or 0 for kernel address
  * \param dest Destination virtual address
- * \param srcSpace Source address space, or NULL for kernel address
+ * \param srcSpace Source address space, or 0 for kernel address
  * \param src Source virtual address
  * \param size Size of data to copy
  */
@@ -99,11 +99,11 @@ void AddressSpace::memcpy(AddressSpace *destSpace, void *dest, AddressSpace *src
 		void *destKernel = (void*)destPtr;
 
 		// Translate addresses to kernel space
-		if(srcSpace != NULL) {
+		if(srcSpace != 0) {
 			srcKernel = PADDR_TO_VADDR(srcSpace->pageTable()->translateVAddr(srcKernel));
 		}
 
-		if(destSpace != NULL ) {
+		if(destSpace != 0 ) {
 			destKernel = PADDR_TO_VADDR(destSpace->pageTable()->translateVAddr(destKernel));
 		}
 

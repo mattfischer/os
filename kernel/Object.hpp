@@ -7,6 +7,8 @@
 
 #include <lib/shared/include/Object.h>
 
+#include <stddef.h>
+
 class Task;
 class MessageBase;
 class Message;
