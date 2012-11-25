@@ -34,11 +34,11 @@ void Object::Handle::onLastRef()
  * \param data Arbitrary data pointer
  */
 Object::Object(Object *parent, void *data)
- : mClientHandle(this, Handle::TypeClient),
-   mServerHandle(this, Handle::TypeServer)
+ : mParent(parent),
+   mClientHandle(this, Handle::TypeClient),
+   mServerHandle(this, Handle::TypeServer),
+   mData(data)
 {
-	mParent = parent;
-	mData = data;
 }
 
 // Find an object in the hierarchy which is ready to receive a message

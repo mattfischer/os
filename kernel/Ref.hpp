@@ -77,6 +77,8 @@ public:
 
 	T *ptr() { return mObject; }
 
+	operator bool() { return mObject != 0; }
+
 private:
 	T *mObject;
 };

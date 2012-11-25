@@ -49,7 +49,7 @@ public:
 	 * \brief Get parent of this object
 	 * \return Object parent
 	 */
-	Object *parent() { return mParent; }
+	Object *parent() { return mParent.ptr(); }
 
 	/*!
 	 * \brief Get data associated with object
@@ -77,7 +77,7 @@ private:
 	List<MessageBase> mMessages; //!< List of pending messages sent to this object
 	List<Object> mSendingChildren; //!< List of children which have pending messages
 	void *mData; //!< Arbitrary data associated with object
-	Object *mParent; //!< Parent of this object
+	Ref<Object> mParent; //!< Parent of this object
 	Handle mClientHandle; //!< Client handle
 	Handle mServerHandle; //!< Server handle
 
