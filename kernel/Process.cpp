@@ -238,6 +238,7 @@ int Process::refChannel(Channel *channel)
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
 		if(mChannels[i] == 0) {
+			channel->ref();
 			mChannels[i] = channel;
 			return i;
 		}
@@ -253,6 +254,7 @@ int Process::refChannel(Channel *channel)
 void Process::unrefChannel(int chan)
 {
 	mChannels[chan]->kill();
+	mChannels[chan]->unref();
 	mChannels[chan] = 0;
 }
 
@@ -325,7 +327,7 @@ void Process::kill()
 
 	for(int i=0; i<16; i++) {
 		if(mChannels[i] != 0) {
-			mChannels[i]->kill();
+			unrefChannel(i);
 		}
 	}
 

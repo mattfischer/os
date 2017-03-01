@@ -154,6 +154,11 @@ void Channel::kill()
 	mState = StateDead;
 }
 
+void Channel::onLastRef()
+{
+	delete this;
+}
+
 /*!
  * \brief Create a channel
  * \return New channel id

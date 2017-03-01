@@ -9,7 +9,7 @@
 #include "include/MessageFmt.h"
 #include <lib/shared/include/Channel.h>
 
-class Channel {
+class Channel : public RefObject {
 public:
 	Channel();
 
@@ -24,6 +24,8 @@ public:
 
 	State state() { return mState; }
 	void kill();
+
+	void onLastRef();
 
 	//! Allocator
 	void *operator new(size_t) { return sSlab.allocate(); }

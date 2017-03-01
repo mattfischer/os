@@ -37,7 +37,7 @@ public:
 	void operator delete(void *p) { sSlab.free((Object*)p); }
 
 private:
-	Channel *mChannel;
+	Ref<Channel> mChannel;
 	void *mData; //!< Arbitrary data associated with object
 
 	static Slab<Object> sSlab;
