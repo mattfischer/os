@@ -32,6 +32,8 @@ public:
 	void operator delete(void *p) { sSlab.free((Channel*)p); }
 
 private:
+	Task *findReceiver();
+
 	List<Task> mReceivers; //!< List of receivers waiting on this object
 	List<MessageBase> mMessages; //!< List of pending messages sent to this object
 	State mState; //!< Channel state

@@ -16,6 +16,28 @@ Channel::Channel()
 }
 
 /*!
+ * \brief Find a task which can receive a pending message
+ * \return Task, or 0
+ */
+Task *Channel::findReceiver()
+{
+	Task *task = 0;
+	while(!mReceivers.empty()) {
+		// Found a receiver.  Remove it from the list and return it.
+		task = mReceivers.removeHead();
+		if(task->state() == Task::StateDead) {
+			task->unref();
+			task = 0;
+			continue;
+		} else {
+			break;
+		}
+	}
+
+	return task;
+}
+
+/*!
  * \brief Send a message to an object
  * \param sendMsg Message to send
  * \param replyMsg Message reply info
@@ -23,26 +45,14 @@ Channel::Channel()
  */
 void Channel::send(MessageBase *message)
 {
-	int ret;
-
+	// Add the message to the message list
 	mMessages.addTail(message);
-
-	// See if any tasks are ready to receive on this object or any of its ancestors
-	Task *task = 0;
-	while(!mReceivers.empty()) {
-		// Found a receiver.  Remove it from the list and return it.
-		task = mReceivers.removeHead();
-		if(task->state() == Task::StateDead) {
-			task->unref();
-			continue;
-		} else {
-			break;
-		}
-	}
 
 	// Mark ourselves as send-blocked
 	Sched::current()->setState(Task::StateSendBlock);
 
+	// See if any tasks are ready to receive on this object or any of its ancestors
+	Task *task = findReceiver();
 	if(task) {
 		// Switch to the receiving task
 		Sched::switchTo(task);
@@ -62,23 +72,11 @@ void Channel::send(MessageBase *message)
  */
 void Channel::post(MessageBase *message)
 {
-	int ret;
-
+	// Add the message to the message list
 	mMessages.addTail(message);
 
 	// See if any tasks are ready to receive on this object or any of its ancestors
-	Task *task = 0;
-	while(!mReceivers.empty()) {
-		// Found a receiver.  Remove it from the list and return it.
-		task = mReceivers.removeHead();
-		if(task->state() == Task::StateDead) {
-			task->unref();
-			continue;
-		} else {
-			break;
-		}
-	}
-
+	Task *task = findReceiver();
 	if(task) {
 		// Switch to the receiving task
 		Sched::add(task);
