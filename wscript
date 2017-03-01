@@ -16,10 +16,10 @@ def configure(ctx):
 	ctx.load('gcc gxx')
 
 	ctx.setenv('cross')
-	ctx.find_program('arm-none-eabi-gcc', var='CC')
-	ctx.find_program('arm-none-eabi-g++', var='CXX')
-	ctx.find_program('arm-none-eabi-as',  var='AS')
-	ctx.find_program('arm-none-eabi-objcopy', var='OBJCOPY')
+	ctx.find_program('arm-eabi-gcc', var='CC')
+	ctx.find_program('arm-eabi-g++', var='CXX')
+	ctx.find_program('arm-eabi-as',  var='AS')
+	ctx.find_program('arm-eabi-objcopy', var='OBJCOPY')
 
 	ctx.load('gcc gxx gas')
 	ctx.env.append_value('CFLAGS', ['-g', '-Werror'])

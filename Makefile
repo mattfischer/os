@@ -1,7 +1,7 @@
 qemu:
 	@echo "Starting QEMU..."
-	@qemu-system-arm -kernel out/kernel/kernel -s -S
+	@qemu-system-arm -M integratorcp -kernel out/kernel/kernel -s -S -nographic
 
 gdb:
 	@echo "target remote :1234" > /tmp/gdbinit
-	@arm-none-eabi-gdb out/kernel/kernel -x /tmp/gdbinit
+	@arm-eabi-gdb out/kernel/kernel -x /tmp/gdbinit
