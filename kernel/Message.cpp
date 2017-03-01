@@ -14,10 +14,10 @@
 Slab<MessageEvent> MessageEvent::sSlab;
 Slab<Message> Message::sSlab;
 
-MessageBase::MessageBase(Type type, Task *sender, Object *target)
+MessageBase::MessageBase(Type type, Task *sender, void *targetData)
  : mType(type),
    mSender(sender),
-   mTarget(target)
+   mTargetData(targetData)
 {
 }
 
@@ -62,7 +62,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 
 			if(translateCache[j] == OBJECT_INVALID) {
 				// Duplicate the object into the destination process
-				translateCache[j] = destProcess->dupObjectRef(srcProcess, obj, Object::Handle::TypeClient);
+				translateCache[j] = destProcess->dupObjectRef(srcProcess, obj);
 			}
 
 			// Translate the object reference into the destination buffer
@@ -116,8 +116,8 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
  * \param sendMsg Send message data
  * \param replyMsg Reply message data
  */
-Message::Message(Task *sender, Object *target, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
- : MessageBase(TypeMessage, sender, target)
+Message::Message(Task *sender, void *targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
+ : MessageBase(TypeMessage, sender, targetData)
 {
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
@@ -190,7 +190,7 @@ void Message::cancel()
  */
 void Message::info(struct MessageInfo *info)
 {
-	info->targetData = target()->data();
+	info->targetData = targetData();
 }
 
 int MessageEvent::read(struct MessageHeader *header)
@@ -199,7 +199,7 @@ int MessageEvent::read(struct MessageHeader *header)
 
 	// Construct an Event to organize data
 	event.type = mType;
-	event.targetData = target()->data();
+	event.targetData = targetData();
 	event.value = mValue;
 
 	// Copy data into the header's segment

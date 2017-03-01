@@ -30,7 +30,7 @@ public:
 	 * \param sender Sending task
 	 * \param target Target object
 	 */
-	MessageBase(Type type, Task *sender, Object *target);
+	MessageBase(Type type, Task *sender, void *targetData);
 
 	/*!
 	 * \brief Return message type
@@ -46,7 +46,7 @@ public:
 	 * \brief Return message target
 	 * \return Target
 	 */
-	Ref<Object> target() { return mTarget; }
+	void *targetData() { return mTargetData; }
 
 	/*!
 	 * \brief Abstract method.  Read message contents into header
@@ -61,7 +61,7 @@ public:
 private:
 	Type mType; //!< Message type
 	Ref<Task> mSender; //!< Sending task
-	Ref<Object> mTarget; //!< Target object
+	void *mTargetData;
 };
 
 /*!
@@ -69,7 +69,7 @@ private:
  */
 class Message : public MessageBase {
 public:
-	Message(Task *sender, Object *target, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
+	Message(Task *sender, void *targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
 
 	/*!
 	 * \brief Return send message area
@@ -115,8 +115,8 @@ private:
  */
 class MessageEvent : public MessageBase {
 public:
-	MessageEvent(Task *sender, Object *target, unsigned type, unsigned value)
-	: MessageBase(TypeEvent, sender, target),
+	MessageEvent(Task *sender, void *targetData, unsigned type, unsigned value)
+	: MessageBase(TypeEvent, sender, targetData),
 	  mType(type),
 	  mValue(value)
 	{}

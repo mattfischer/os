@@ -90,7 +90,6 @@ enum InfoType {
 
 struct Info {
 	InfoType type;
-	int obj;
 	union {
 		FileInfo file;
 		DirInfo dir;
@@ -118,7 +117,6 @@ static void server(void *param)
 				{
 					Info *info = (Info*)msg.name.event.targetData;
 					if(info) {
-						Object_Release(info->obj);
 						infoSlab.free(info);
 					}
 					break;
@@ -176,11 +174,14 @@ static void server(void *param)
 							info->u.file.size = size;
 							info->u.file.pointer = 0;
 							obj = Object_Create(fileChannel, info);
-							info->obj = obj;
 						}
 					}
 
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
+					if(obj != OBJECT_INVALID) {
+						Object_Release(obj);
+					}
+
 					break;
 				}
 
@@ -219,10 +220,12 @@ static void server(void *param)
 						info->type = InfoTypeDir;
 						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
 						obj = Object_Create(fileChannel, info);
-						info->obj = obj;
 					}
 
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
+					if(obj != OBJECT_INVALID) {
+						Object_Release(obj);
+					}
 					break;
 				}
 			}

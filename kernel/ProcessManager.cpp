@@ -108,10 +108,10 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 	processInfo->obj = obj;
 
 	// Duplicate handles into the newly-created process
-	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject, Object::Handle::TypeClient);
-	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject, Object::Handle::TypeClient);
-	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject, Object::Handle::TypeClient);
-	process->dupObjectRefTo(3, Sched::current()->process(), obj, Object::Handle::TypeClient);
+	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
+	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(3, Sched::current()->process(), obj);
 
 	// Create a task within the process, and copy the startup info into it
 	Task *task = process->newTask();
@@ -154,7 +154,6 @@ void ProcessManager::start()
 				case SysEventObjectClosed:
 				{
 					ProcessInfo *processInfo = (ProcessInfo*)message.event.targetData;
-					Object_Release(processInfo->obj);
 					delete processInfo->process;
 					break;
 				}
@@ -200,6 +199,7 @@ void ProcessManager::start()
 
 				int obj = processInfo->obj;
 				Message_Replyh(msg, 0, &obj, sizeof(obj), 0, 1);
+				Object_Release(obj);
 				break;
 			}
 

@@ -13,7 +13,6 @@
 #include <algorithm>
 
 struct Info {
-	int obj;
 };
 
 int main(int argc, char *argv[])
@@ -39,7 +38,6 @@ int main(int argc, char *argv[])
 				case SysEventObjectClosed:
 					{
 						struct Info *info = (struct Info*)msg.name.event.targetData;
-						Object_Release(info->obj);
 						delete info;
 						break;
 					}
@@ -55,8 +53,8 @@ int main(int argc, char *argv[])
 				{
 					struct Info *info = new Info;
 					int obj = Object_Create(channel, info);
-					info->obj = obj;
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
+					Object_Release(obj);
 					break;
 				}
 			}

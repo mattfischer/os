@@ -8,6 +8,14 @@
 Slab<Channel> Channel::sSlab;
 
 /*!
+ * \brief Constructor
+ */
+Channel::Channel()
+{
+	mState = StateRunning;
+}
+
+/*!
  * \brief Send a message to an object
  * \param sendMsg Message to send
  * \param replyMsg Message reply info
@@ -127,6 +135,23 @@ Message *Channel::receive(struct MessageHeader *recvMsg)
 		delete (MessageEvent*)message;
 		return 0;
 	}
+}
+
+/*!
+ * \brief Kill a channel and free any pending messages
+ */
+void Channel::kill()
+{
+	MessageBase *next;
+	for(MessageBase *message = mMessages.head(); message != 0; message = next) {
+		next = mMessages.next(message);
+		if(message->type() == Message::TypeMessage) {
+			Message *m = (Message*)message;
+			m->cancel();
+		}
+	}
+
+	mState = StateDead;
 }
 
 /*!

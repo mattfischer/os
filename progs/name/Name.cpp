@@ -208,7 +208,6 @@ int main(int argc, char *argv[])
 						for(int i = 0; i < openDir->objects.size(); i++) {
 							Object_Release(openDir->objects[i]);
 						}
-						Object_Release(openDir->obj);
 						delete openDir;
 					}
 					break;
@@ -250,9 +249,9 @@ int main(int argc, char *argv[])
 					int ret = OBJECT_INVALID;
 					if(openDir) {
 						ret = Object_Create(channel, openDir);
-						openDir->obj = ret;
 					}
 					Message_Replyh(m, 0, &ret, sizeof(ret), 0, 1);
+					Object_Release(ret);
 					break;
 				}
 

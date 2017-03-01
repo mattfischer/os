@@ -125,7 +125,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 
 int Kernel_GetNameServer()
 {
-	return Sched::current()->process()->refObject(InitFs::nameServer(), Object::Handle::TypeClient);
+	return Sched::current()->process()->refObject(InitFs::nameServer());
 }
 
 void Kernel_SetNameServer(int obj)

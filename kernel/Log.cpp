@@ -24,7 +24,6 @@ int logServer;
 int logChannel;
 
 struct Info {
-	int obj;
 	int pointer;
 };
 
@@ -158,7 +157,6 @@ static void server(void *param)
 				{
 					Info *info = (Info*)msg.name.event.targetData;
 					if(info) {
-						Object_Release(info->obj);
 						infoSlab.free(info);
 					}
 				}
@@ -178,13 +176,13 @@ static void server(void *param)
 					info = infoSlab.allocate();
 					obj = Object_Create(logChannel, info);
 
-					info->obj = obj;
 					info->pointer = 0;
 
 					struct BufferSegment segs[] = { &obj, sizeof(obj) };
 					struct MessageHeader hdr = { segs, 1, 0, 1 };
 
 					Message_Replyx(m, 0, &hdr);
+					Object_Release(obj);
 					break;
 				}
 			}

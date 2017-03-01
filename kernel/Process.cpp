@@ -77,24 +77,9 @@ void Process::growHeap(int increment)
 /*!
  * \brief Retrieve object
  * \param obj Object number
- * \return Object, or 0
- */
-Object *Process::object(int obj)
-{
-	Object::Handle *handle = objectHandle(obj);
-	if(handle) {
-		return handle->object();
-	} else {
-		return 0;
-	}
-}
-
-/*!
- * \brief Retrieve object handle
- * \param obj Object number
  * \return Object handle, or 0
  */
-Object::Handle *Process::objectHandle(int obj)
+Object *Process::object(int obj)
 {
 	if(obj == OBJECT_INVALID) {
 		return 0;
@@ -108,7 +93,7 @@ Object::Handle *Process::objectHandle(int obj)
  * \param object Object
  * \return Index of new object, or OBJECT_INVALID
  */
-int Process::refObject(Object *object, Object::Handle::Type type)
+int Process::refObject(Object *object)
 {
 	if(object == 0) {
 		return OBJECT_INVALID;
@@ -117,9 +102,8 @@ int Process::refObject(Object *object, Object::Handle::Type type)
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
 		if(mObjects[i] == 0) {
-			Object::Handle *handle = object->handle(type);
-			handle->ref();
-			mObjects[i] = handle;
+			object->ref();
+			mObjects[i] = object;
 			return i;
 		}
 	}
@@ -133,16 +117,15 @@ int Process::refObject(Object *object, Object::Handle::Type type)
  * \param object Object
  * \return Index of new object, or OBJECT_INVALID
  */
-int Process::refObjectTo(int obj, Object *object, Object::Handle::Type type)
+int Process::refObjectTo(int obj, Object *object)
 {
 	// Check if slot is empty
 	if(mObjects[obj] != 0 || object == 0) {
 		return OBJECT_INVALID;
 	}
 
-	Object::Handle *handle = object->handle(type);
-	handle->ref();
-	mObjects[obj] = handle;
+	object->ref();
+	mObjects[obj] = object;
 
 	return obj;
 }
@@ -169,13 +152,13 @@ void Process::unrefObject(int obj)
  * \param sourceObj Object number in source process
  * \return Object index in new process, or OBJECT_INVALID
  */
-int Process::dupObjectRef(Process *sourceProcess, int sourceObj, Object::Handle::Type type)
+int Process::dupObjectRef(Process *sourceProcess, int sourceObj)
 {
 	if(sourceObj == OBJECT_INVALID) {
 		return OBJECT_INVALID;
 	}
 
-	return refObject(sourceProcess->object(sourceObj), type);
+	return refObject(sourceProcess->object(sourceObj));
 }
 
 /*!
@@ -185,13 +168,13 @@ int Process::dupObjectRef(Process *sourceProcess, int sourceObj, Object::Handle:
  * \param sourceObj Object number in source process
  * \return Object index in new process, or OBJECT_INVALID
  */
-int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj, Object::Handle::Type type)
+int Process::dupObjectRefTo(int obj, Process *sourceProcess, int sourceObj)
 {
 	if(sourceObj == OBJECT_INVALID) {
 		return OBJECT_INVALID;
 	}
 
-	return refObjectTo(obj, sourceProcess->object(sourceObj), type);
+	return refObjectTo(obj, sourceProcess->object(sourceObj));
 }
 
 /*!
@@ -269,6 +252,7 @@ int Process::refChannel(Channel *channel)
  */
 void Process::unrefChannel(int chan)
 {
+	mChannels[chan]->kill();
 	mChannels[chan] = 0;
 }
 
@@ -336,6 +320,12 @@ void Process::kill()
 		if(mMessages[i] != 0) {
 			mMessages[i]->cancel();
 			unrefMessage(i);
+		}
+	}
+
+	for(int i=0; i<16; i++) {
+		if(mChannels[i] != 0) {
+			mChannels[i]->kill();
 		}
 	}
 

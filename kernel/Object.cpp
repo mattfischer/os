@@ -11,23 +11,6 @@
 //! Slab allocator for objects
 Slab<Object> Object::sSlab;
 
-Object::Handle::Handle(Object *object, Type type)
-{
-	mType = type;
-	mObject = object;
-}
-
-void Object::Handle::onFirstRef()
-{
-	mObject->ref();
-}
-
-void Object::Handle::onLastRef()
-{
-	mObject->onHandleClosed(mType);
-	mObject->unref();
-}
-
 /*!
  * \brief Constructor
  * \param parent Object parent, or 0
@@ -35,8 +18,6 @@ void Object::Handle::onLastRef()
  */
 Object::Object(Channel *channel, void *data)
  : mChannel(channel),
-   mClientHandle(this, Handle::TypeClient),
-   mServerHandle(this, Handle::TypeServer),
    mData(data)
 {
 }
@@ -51,9 +32,9 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 {
 	int ret;
 
-	if(mServerHandle.refCount() > 0) {
+	if(mChannel->state() == Channel::StateRunning) {
 		// Construct a message object, and add it to the list of pending objects
-		Message *message = new Message(Sched::current(), this, *sendMsg, *replyMsg);
+		Message *message = new Message(Sched::current(), data(), *sendMsg, *replyMsg);
 
 		mChannel->send(message);
 
@@ -79,9 +60,9 @@ int Object::post(unsigned type, unsigned value)
 {
 	int ret;
 
-	if(mServerHandle.refCount() > 0) {
+	if(mChannel->state() == Channel::StateRunning) {
 		// Construct an event message, and add it to the queue
-		MessageEvent *event = new MessageEvent(Sched::current(), this, type, value);
+		MessageEvent *event = new MessageEvent(Sched::current(), data(), type, value);
 		mChannel->post(event);
 
 		ret = SysErrorSuccess;
@@ -94,32 +75,10 @@ int Object::post(unsigned type, unsigned value)
 	return ret;
 }
 
-Object::Handle *Object::handle(Handle::Type type)
-{
-	switch(type) {
-		case Handle::TypeClient:
-			return &mClientHandle;
-
-		case Handle::TypeServer:
-			return &mServerHandle;
-	}
-}
-
 void Object::onLastRef()
 {
+	post(SysEventObjectClosed, 0);
 	delete this;
-}
-
-void Object::onHandleClosed(Handle::Type type)
-{
-	switch(type) {
-		case Handle::TypeClient:
-			post(SysEventObjectClosed, 0);
-			break;
-
-		case Handle::TypeServer:
-			break;
-	}
 }
 
 /*!
@@ -133,7 +92,7 @@ int Object_Create(int chan, void *data)
 	Process *process = Sched::current()->process();
 	Channel *channel = process->channel(chan);
 	Object *object = new Object(channel, data);
-	return process->refObject(object, Object::Handle::TypeServer);
+	return process->refObject(object);
 }
 
 /*!

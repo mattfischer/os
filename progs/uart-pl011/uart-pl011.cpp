@@ -31,7 +31,6 @@ int readPointer = 0;
 int writePointer = 0;
 
 struct Info {
-	int obj;
 };
 
 void PrintUart(char *buffer, int size)
@@ -94,7 +93,6 @@ int main(int argc, char *argv[])
 				case SysEventObjectClosed:
 				{
 					struct Info *info = (struct Info*)msg.name.event.targetData;
-					Object_Release(info->obj);
 					delete info;
 					break;
 				}
@@ -133,8 +131,8 @@ int main(int argc, char *argv[])
 					int obj;
 					struct Info *info = new Info;
 					obj = Object_Create(channel, info);
-					info->obj = obj;
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
+					Object_Release(obj);
 					break;
 				}
 			}
