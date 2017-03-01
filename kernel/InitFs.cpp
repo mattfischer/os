@@ -25,6 +25,7 @@ extern char __InitFsStart[];
 extern char __InitFsEnd[];
 
 int fileServer;
+int fileChannel;
 Object *InitFs::sNameServer;
 
 // Path at which to register the InitFS
@@ -109,7 +110,7 @@ static void server(void *param)
 			union NameMsg name;
 			union IOMsg io;
 		} msg;
-		int m = Object_Receive(fileServer, &msg, sizeof(msg));
+		int m = Channel_Receive(fileChannel, &msg, sizeof(msg));
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -174,7 +175,7 @@ static void server(void *param)
 							info->u.file.data = data;
 							info->u.file.size = size;
 							info->u.file.pointer = 0;
-							obj = Object_Create(fileServer, info);
+							obj = Object_Create(fileChannel, info);
 							info->obj = obj;
 						}
 					}
@@ -217,7 +218,7 @@ static void server(void *param)
 						Info *info = infoSlab.allocate();
 						info->type = InfoTypeDir;
 						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
-						obj = Object_Create(fileServer, info);
+						obj = Object_Create(fileChannel, info);
 						info->obj = obj;
 					}
 
@@ -266,7 +267,8 @@ static void server(void *param)
  */
 void InitFs::start()
 {
-	fileServer = Object_Create(OBJECT_INVALID, 0);
+	fileChannel = Channel_Create();
+	fileServer = Object_Create(fileChannel, 0);
 	sNameServer = Sched::current()->process()->object(fileServer);
 
 	Task *task = Kernel::process()->newTask();

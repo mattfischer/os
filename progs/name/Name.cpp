@@ -2,6 +2,7 @@
 #include <Object.h>
 #include <Message.h>
 #include <Kernel.h>
+#include <Channel.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -188,14 +189,15 @@ struct OpenDir *createOpenDir(const char *name)
 
 int main(int argc, char *argv[])
 {
-	int obj = Object_Create(OBJECT_INVALID, NULL);
+	int channel = Channel_Create();
+	int obj = Object_Create(channel, NULL);
 	Kernel_SetNameServer(obj);
 
 	while(1) {
 		union NameMsg msg;
 		int m;
 
-		m = Object_Receive(obj, &msg, sizeof(msg));
+		m = Channel_Receive(channel, &msg, sizeof(msg));
 
 		if(m == 0) {
 			switch(msg.event.type) {
@@ -247,7 +249,7 @@ int main(int argc, char *argv[])
 					struct OpenDir *openDir = createOpenDir(msg.msg.u.openDir.name);
 					int ret = OBJECT_INVALID;
 					if(openDir) {
-						ret = Object_Create(obj, openDir);
+						ret = Object_Create(channel, openDir);
 						openDir->obj = ret;
 					}
 					Message_Replyh(m, 0, &ret, sizeof(ret), 0, 1);

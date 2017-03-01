@@ -19,9 +19,6 @@ int Object_Sendsx(int obj, const void *msg, int msgSize, struct MessageHeader *r
 int Object_Sendhx(int obj, const void *msg, int msgSize, int objectsOffset, int objectsSize, struct MessageHeader *replyMsg);
 int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 
-int Object_Receive(int obj, void *recv, int recvSize);
-int Object_Receivex(int obj, struct MessageHeader *recvMsg);
-
 int Object_Post(int obj, unsigned type, unsigned value);
 
 #ifdef __cplusplus

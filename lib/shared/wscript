@@ -1,2 +1,2 @@
 def build(ctx):
-	ctx.crossstlib(target='shared', source='IO.c Message.c Name.c Object.c', export_includes='include', includes='include')
+	ctx.crossstlib(target='shared', source='Channel.c IO.c Message.c Name.c Object.c', export_includes='include', includes='include')

@@ -12,12 +12,14 @@ enum Syscall {
 	SyscallObjectRelease,
 	SyscallObjectSend,
 	SyscallObjectPost,
-	SyscallObjectReceive,
 	SyscallMessageRead,
 	SyscallMessageReply,
 	SyscallMessageInfo,
 	SyscallKernelGetNameServer,
-	SyscallKernelSetNameServer
+	SyscallKernelSetNameServer,
+	SyscallChannelCreate,
+	SyscallChannelDestroy,
+	SyscallChannelReceive
 };
 
 #endif

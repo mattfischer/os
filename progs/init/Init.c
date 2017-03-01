@@ -1,7 +1,9 @@
 #include <System.h>
 #include <Object.h>
+#include <Name.h>
 
 #include <stdlib.h>
+#include <fcntl.h>
 
 extern int __NameServer;
 int main(int argc, char *argv[])
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
 	Object_Release(child);
 
 	Name_Wait("/dev/console");
-	console = open("/dev/console");
+	console = open("/dev/console", O_RDWR);
 
 	childArgv[0] = "/boot/shell";
 	childArgv[1] = NULL;

@@ -91,3 +91,5 @@ int _stat(char *file, struct stat *st)
 }
 
 int __dso_handle;
+
+void __sync_synchronize() {}

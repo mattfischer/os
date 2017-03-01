@@ -1,5 +1,6 @@
 #include <System.h>
 #include <Message.h>
+#include <Object.h>
 
 #include "Internal.h"
 

@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <Name.h>
+#include <IO.h>
+#include <Object.h>
+#include <System.h>
+
 char cwd[PATH_MAX];
 char dir[PATH_MAX];
 

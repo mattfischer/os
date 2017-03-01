@@ -1,2 +1,2 @@
 def build(ctx):
-	ctx.userprogram(target='init', source='Init.c')
+	ctx.userprogram(target='init', source='Init.c', baseaddr='0x80000')

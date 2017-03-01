@@ -32,6 +32,7 @@ Process::Process(AddressSpace *addressSpace)
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
 	memset(mWaiters, 0, sizeof(int) * 16);
+	memset(mChannels, 0, sizeof(Channel*) * 16);
 }
 
 Process::~Process()
@@ -232,6 +233,43 @@ int Process::refMessage(Message *message)
 void Process::unrefMessage(int msg)
 {
 	mMessages[msg - 1] = 0;
+}
+
+/*!
+ * \brief Retrieve a channel by index
+ * \param chan Channel index
+ * \return Channel, or 0
+ */
+Channel *Process::channel(int chan)
+{
+	return mChannels[chan];
+}
+
+/*!
+ * \brief Reference a channel
+ * \param chan Channel
+ * \return Channel index, or 0
+ */
+int Process::refChannel(Channel *channel)
+{
+	// Find an empty slot
+	for(int i=0; i<16; i++) {
+		if(mChannels[i] == 0) {
+			mChannels[i] = channel;
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+/*!
+ * \brief Unreference a channel
+ * \param chan Channel index
+ */
+void Process::unrefChannel(int chan)
+{
+	mChannels[chan] = 0;
 }
 
 int Process::refSubscription(Interrupt::Subscription *subscription)

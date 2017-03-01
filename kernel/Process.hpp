@@ -5,6 +5,7 @@
 #include "Interrupt.hpp"
 #include "Task.hpp"
 #include "Object.hpp"
+#include "Channel.hpp"
 
 class Message;
 class MemAreaPages;
@@ -52,6 +53,10 @@ public:
 	int refMessage(Message *message);
 	void unrefMessage(int msg);
 
+	Channel *channel(int chan);
+	int refChannel(Channel *channel);
+	void unrefChannel(int chan);
+
 	Interrupt::Subscription *subscription(int sub) { return mSubscriptions[sub]; }
 	int refSubscription(Interrupt::Subscription *subscription);
 	void unrefSubscription(int sub);
@@ -75,6 +80,7 @@ private:
 	Object::Handle *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
+	Channel *mChannels[16];
 	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
 	State mState;

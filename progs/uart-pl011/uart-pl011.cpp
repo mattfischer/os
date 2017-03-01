@@ -2,6 +2,7 @@
 #include <Message.h>
 #include <System.h>
 #include <Name.h>
+#include <Channel.h>
 
 #include <stddef.h>
 #include <stdio.h>
@@ -68,7 +69,8 @@ int main(int argc, char *argv[])
 {
 	int sub;
 	std::list<Waiter> waiters;
-	int server = Object_Create(OBJECT_INVALID, NULL);
+	int channel = Channel_Create();
+	int server = Object_Create(channel, NULL);
 
 	Name_Set(argv[1], server);
 
@@ -85,7 +87,7 @@ int main(int argc, char *argv[])
 		struct MessageInfo info;
 		int m;
 
-		m = Object_Receive(server, &msg, sizeof(msg));
+		m = Channel_Receive(channel, &msg, sizeof(msg));
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -130,7 +132,7 @@ int main(int argc, char *argv[])
 				{
 					int obj;
 					struct Info *info = new Info;
-					obj = Object_Create(server, info);
+					obj = Object_Create(channel, info);
 					info->obj = obj;
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					break;

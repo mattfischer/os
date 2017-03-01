@@ -13,6 +13,7 @@
 #include "MemArea.hpp"
 #include "PageTable.hpp"
 #include "Log.hpp"
+#include "Channel.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
 
@@ -61,7 +62,7 @@ private:
 Slab<EventSubscription> EventSubscription::sSlab;
 
 //!< Object id for the process manager itself
-static int manager;
+static int channel;
 
 // Shim function to kickstart newly-spawned processes.
 static void startUser(void *param)
@@ -103,7 +104,7 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	int obj = Object_Create(manager, processInfo);
+	int obj = Object_Create(channel, processInfo);
 	processInfo->obj = obj;
 
 	// Duplicate handles into the newly-created process
@@ -128,7 +129,8 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 void ProcessManager::start()
 {
 	// Create and register the process manager object
-	manager = Object_Create(OBJECT_INVALID, 0);
+	channel = Channel_Create();
+	int manager = Object_Create(channel, 0);
 
 	// Start the InitFs file server, to serve up files from the
 	// built-in filesystem that is compiled into the kernel
@@ -145,7 +147,7 @@ void ProcessManager::start()
 	while(1) {
 		// Wait on the process manager object for incoming messages
 		union ProcManagerMsg message;
-		int msg = Object_Receive(manager, &message, sizeof(message));
+		int msg = Channel_Receive(channel, &message, sizeof(message));
 
 		if(msg == 0) {
 			switch(message.event.type) {

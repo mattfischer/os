@@ -21,6 +21,7 @@ char buffer[LOG_BUFFER_SIZE];
 int writePointer = 0;
 bool full = false;
 int logServer;
+int logChannel;
 
 struct Info {
 	int obj;
@@ -149,7 +150,7 @@ static void server(void *param)
 				union NameMsg name;
 				union IOMsg io;
 			} msg;
-		int m = Object_Receive(logServer, &msg, sizeof(msg));
+		int m = Channel_Receive(logChannel, &msg, sizeof(msg));
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -175,7 +176,7 @@ static void server(void *param)
 				{
 					int obj;
 					info = infoSlab.allocate();
-					obj = Object_Create(logServer, info);
+					obj = Object_Create(logChannel, info);
 
 					info->obj = obj;
 					info->pointer = 0;
@@ -219,7 +220,8 @@ static void server(void *param)
 
 void Log::start()
 {
-	logServer = Object_Create(OBJECT_INVALID, 0);
+	logChannel = Channel_Create();
+	logServer = Object_Create(logChannel, 0);
 	Name_Set("/dev/log", logServer);
 
 	Task *task = Kernel::process()->newTask();

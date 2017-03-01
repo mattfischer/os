@@ -1,5 +1,6 @@
 def build(ctx):
 	source =   ['AddressSpace.cpp',
+				'Channel.cpp',
 				'Message.cpp',
 				'Sched.cpp',
 				'Elf.cpp',

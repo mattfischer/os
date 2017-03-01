@@ -18,8 +18,3 @@ int Object_Sendx(int obj, const struct MessageHeader *sendMsg, struct MessageHea
 {
 	return swi(SyscallObjectSend, (unsigned int)obj, (unsigned int)sendMsg, (unsigned int)replyMsg, 0);
 }
-
-int Object_Receivex(int obj, struct MessageHeader *recvMsg)
-{
-	return swi(SyscallObjectReceive, (unsigned int)obj, (unsigned int)recvMsg, 0, 0);
-}

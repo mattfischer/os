@@ -41,11 +41,3 @@ int Object_Sendhx(int obj, const void *msg, int msgSize, int objectsOffset, int 
 
 	return Object_Sendx(obj, &sendMsg, replyMsg);
 }
-
-int Object_Receive(int obj, void *recv, int recvSize)
-{
-	struct BufferSegment recvSegs[] = { recv, recvSize };
-	struct MessageHeader recvMsg = { recvSegs, 1, 0, 0 };
-
-	return Object_Receivex(obj, &recvMsg);
-}

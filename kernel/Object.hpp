@@ -4,6 +4,7 @@
 #include "List.hpp"
 #include "Slab.hpp"
 #include "Ref.hpp"
+#include "Channel.hpp"
 
 #include <lib/shared/include/Object.h>
 
@@ -39,17 +40,10 @@ public:
 		Type mType;
 	};
 
-	Object(Object *parent, void *data);
+	Object(Channel *channel, void *data);
 
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	int post(unsigned type, unsigned value);
-	Message *receive(struct MessageHeader *recvMsg);
-
-	/*!
-	 * \brief Get parent of this object
-	 * \return Object parent
-	 */
-	Object *parent() { return mParent.ptr(); }
 
 	/*!
 	 * \brief Get data associated with object
@@ -73,15 +67,11 @@ public:
 	friend class Handle;
 
 private:
-	List<Task> mReceivers; //!< List of receivers waiting on this object
-	List<MessageBase> mMessages; //!< List of pending messages sent to this object
-	List<Object> mSendingChildren; //!< List of children which have pending messages
+	Channel *mChannel;
 	void *mData; //!< Arbitrary data associated with object
-	Ref<Object> mParent; //!< Parent of this object
 	Handle mClientHandle; //!< Client handle
 	Handle mServerHandle; //!< Server handle
 
-	Task *findReceiver();
 	void onHandleClosed(Handle::Type type);
 
 	static Slab<Object> sSlab;

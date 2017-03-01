@@ -10,6 +10,7 @@
 #include "AddressSpace.hpp"
 #include "Process.hpp"
 #include "Task.hpp"
+#include "Channel.hpp"
 
 #include <lib/shared/include/Kernel.h>
 
@@ -93,9 +94,6 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			Object_Post(arg0, arg1, arg2);
 			return 0;
 
-		case SyscallObjectReceive:
-			return Object_Receivex(arg0, (struct MessageHeader*)arg1);
-
 		case SyscallMessageRead:
 			return Message_Read(arg0, (void*)arg1, (int)arg2, (int)arg3);
 
@@ -112,6 +110,16 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 		case SyscallKernelSetNameServer:
 			Kernel_SetNameServer(arg0);
 			return 0;
+
+		case SyscallChannelCreate:
+			return Channel_Create();
+
+		case SyscallChannelDestroy:
+			Channel_Destroy(arg0);
+			return 0;
+
+		case SyscallChannelReceive:
+			return Channel_Receivex(arg0, (struct MessageHeader*)arg1);
 	}
 }
 
