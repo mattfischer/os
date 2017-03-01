@@ -170,7 +170,7 @@ int Message::reply(int result, const struct MessageHeader *replyMsg)
 		// Switch back to the sending process, so that the corresponding send
 		// call can return
 		Sched::add(Sched::current());
-		Sched::switchTo(sender().ptr());
+		Sched::switchTo(sender());
 		ret = SysErrorSuccess;
 	}
 
@@ -181,7 +181,6 @@ void Message::cancel()
 {
 	MessageHeader replyMsg = { 0, 0, 0, 0 };
 	reply(SysErrorObjectDead, &replyMsg);
-	delete this;
 }
 
 /*!

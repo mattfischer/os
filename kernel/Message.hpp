@@ -41,7 +41,7 @@ public:
 	 * \brief Return message sender
 	 * \return Sender
 	 */
-	Ref<Task> sender() { return mSender; }
+	Task *sender() { return mSender.ptr(); }
 	/*!
 	 * \brief Return message target
 	 * \return Target

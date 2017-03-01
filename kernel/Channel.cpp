@@ -148,6 +148,8 @@ void Channel::kill()
 		if(message->type() == Message::TypeMessage) {
 			Message *m = (Message*)message;
 			m->cancel();
+		} else {
+			delete message;
 		}
 	}
 
