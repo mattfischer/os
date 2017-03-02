@@ -18,7 +18,7 @@ struct Info {
 int main(int argc, char *argv[])
 {
 	int channel = Channel_Create();
-	int server = Object_Create(channel, NULL);
+	int server = Object_Create(channel, 0);
 	int uart = open(argv[2], O_RDWR);
 
 	Name_Set(argv[1], server);
@@ -28,10 +28,10 @@ int main(int argc, char *argv[])
 			union IOMsg io;
 			union NameMsg name;
 		} msg;
-		struct MessageInfo info;
+		unsigned targetData;
 		int m;
 
-		m = Channel_Receive(channel, &msg, sizeof(msg), &info);
+		m = Channel_Receive(channel, &msg, sizeof(msg), &targetData);
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -45,12 +45,12 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if(info.targetData == NULL) {
+		if(targetData == 0) {
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
 				{
 					struct Info *info = new Info;
-					int obj = Object_Create(channel, info);
+					int obj = Object_Create(channel, (unsigned)info);
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					Object_Release(obj);
 					break;

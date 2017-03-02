@@ -15,13 +15,9 @@ struct MessageHeader {
 	int objectsSize;
 };
 
-struct MessageInfo {
-	void *targetData;
-};
-
 struct Event {
 	unsigned type;
-	void *targetData;
+	unsigned targetData;
 	unsigned value;
 };
 

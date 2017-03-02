@@ -190,7 +190,7 @@ struct OpenDir *createOpenDir(const char *name)
 int main(int argc, char *argv[])
 {
 	int channel = Channel_Create();
-	int obj = Object_Create(channel, NULL);
+	int obj = Object_Create(channel, 0);
 
 	set("/boot", NAMESERVER_NO);
 
@@ -205,9 +205,9 @@ int main(int argc, char *argv[])
 	while(1) {
 		union NameMsg msg;
 		int m;
-		struct MessageInfo info;
+		unsigned targetData;
 
-		m = Channel_Receive(channel, &msg, sizeof(msg), &info);
+		m = Channel_Receive(channel, &msg, sizeof(msg), &targetData);
 
 		if(m == 0) {
 			switch(msg.event.type) {
@@ -226,7 +226,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if(info.targetData == NULL) {
+		if(targetData == 0) {
 			switch(msg.msg.type) {
 				case NameMsgTypeSet:
 				{
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 					struct OpenDir *openDir = createOpenDir(msg.msg.u.openDir.name);
 					int ret = OBJECT_INVALID;
 					if(openDir) {
-						ret = Object_Create(channel, openDir);
+						ret = Object_Create(channel, (unsigned)openDir);
 					}
 					Message_Replyh(m, 0, &ret, sizeof(ret), 0, 1);
 					Object_Release(ret);
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 				}
 			}
 		} else {
-			struct OpenDir *openDir = (struct OpenDir*)info.targetData;
+			struct OpenDir *openDir = (struct OpenDir*)targetData;
 			switch(msg.msg.type) {
 				case IOMsgTypeReadDir:
 				{

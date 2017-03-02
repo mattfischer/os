@@ -16,7 +16,7 @@ Slab<Object> Object::sSlab;
  * \param parent Object parent, or 0
  * \param data Arbitrary data pointer
  */
-Object::Object(Channel *channel, void *data)
+Object::Object(Channel *channel, unsigned data)
  : mChannel(channel),
    mData(data)
 {
@@ -82,7 +82,7 @@ void Object::onLastRef()
  * \param data Data associated with object
  * \return New object id
  */
-int Object_Create(int chan, void *data)
+int Object_Create(int chan, unsigned data)
 {
 	Process *process = Sched::current()->process();
 	Channel *channel = process->channel(chan);

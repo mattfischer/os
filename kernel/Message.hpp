@@ -30,7 +30,7 @@ public:
 	 * \param sender Sending task
 	 * \param target Target object
 	 */
-	MessageBase(Type type, Task *sender, void *targetData);
+	MessageBase(Type type, Task *sender, unsigned targetData);
 
 	/*!
 	 * \brief Return message type
@@ -46,7 +46,7 @@ public:
 	 * \brief Return message target
 	 * \return Target
 	 */
-	void *targetData() { return mTargetData; }
+	unsigned targetData() { return mTargetData; }
 
 	/*!
 	 * \brief Abstract method.  Read message contents into header
@@ -61,7 +61,7 @@ public:
 private:
 	Type mType; //!< Message type
 	Ref<Task> mSender; //!< Sending task
-	void *mTargetData;
+	unsigned mTargetData;
 };
 
 /*!
@@ -69,7 +69,7 @@ private:
  */
 class Message : public MessageBase {
 public:
-	Message(Task *sender, void *targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
+	Message(Task *sender, unsigned targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg);
 
 	/*!
 	 * \brief Return send message area
@@ -94,8 +94,6 @@ public:
 	int reply(int ret, const struct MessageHeader *replyMsg);
 	void cancel();
 
-	void info(struct MessageInfo *info);
-
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { ((Message*)p)->free(); }
@@ -115,7 +113,7 @@ private:
  */
 class MessageEvent : public MessageBase {
 public:
-	MessageEvent(Task *sender, void *targetData, unsigned type, unsigned value)
+	MessageEvent(Task *sender, unsigned targetData, unsigned type, unsigned value)
 	: MessageBase(TypeEvent, sender, targetData),
 	  mType(type),
 	  mValue(value)

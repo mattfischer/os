@@ -4,7 +4,7 @@
 
 #include "Swi.h"
 
-int Object_Create(int parent, void *data)
+int Object_Create(int parent, unsigned data)
 {
 	return swi(SyscallObjectCreate, (unsigned int)parent, (unsigned int)data, 0, 0);
 }

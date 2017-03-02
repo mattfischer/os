@@ -19,7 +19,7 @@ class Message;
  */
 class Object : public ListEntry, public RefObject {
 public:
-	Object(Channel *channel, void *data);
+	Object(Channel *channel, unsigned data);
 
 	int send(const struct MessageHeader *sendMsg, struct MessageHeader *replyMsg);
 	int post(unsigned type, unsigned value);
@@ -28,7 +28,7 @@ public:
 	 * \brief Get data associated with object
 	 * \return Data
 	 */
-	void *data() { return mData; }
+	unsigned data() { return mData; }
 
 	virtual void onLastRef();
 
@@ -38,7 +38,7 @@ public:
 
 private:
 	Ref<Channel> mChannel;
-	void *mData; //!< Arbitrary data associated with object
+	unsigned mData; //!< Arbitrary data associated with object
 
 	static Slab<Object> sSlab;
 };

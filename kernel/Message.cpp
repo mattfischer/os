@@ -14,7 +14,7 @@
 Slab<MessageEvent> MessageEvent::sSlab;
 Slab<Message> Message::sSlab;
 
-MessageBase::MessageBase(Type type, Task *sender, void *targetData)
+MessageBase::MessageBase(Type type, Task *sender, unsigned targetData)
  : mType(type),
    mSender(sender),
    mTargetData(targetData)
@@ -112,11 +112,11 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
 /*!
  * \brief Constructor
  * \param sender Sending task
- * \param target Target object
+ * \param targetData Target data
  * \param sendMsg Send message data
  * \param replyMsg Reply message data
  */
-Message::Message(Task *sender, void *targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
+Message::Message(Task *sender, unsigned targetData, const struct MessageHeader &sendMsg, struct MessageHeader &replyMsg)
  : MessageBase(TypeMessage, sender, targetData)
 {
 	mSendMsg = sendMsg;
@@ -181,15 +181,6 @@ void Message::cancel()
 {
 	MessageHeader replyMsg = { 0, 0, 0, 0 };
 	reply(SysErrorObjectDead, &replyMsg);
-}
-
-/*!
- * \brief Get information on this message
- * \param info Structure to fill
- */
-void Message::info(struct MessageInfo *info)
-{
-	info->targetData = targetData();
 }
 
 int MessageEvent::read(struct MessageHeader *header)

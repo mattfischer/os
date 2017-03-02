@@ -79,7 +79,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			return 0;
 
 		case SyscallObjectCreate:
-			return Object_Create((unsigned int)arg0, (void*)arg1);
+			return Object_Create((unsigned int)arg0, (unsigned)arg1);
 
 		case SyscallObjectRelease:
 			Object_Release(arg0);
@@ -106,7 +106,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			return 0;
 
 		case SyscallChannelReceive:
-			return Channel_Receivex(arg0, (struct MessageHeader*)arg1, (struct MessageInfo*)arg2);
+			return Channel_Receivex(arg0, (struct MessageHeader*)arg1, (unsigned*)arg2);
 	}
 }
 

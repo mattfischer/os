@@ -107,7 +107,7 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	int obj = Object_Create(channel, processInfo);
+	int obj = Object_Create(channel, (unsigned)processInfo);
 	processInfo->obj = obj;
 
 	// Duplicate handles into the newly-created process
@@ -148,8 +148,8 @@ void ProcessManager::start()
 	while(1) {
 		// Wait on the process manager object for incoming messages
 		union ProcManagerMsg message;
-		struct MessageInfo info;
-		int msg = Channel_Receive(channel, &message, sizeof(message), &info);
+		unsigned targetData;
+		int msg = Channel_Receive(channel, &message, sizeof(message), &targetData);
 
 		if(msg == 0) {
 			switch(message.event.type) {
@@ -164,7 +164,7 @@ void ProcessManager::start()
 		}
 
 		// Grab the process to which this message was directed
-		ProcessInfo *processInfo = (ProcessInfo*)info.targetData;
+		ProcessInfo *processInfo = (ProcessInfo*)targetData;
 		Process *process = processInfo->process;
 
 		switch(message.msg.type) {

@@ -186,7 +186,7 @@ void Channel_Destroy(int chan)
  * \param recvMsg Message receive area
  * \return Message id
  */
-int Channel_Receivex(int chan, struct MessageHeader *recvMsg, struct MessageInfo *info)
+int Channel_Receivex(int chan, struct MessageHeader *recvMsg, unsigned *targetData)
 {
 	Process *process = Sched::current()->process();
 	Channel *channel = process->channel(chan);
@@ -196,7 +196,7 @@ int Channel_Receivex(int chan, struct MessageHeader *recvMsg, struct MessageInfo
 	ret = process->refMessage(message);
 
 	if(message) {
-		message->info(info);
+		*targetData = message->targetData();
 	}
 
 	return ret;

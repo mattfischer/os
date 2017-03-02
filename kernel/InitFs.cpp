@@ -86,8 +86,8 @@ static void server(void *param)
 			union NameMsg name;
 			union IOMsg io;
 		} msg;
-		struct MessageInfo messageInfo;
-		int m = Channel_Receive(fileChannel, &msg, sizeof(msg), &messageInfo);
+		unsigned targetData;
+		int m = Channel_Receive(fileChannel, &msg, sizeof(msg), &targetData);
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -103,7 +103,7 @@ static void server(void *param)
 			continue;
 		}
 
-		if(messageInfo.targetData == 0) {
+		if(targetData == 0) {
 			// Call made to the main file server object
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
@@ -127,7 +127,7 @@ static void server(void *param)
 							info->u.file.data = data;
 							info->u.file.size = size;
 							info->u.file.pointer = 0;
-							obj = Object_Create(fileChannel, info);
+							obj = Object_Create(fileChannel, (unsigned)info);
 						}
 					}
 
@@ -150,7 +150,7 @@ static void server(void *param)
 						Info *info = infoSlab.allocate();
 						info->type = InfoTypeDir;
 						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
-						obj = Object_Create(fileChannel, info);
+						obj = Object_Create(fileChannel, (unsigned)info);
 					}
 
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
@@ -161,7 +161,7 @@ static void server(void *param)
 				}
 			}
 		} else {
-			Info *info = (Info*)messageInfo.targetData;
+			Info *info = (Info*)targetData;
 
 			// Message was sent to an open file handle
 			switch(msg.io.msg.type) {
