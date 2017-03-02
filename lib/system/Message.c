@@ -11,8 +11,3 @@ int Message_Replyx(int msg, int ret, const struct MessageHeader *replyMsg)
 {
 	return swi(SyscallMessageReply, (unsigned int)msg, (unsigned int)ret, (unsigned int)replyMsg, 0);
 }
-
-void Message_Info(int msg, struct MessageInfo *info)
-{
-	swi(SyscallMessageInfo, (unsigned int)msg, (unsigned int)info, 0, 0);
-}

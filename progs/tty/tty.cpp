@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 		struct MessageInfo info;
 		int m;
 
-		m = Channel_Receive(channel, &msg, sizeof(msg));
+		m = Channel_Receive(channel, &msg, sizeof(msg), &info);
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -44,8 +44,6 @@ int main(int argc, char *argv[])
 			}
 			continue;
 		}
-
-		Message_Info(m, &info);
 
 		if(info.targetData == NULL) {
 			switch(msg.name.msg.type) {

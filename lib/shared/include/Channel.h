@@ -9,8 +9,8 @@ extern "C" {
 
 int Channel_Create();
 void Channel_Destroy(int chan);
-int Channel_Receive(int chan, void *recv, int recvSize);
-int Channel_Receivex(int chan, struct MessageHeader *recvMsg);
+int Channel_Receive(int chan, void *recv, int recvSize, struct MessageInfo *info);
+int Channel_Receivex(int chan, struct MessageHeader *recvMsg, struct MessageInfo *info);
 
 #ifdef __cplusplus
 }

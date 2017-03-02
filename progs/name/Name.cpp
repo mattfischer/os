@@ -205,8 +205,9 @@ int main(int argc, char *argv[])
 	while(1) {
 		union NameMsg msg;
 		int m;
+		struct MessageInfo info;
 
-		m = Channel_Receive(channel, &msg, sizeof(msg));
+		m = Channel_Receive(channel, &msg, sizeof(msg), &info);
 
 		if(m == 0) {
 			switch(msg.event.type) {
@@ -224,9 +225,6 @@ int main(int argc, char *argv[])
 			}
 			continue;
 		}
-
-		struct MessageInfo info;
-		Message_Info(m, &info);
 
 		if(info.targetData == NULL) {
 			switch(msg.msg.type) {

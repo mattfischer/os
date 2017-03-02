@@ -239,14 +239,3 @@ int Message_Replyx(int msg, int ret, const struct MessageHeader *replyMsg)
 
 	return r;
 }
-
-/*!
- * \brief Get information for this message
- * \param msg Message id
- * \param info Message info structure to fill
- */
-void Message_Info(int msg, struct MessageInfo *info)
-{
-	struct Message *message = Sched::current()->process()->message(msg);
-	message->info(info);
-}

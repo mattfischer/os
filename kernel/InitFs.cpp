@@ -86,7 +86,8 @@ static void server(void *param)
 			union NameMsg name;
 			union IOMsg io;
 		} msg;
-		int m = Channel_Receive(fileChannel, &msg, sizeof(msg));
+		struct MessageInfo messageInfo;
+		int m = Channel_Receive(fileChannel, &msg, sizeof(msg), &messageInfo);
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -101,9 +102,6 @@ static void server(void *param)
 			}
 			continue;
 		}
-
-		struct MessageInfo messageInfo;
-		Message_Info(m, &messageInfo);
 
 		if(messageInfo.targetData == 0) {
 			// Call made to the main file server object

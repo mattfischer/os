@@ -12,7 +12,6 @@ int Message_Read(int msg, void *buffer, int offset, int size);
 int Message_Reply(int msg, int ret, const void *reply, int replySize);
 int Message_Replyh(int msg, int ret, const void *reply, int replySize, int objectsOffset, int objectsSize);
 int Message_Replyx(int msg, int ret, const struct MessageHeader *replyMsg);
-void Message_Info(int msg, struct MessageInfo *info);
 
 #ifdef __cplusplus
 }

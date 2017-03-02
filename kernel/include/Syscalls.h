@@ -9,7 +9,6 @@ enum Syscall {
 	SyscallObjectPost,
 	SyscallMessageRead,
 	SyscallMessageReply,
-	SyscallMessageInfo,
 	SyscallChannelCreate,
 	SyscallChannelDestroy,
 	SyscallChannelReceive

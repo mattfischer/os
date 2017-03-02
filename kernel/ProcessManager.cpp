@@ -148,7 +148,8 @@ void ProcessManager::start()
 	while(1) {
 		// Wait on the process manager object for incoming messages
 		union ProcManagerMsg message;
-		int msg = Channel_Receive(channel, &message, sizeof(message));
+		struct MessageInfo info;
+		int msg = Channel_Receive(channel, &message, sizeof(message), &info);
 
 		if(msg == 0) {
 			switch(message.event.type) {
@@ -163,8 +164,6 @@ void ProcessManager::start()
 		}
 
 		// Grab the process to which this message was directed
-		struct MessageInfo info;
-		Message_Info(msg, &info);
 		ProcessInfo *processInfo = (ProcessInfo*)info.targetData;
 		Process *process = processInfo->process;
 

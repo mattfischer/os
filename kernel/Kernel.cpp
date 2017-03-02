@@ -98,10 +98,6 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 		case SyscallMessageReply:
 			return Message_Replyx(arg0, (int)arg1, (struct MessageHeader*)arg2);
 
-		case SyscallMessageInfo:
-			Message_Info(arg0, (struct MessageInfo*)arg1);
-			return 0;
-
 		case SyscallChannelCreate:
 			return Channel_Create();
 
@@ -110,7 +106,7 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			return 0;
 
 		case SyscallChannelReceive:
-			return Channel_Receivex(arg0, (struct MessageHeader*)arg1);
+			return Channel_Receivex(arg0, (struct MessageHeader*)arg1, (struct MessageInfo*)arg2);
 	}
 }
 
