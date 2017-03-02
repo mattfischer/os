@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
 			switch(msg.name.event.type) {
 				case SysEventObjectClosed:
 					{
-						struct Info *info = (struct Info*)msg.name.event.targetData;
+						struct Info *info = (struct Info*)targetData;
 						delete info;
 						break;
 					}

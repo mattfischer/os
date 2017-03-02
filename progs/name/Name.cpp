@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
 			switch(msg.event.type) {
 				case SysEventObjectClosed:
 				{
-					struct OpenDir *openDir = (struct OpenDir*)msg.event.targetData;
+					struct OpenDir *openDir = (struct OpenDir*)targetData;
 					if(openDir) {
 						for(int i = 0; i < openDir->objects.size(); i++) {
 							Object_Release(openDir->objects[i]);

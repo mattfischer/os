@@ -93,7 +93,7 @@ static void server(void *param)
 			switch(msg.name.event.type) {
 				case SysEventObjectClosed:
 				{
-					Info *info = (Info*)msg.name.event.targetData;
+					Info *info = (Info*)targetData;
 					if(info) {
 						infoSlab.free(info);
 					}

@@ -189,7 +189,6 @@ int MessageEvent::read(struct MessageHeader *header)
 
 	// Construct an Event to organize data
 	event.type = mType;
-	event.targetData = targetData();
 	event.value = mValue;
 
 	// Copy data into the header's segment

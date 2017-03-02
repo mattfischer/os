@@ -17,7 +17,6 @@ struct MessageHeader {
 
 struct Event {
 	unsigned type;
-	unsigned targetData;
 	unsigned value;
 };
 

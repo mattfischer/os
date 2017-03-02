@@ -155,7 +155,7 @@ void ProcessManager::start()
 			switch(message.event.type) {
 				case SysEventObjectClosed:
 				{
-					ProcessInfo *processInfo = (ProcessInfo*)message.event.targetData;
+					ProcessInfo *processInfo = (ProcessInfo*)targetData;
 					delete processInfo->process;
 					break;
 				}

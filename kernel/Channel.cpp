@@ -89,7 +89,7 @@ void Channel::post(MessageEvent *event)
  * \param recvMsg Receive message info
  * \return Message object
  */
-Message *Channel::receive(struct MessageHeader *recvMsg)
+Message *Channel::receive(struct MessageHeader *recvMsg, unsigned *targetData)
 {
 	// Search down the object hierarchy, looking for a pending message
 	// in this object or any of its children
@@ -121,6 +121,7 @@ Message *Channel::receive(struct MessageHeader *recvMsg)
 
 	// Read the message contents into this task's address space
 	message->read(recvMsg);
+	*targetData = message->targetData();
 
 	if(message->type() == Message::TypeMessage) {
 		// Received message was a normal message.  Mark the sender as reply-blocked,
@@ -192,12 +193,8 @@ int Channel_Receivex(int chan, struct MessageHeader *recvMsg, unsigned *targetDa
 	Channel *channel = process->channel(chan);
 	int ret;
 
-	struct Message *message = channel->receive(recvMsg);
+	struct Message *message = channel->receive(recvMsg, targetData);
 	ret = process->refMessage(message);
-
-	if(message) {
-		*targetData = message->targetData();
-	}
 
 	return ret;
 }
