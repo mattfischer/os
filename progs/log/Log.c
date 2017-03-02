@@ -1,18 +1,26 @@
 #include <stdio.h>
 
+#include <kernel/include/ProcManagerFmt.h>
+#include <Object.h>
+#include <lib/system/Internal.h>
+
 #define BUFFER_SIZE 128
 
 void main()
 {
 	char buffer[BUFFER_SIZE];
-	FILE *file;
-	int size;
+	union ProcManagerMsg msg;
+	int offset = 0;
+	int size = 0;
 
-	file = fopen("/dev/log", "r");
-	size = fread(buffer, 1, BUFFER_SIZE - 1, file);
-	while(size > 0) {
+	do {
+		msg.msg.type = ProcManagerReadLog;
+		msg.msg.u.readLog.offset = offset;
+		msg.msg.u.readLog.size = BUFFER_SIZE - 1;
+
+		size = Object_Send(PROCMAN_NO, &msg, sizeof(msg), buffer, BUFFER_SIZE);
 		buffer[size] = '\0';
+		offset += size;
 		printf(buffer);
-		size = fread(buffer, 1, BUFFER_SIZE - 1, file);
-	}
+	} while(size > 0);
 }

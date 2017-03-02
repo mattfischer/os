@@ -2,6 +2,7 @@
 #define PROC_MANAGER_FMT_H
 
 #include <kernel/include/MessageFmt.h>
+#include <kernel/include/IOFmt.h>
 
 enum ProcManagerMsgType {
 	ProcManagerMapPhys,
@@ -11,7 +12,8 @@ enum ProcManagerMsgType {
 	ProcManagerUnsubInt,
 	ProcManagerAckInt,
 	ProcManagerKill,
-	ProcManagerWait
+	ProcManagerWait,
+	ProcManagerReadLog
 };
 
 struct ProcManagerMsgMapPhys {
@@ -47,6 +49,11 @@ struct ProcManagerMsgAckInt {
 	int sub;
 };
 
+struct ProcManagerReadLog {
+	int offset;
+	int size;
+};
+
 union ProcManagerMsg {
 	struct {
 		enum ProcManagerMsgType type;
@@ -57,6 +64,7 @@ union ProcManagerMsg {
 			struct ProcManagerMsgSubInt subInt;
 			struct ProcManagerMsgUnsubInt unsubInt;
 			struct ProcManagerMsgAckInt ackInt;
+			struct ProcManagerReadLog readLog;
 		} u;
 	} msg;
 	struct Event event;

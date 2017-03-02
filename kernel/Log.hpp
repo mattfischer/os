@@ -6,7 +6,8 @@
  */
 class Log {
 public:
-	static void start();
+	static int read(int offset, const char **data);
+
 	static void printf(const char *s, ...);
 	static void puts(const char *s);
 	static void write(const char *s, int size);

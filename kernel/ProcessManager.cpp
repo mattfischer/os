@@ -19,6 +19,8 @@
 
 #include <string.h>
 
+#include <algorithm>
+
 struct ProcessInfo {
 	Process *process;
 	int obj;
@@ -136,9 +138,6 @@ void ProcessManager::start()
 	// built-in filesystem that is compiled into the kernel
 	InitFs::start();
 
-	// Start the log buffer
-	Log::start();
-
 	// Kernel initialization is now complete.  Start the first userspace process.
 	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
 
@@ -248,6 +247,17 @@ void ProcessManager::start()
 			case ProcManagerWait:
 			{
 				process->addWaiter(msg);
+				break;
+			}
+
+			case ProcManagerReadLog:
+			{
+				const char *data;
+				int size;
+
+				size = Log::read(message.msg.u.readLog.offset, &data);
+				size = std::min(size, message.msg.u.readLog.size);
+				Message_Reply(msg, size, data, size);
 				break;
 			}
 		}

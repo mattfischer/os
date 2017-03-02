@@ -1,17 +1,5 @@
 #include "Log.hpp"
 
-#include "Task.hpp"
-#include "Kernel.hpp"
-#include "Process.hpp"
-#include "Slab.hpp"
-
-#include "include/NameFmt.h"
-#include "include/IOFmt.h"
-
-#include <lib/shared/include/Name.h>
-#include <lib/shared/include/Object.h>
-#include <lib/shared/include/Message.h>
-
 #include <algorithm>
 #include <string.h>
 #include <stdarg.h>
@@ -20,14 +8,6 @@
 char buffer[LOG_BUFFER_SIZE];
 int writePointer = 0;
 bool full = false;
-int logServer;
-int logChannel;
-
-struct Info {
-	int pointer;
-};
-
-static Slab<Info> infoSlab;
 
 static void printHex(unsigned int x, bool fill)
 {
@@ -142,86 +122,22 @@ void Log::write(const char *s, int size)
 	}
 }
 
-static void server(void *param)
+int Log::read(int offset, const char **data)
 {
-	while(1) {
-		union {
-				union NameMsg name;
-				union IOMsg io;
-			} msg;
-		int m = Channel_Receive(logChannel, &msg, sizeof(msg));
+	int len;
+	int start;
 
-		if(m == 0) {
-			switch(msg.name.event.type) {
-				case SysEventObjectClosed:
-				{
-					Info *info = (Info*)msg.name.event.targetData;
-					if(info) {
-						infoSlab.free(info);
-					}
-				}
-			}
-			continue;
-		}
-
-		MessageInfo messageInfo;
-		Message_Info(m, &messageInfo);
-		Info *info = (Info*)messageInfo.targetData;
-
-		if(info == 0) {
-			switch(msg.name.msg.type) {
-				case NameMsgTypeOpen:
-				{
-					int obj;
-					info = infoSlab.allocate();
-					obj = Object_Create(logChannel, info);
-
-					info->pointer = 0;
-
-					struct BufferSegment segs[] = { &obj, sizeof(obj) };
-					struct MessageHeader hdr = { segs, 1, 0, 1 };
-
-					Message_Replyx(m, 0, &hdr);
-					Object_Release(obj);
-					break;
-				}
-			}
-		} else {
-			switch(msg.name.msg.type) {
-				case IOMsgTypeRead:
-				{
-					int len;
-					int start;
-
-					if(full) {
-						start = writePointer;
-						len = LOG_BUFFER_SIZE;
-					} else {
-						start = 0;
-						len = writePointer;
-					}
-
-					start += info->pointer;
-					start %= LOG_BUFFER_SIZE;
-
-					int size = std::min(msg.io.msg.u.rw.size, len - start);
-					size = std::min(size, LOG_BUFFER_SIZE - start);
-
-					Message_Reply(m, size, (char*)buffer + start, size);
-					info->pointer += size;
-					break;
-				}
-			}
-		}
+	if(full) {
+		start = writePointer;
+		len = LOG_BUFFER_SIZE;
+	} else {
+		start = 0;
+		len = writePointer;
 	}
-}
 
-void Log::start()
-{
-	logChannel = Channel_Create();
-	logServer = Object_Create(logChannel, 0);
-	Name_Set("/dev/log", logServer);
+	start += offset;
+	start %= LOG_BUFFER_SIZE;
 
-	Task *task = Kernel::process()->newTask();
-	task->start(server, 0);
+	*data = buffer + start;
+	return std::min(len - start, LOG_BUFFER_SIZE - start);
 }
