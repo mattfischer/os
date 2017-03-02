@@ -33,14 +33,9 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 	int ret;
 
 	if(mChannel->state() == Channel::StateRunning) {
-		// Construct a message object, and add it to the list of pending objects
+		// Construct a message object, and send it on this object's channel
 		Message *message = new Message(Sched::current(), data(), *sendMsg, *replyMsg);
-
-		mChannel->send(message);
-
-		// Message receive and reply has been completed, and control has switched back
-		// to this task.  Return the code from the message reply.
-		ret = message->result();
+		ret = mChannel->send(message);
 		delete message;
 	} else {
 		// If there are no server references to this object, the message can never

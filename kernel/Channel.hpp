@@ -13,8 +13,8 @@ class Channel : public RefObject {
 public:
 	Channel();
 
-	void send(MessageBase *message);
-	void post(MessageBase *message);
+	int send(Message *message);
+	void post(MessageEvent *event);
 	Message *receive(struct MessageHeader *recvMsg);
 
 	enum State {

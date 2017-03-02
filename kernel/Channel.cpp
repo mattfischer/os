@@ -38,12 +38,10 @@ Task *Channel::findReceiver()
 }
 
 /*!
- * \brief Send a message to an object
- * \param sendMsg Message to send
- * \param replyMsg Message reply info
- * \return Message reply code
+ * \brief Send a message to a channel
+ * \param message Message to send
  */
-void Channel::send(MessageBase *message)
+int Channel::send(Message *message)
 {
 	// Add the message to the message list
 	mMessages.addTail(message);
@@ -62,18 +60,20 @@ void Channel::send(MessageBase *message)
 		// to receive on this object.
 		Sched::runNext();
 	}
+
+	// Message receive and reply has been completed, and control has switched back
+	// to this task.  Return the code from the message reply.
+	return message->result();
 }
 
 /*!
- * \brief Send a message to an object
- * \param sendMsg Message to send
- * \param replyMsg Message reply info
- * \return Message reply code
+ * \brief Post an event to a channel
+ * \param event Event to post
  */
-void Channel::post(MessageBase *message)
+void Channel::post(MessageEvent *event)
 {
 	// Add the message to the message list
-	mMessages.addTail(message);
+	mMessages.addTail(event);
 
 	// See if any tasks are ready to receive on this object or any of its ancestors
 	Task *task = findReceiver();
@@ -85,7 +85,7 @@ void Channel::post(MessageBase *message)
 }
 
 /*!
- * \brief Receive a message from this object
+ * \brief Receive a message from this channel
  * \param recvMsg Receive message info
  * \return Message object
  */
