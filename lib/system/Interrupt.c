@@ -4,8 +4,7 @@
 
 #include <kernel/include/MessageFmt.h>
 #include <kernel/include/ProcManagerFmt.h>
-
-#include "Internal.h"
+#include <kernel/include/Objects.h>
 
 #include <stdlib.h>
 #include <stddef.h>

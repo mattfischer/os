@@ -1,7 +1,6 @@
 #include <System.h>
 #include <Object.h>
 #include <Message.h>
-#include <Kernel.h>
 #include <Channel.h>
 
 #include <stdlib.h>
@@ -10,6 +9,7 @@
 #include <kernel/include/NameFmt.h>
 #include <kernel/include/IOFmt.h>
 #include <kernel/include/Syscalls.h>
+#include <kernel/include/Objects.h>
 
 #include <vector>
 #include <string>
@@ -191,7 +191,16 @@ int main(int argc, char *argv[])
 {
 	int channel = Channel_Create();
 	int obj = Object_Create(channel, NULL);
-	Kernel_SetNameServer(obj);
+
+	set("/boot", NAMESERVER_NO);
+
+	int child;
+	const char *childArgv[4];
+
+	childArgv[0] = argv[1];
+	childArgv[1] = NULL;
+	child = SpawnProcessx(childArgv, OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID, obj);
+	Object_Release(child);
 
 	while(1) {
 		union NameMsg msg;

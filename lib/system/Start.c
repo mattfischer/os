@@ -1,6 +1,5 @@
 #include <System.h>
 #include <Object.h>
-#include <Kernel.h>
 
 #include <stdlib.h>
 #include <unistd.h>

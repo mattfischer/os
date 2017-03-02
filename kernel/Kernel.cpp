@@ -12,8 +12,6 @@
 #include "Task.hpp"
 #include "Channel.hpp"
 
-#include <lib/shared/include/Kernel.h>
-
 #include <string.h>
 
 // State information used for early bootup in assembly.  Extern C to avoid name mangling
@@ -104,13 +102,6 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 			Message_Info(arg0, (struct MessageInfo*)arg1);
 			return 0;
 
-		case SyscallKernelGetNameServer:
-			return Kernel_GetNameServer();
-
-		case SyscallKernelSetNameServer:
-			Kernel_SetNameServer(arg0);
-			return 0;
-
 		case SyscallChannelCreate:
 			return Channel_Create();
 
@@ -121,16 +112,6 @@ int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, uns
 		case SyscallChannelReceive:
 			return Channel_Receivex(arg0, (struct MessageHeader*)arg1);
 	}
-}
-
-int Kernel_GetNameServer()
-{
-	return Sched::current()->process()->refObject(InitFs::nameServer());
-}
-
-void Kernel_SetNameServer(int obj)
-{
-	InitFs::setNameServer(Sched::current()->process()->object(obj));
 }
 
 /*!

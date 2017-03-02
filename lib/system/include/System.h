@@ -8,6 +8,7 @@ extern "C" {
 void MapPhys(void *vaddr, unsigned int paddr, unsigned int size);
 
 int SpawnProcess(const char *argv[], int stdinObject, int stoutObject, int stderrObject);
+int SpawnProcessx(const char *argv[], int stdinObject, int stoutObject, int stderrObject, int nameserverObject);
 void WaitProcess(int process);
 
 void Yield();

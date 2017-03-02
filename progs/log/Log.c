@@ -1,8 +1,8 @@
 #include <stdio.h>
 
 #include <kernel/include/ProcManagerFmt.h>
+#include <kernel/include/Objects.h>
 #include <Object.h>
-#include <lib/system/Internal.h>
 
 #define BUFFER_SIZE 128
 

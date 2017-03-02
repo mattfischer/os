@@ -3,8 +3,7 @@
 #include <Object.h>
 
 #include <kernel/include/ProcManagerFmt.h>
-
-#include "Internal.h"
+#include <kernel/include/Objects.h>
 
 #include <stddef.h>
 

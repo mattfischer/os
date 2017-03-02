@@ -9,11 +9,7 @@ class Object;
 class InitFs {
 public:
 	static void start();
-	static void setNameServer(Object* nameServer);
-	static Object *nameServer();
-
-private:
-	static Object *sNameServer;
+	static int nameServer();
 };
 
 #endif

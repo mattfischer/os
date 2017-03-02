@@ -32,6 +32,7 @@ struct ProcManagerMsgSpawnProcess {
 	int stdinObject;
 	int stdoutObject;
 	int stderrObject;
+	int nameserverObject;
 };
 
 struct ProcManagerMsgSubInt {

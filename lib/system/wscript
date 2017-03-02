@@ -1,7 +1,6 @@
 def build(ctx):
 	source = [  'Channel.c',
 				'Interrupt.c',
-				'KernelObject.c',
 				'Map.c',
 				'Message.c',
 				'NewlibFuncs.c',

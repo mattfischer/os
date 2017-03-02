@@ -16,6 +16,7 @@
 #include "Channel.hpp"
 
 #include <kernel/include/ProcManagerFmt.h>
+#include <kernel/include/Objects.h>
 
 #include <string.h>
 
@@ -94,7 +95,7 @@ static void startUser(void *param)
 }
 
 // Start the named process in userspace
-static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject)
+static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
 {
 	Log::printf("processManager: start process %s\n", cmdline);
 
@@ -110,10 +111,11 @@ static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int s
 	processInfo->obj = obj;
 
 	// Duplicate handles into the newly-created process
-	process->dupObjectRefTo(0, Sched::current()->process(), stdinObject);
-	process->dupObjectRefTo(1, Sched::current()->process(), stdoutObject);
-	process->dupObjectRefTo(2, Sched::current()->process(), stdoutObject);
-	process->dupObjectRefTo(3, Sched::current()->process(), obj);
+	process->dupObjectRefTo(STDIN_NO, Sched::current()->process(), stdinObject);
+	process->dupObjectRefTo(STDOUT_NO, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(STDERR_NO, Sched::current()->process(), stdoutObject);
+	process->dupObjectRefTo(PROCMAN_NO, Sched::current()->process(), obj);
+	process->dupObjectRefTo(NAMESERVER_NO, Sched::current()->process(), nameserverObject);
 
 	// Create a task within the process, and copy the startup info into it
 	Task *task = process->newTask();
@@ -139,7 +141,7 @@ void ProcessManager::start()
 	InitFs::start();
 
 	// Kernel initialization is now complete.  Start the first userspace process.
-	startUserProcess("/boot/init", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID);
+	startUserProcess("/boot/name\0/boot/init\0\0", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID, InitFs::nameServer());
 
 	// Now that userspace is up and running, the only remaining role of this task
 	// is to service messages that it sends to us.
@@ -191,10 +193,11 @@ void ProcessManager::start()
 			case ProcManagerSpawnProcess:
 			{
 				// Spawn a new process.
-				ProcessInfo *processInfo = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject);
+				ProcessInfo *processInfo = startUserProcess(message.msg.u.spawn.cmdline, message.msg.u.spawn.stdinObject, message.msg.u.spawn.stdoutObject, message.msg.u.spawn.stderrObject, message.msg.u.spawn.nameserverObject);
 				Object_Release(message.msg.u.spawn.stdinObject);
 				Object_Release(message.msg.u.spawn.stdoutObject);
 				Object_Release(message.msg.u.spawn.stderrObject);
+				Object_Release(message.msg.u.spawn.nameserverObject);
 
 				int obj = processInfo->obj;
 				Message_Replyh(msg, 0, &obj, sizeof(obj), 0, 1);

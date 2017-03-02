@@ -2,9 +2,8 @@
 #include <IO.h>
 #include <Name.h>
 
-#include "Internal.h"
-
 #include <kernel/include/ProcManagerFmt.h>
+#include <kernel/include/Objects.h>
 
 #include <sys/stat.h>
 #include <stddef.h>
