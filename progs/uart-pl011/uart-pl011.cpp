@@ -30,7 +30,9 @@ char buffer[BUFFER_SIZE];
 int readPointer = 0;
 int writePointer = 0;
 
-struct Info {
+enum {
+	TypeRoot,
+	TypeConnection
 };
 
 void PrintUart(char *buffer, int size)
@@ -69,7 +71,7 @@ int main(int argc, char *argv[])
 	int sub;
 	std::list<Waiter> waiters;
 	int channel = Channel_Create();
-	int server = Object_Create(channel, 0);
+	int server = Object_Create(channel, TypeRoot);
 
 	Name_Set(argv[1], server);
 
@@ -90,13 +92,6 @@ int main(int argc, char *argv[])
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
-				case SysEventObjectClosed:
-				{
-					struct Info *info = (struct Info*)targetData;
-					delete info;
-					break;
-				}
-
 				case IRQEvent:
 				{
 					unsigned status = *UARTMIS;
@@ -122,19 +117,21 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if(targetData == 0) {
+		switch(targetData) {
+		case TypeRoot:
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
 				{
 					int obj;
-					struct Info *info = new Info;
-					obj = Object_Create(channel, (unsigned)info);
+					obj = Object_Create(channel, TypeConnection);
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					Object_Release(obj);
 					break;
 				}
 			}
-		} else {
+			break;
+
+		case TypeConnection:
 			switch(msg.io.msg.type) {
 				case IOMsgTypeWrite:
 				{

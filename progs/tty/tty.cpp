@@ -12,13 +12,15 @@
 
 #include <algorithm>
 
-struct Info {
+enum {
+	TypeRoot,
+	TypeConnection
 };
 
 int main(int argc, char *argv[])
 {
 	int channel = Channel_Create();
-	int server = Object_Create(channel, 0);
+	int server = Object_Create(channel, TypeRoot);
 	int uart = open(argv[2], O_RDWR);
 
 	Name_Set(argv[1], server);
@@ -34,29 +36,23 @@ int main(int argc, char *argv[])
 		m = Channel_Receive(channel, &msg, sizeof(msg), &targetData);
 
 		if(m == 0) {
-			switch(msg.name.event.type) {
-				case SysEventObjectClosed:
-					{
-						struct Info *info = (struct Info*)targetData;
-						delete info;
-						break;
-					}
-			}
 			continue;
 		}
 
-		if(targetData == 0) {
+		switch(targetData) {
+		case TypeRoot:
 			switch(msg.name.msg.type) {
 				case NameMsgTypeOpen:
 				{
-					struct Info *info = new Info;
-					int obj = Object_Create(channel, (unsigned)info);
+					int obj = Object_Create(channel, TypeConnection);
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
 					Object_Release(obj);
 					break;
 				}
 			}
-		} else {
+			break;
+
+		case TypeConnection:
 			switch(msg.io.msg.type) {
 				case IOMsgTypeWrite:
 				{
