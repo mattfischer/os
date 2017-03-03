@@ -1,8 +1,6 @@
 #ifndef MESSAGE_FMT_H
 #define MESSAGE_FMT_H
 
-#define MESSAGE_MAX_OBJECTS 4
-
 struct BufferSegment {
 	void *buffer;
 	int size;

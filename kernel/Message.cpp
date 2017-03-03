@@ -22,7 +22,7 @@ MessageBase::MessageBase(Type type, Task *sender, unsigned targetData)
 }
 
 // Read data from a message into a buffer
-static int readMessage(Process *destProcess, void *dest, Process *srcProcess, const struct MessageHeader *src, int offset, int size, int translateCache[])
+static int readMessage(Process *destProcess, void *dest, Process *srcProcess, const struct MessageHeader *src, int offset, int size)
 {
 	// Iterate through as many source segments as it takes to copy the requested amount of data
 	int copied = 0;
@@ -60,13 +60,8 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 			// Get the object id in the source buffer
 			int obj = *s;
 
-			if(translateCache[j] == OBJECT_INVALID) {
-				// Duplicate the object into the destination process
-				translateCache[j] = destProcess->dupObjectRef(srcProcess, obj);
-			}
-
-			// Translate the object reference into the destination buffer
-			*d = translateCache[j];
+			// Duplicate the object into the destination process
+			*d = destProcess->dupObjectRef(srcProcess, obj);
 		}
 
 		// Record how much data was copied from this source segment
@@ -83,7 +78,7 @@ static int readMessage(Process *destProcess, void *dest, Process *srcProcess, co
 }
 
 // Copy data from one process's message buffer to another
-static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process *srcProcess, const struct MessageHeader *src, int translateCache[])
+static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process *srcProcess, const struct MessageHeader *src)
 {
 	dest->objectsOffset = src->objectsOffset;
 	dest->objectsSize = src->objectsSize;
@@ -96,7 +91,7 @@ static int copyMessage(Process *destProcess, struct MessageHeader *dest, Process
 		AddressSpace::memcpy(0, &segment, destProcess->addressSpace(), dest->segments + i, sizeof(struct BufferSegment));
 
 		// Now, fill this segment with data from the source message
-		int segmentCopied = readMessage(destProcess, segment.buffer, srcProcess, src, copied, segment.size, translateCache);
+		int segmentCopied = readMessage(destProcess, segment.buffer, srcProcess, src, copied, segment.size);
 
 		// Record the amount of data copied
 		copied += segmentCopied;
@@ -122,10 +117,6 @@ Message::Message(Task *sender, unsigned targetData, const struct MessageHeader &
 	mSendMsg = sendMsg;
 	mReplyMsg = replyMsg;
 	mResult = 0;
-
-	for(int i=0; i<mSendMsg.objectsSize; i++) {
-		mTranslateCache[i] = OBJECT_INVALID;
-	}
 }
 
 /*!
@@ -137,12 +128,12 @@ Message::Message(Task *sender, unsigned targetData, const struct MessageHeader &
  */
 int Message::read(void *buffer, int offset, int size)
 {
-	return readMessage(Sched::current()->process(), buffer, sender()->process(), &mSendMsg, offset, size, mTranslateCache);
+	return readMessage(Sched::current()->process(), buffer, sender()->process(), &mSendMsg, offset, size);
 }
 
 int Message::read(struct MessageHeader *header)
 {
-	return copyMessage(Sched::current()->process(), header, sender()->process(), &mSendMsg, mTranslateCache);
+	return copyMessage(Sched::current()->process(), header, sender()->process(), &mSendMsg);
 }
 
 /*!
@@ -152,11 +143,6 @@ int Message::read(struct MessageHeader *header)
  */
 int Message::reply(int result, const struct MessageHeader *replyMsg)
 {
-	int translateCache[MESSAGE_MAX_OBJECTS];
-	for(int i=0; i<replyMsg->objectsSize; i++) {
-		translateCache[i] = OBJECT_INVALID;
-	}
-
 	int ret;
 
 	if(sender()->state() == Task::StateDead) {
@@ -164,7 +150,7 @@ int Message::reply(int result, const struct MessageHeader *replyMsg)
 		ret = SysErrorObjectDead;
 	} else {
 		// Copy contents into sending process's reply buffer
-		copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg, translateCache);
+		copyMessage(sender()->process(), &mReplyMsg, Sched::current()->process(), replyMsg);
 		mResult = result;
 
 		// Switch back to the sending process, so that the corresponding send

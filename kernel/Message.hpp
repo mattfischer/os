@@ -103,7 +103,6 @@ private:
 	struct MessageHeader mSendMsg; //!< Data area for sent message
 	struct MessageHeader mReplyMsg; //!< Data area for message reply
 	int mResult; //!< Return code
-	int mTranslateCache[MESSAGE_MAX_OBJECTS]; //!< Cache of translated objects
 
 	static Slab<Message> sSlab;
 };
