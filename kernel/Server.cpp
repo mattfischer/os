@@ -2,8 +2,6 @@
 
 #include "Sched.hpp"
 #include "InitFs.hpp"
-#include "AsmFuncs.hpp"
-#include "Elf.hpp"
 #include "AddressSpace.hpp"
 #include "Process.hpp"
 #include "Object.hpp"
@@ -11,9 +9,9 @@
 #include "Kernel.hpp"
 #include "Interrupt.hpp"
 #include "MemArea.hpp"
-#include "PageTable.hpp"
 #include "Log.hpp"
 #include "Channel.hpp"
+#include "UserProcess.hpp"
 
 #include <kernel/include/ProcessFmt.h>
 #include <kernel/include/KernelFmt.h>
@@ -30,76 +28,23 @@ struct ProcessInfo {
 
 Slab<ProcessInfo> processInfoSlab;
 
-struct StartupInfo {
-	char cmdline[KERNEL_CMDLINE_LEN];
-};
-
 //!< Object id for the process manager itself
 static int channel;
 
 static int kernelObject;
 
-// Shim function to kickstart newly-spawned processes.
-static void startUser(void *param)
+int startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
 {
-	struct StartupInfo *startupInfo = (struct StartupInfo*)param;
-	Process *process = Sched::current()->process();
-
-	// Allocate a userspace stack for the task.
-	int stackSize = PAGE_SIZE;
-	MemArea *stackArea = new MemAreaPages(stackSize);
-	char *stackVAddr = (char*)(KERNEL_START - stackArea->size());
-	process->addressSpace()->map(stackArea, stackVAddr, 0, stackArea->size());
-
-	// Copy the command line into the top of the userspace stack
-	char *cmdlineVAddr = (char*)(KERNEL_START - KERNEL_CMDLINE_LEN);
-	memcpy(cmdlineVAddr, startupInfo->cmdline, KERNEL_CMDLINE_LEN);
-
-	// Load the executable into the process
-	Elf::Entry entry = Elf::load(process->addressSpace(), startupInfo->cmdline);
-
-	// Everything is now set up in the new process.  The time has come at last
-	// to enter userspace.  This call never returns--any transfer back to kernel
-	// mode from this task will come in the form of syscalls.
-	EnterUser(entry, cmdlineVAddr, cmdlineVAddr);
-
-	// Poof!
-}
-
-// Start the named process in userspace
-static ProcessInfo *startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
-{
-	Log::printf("processManager: start process %s\n", cmdline);
-
 	// Create a new process
 	Process *process = new Process();
 
-	ProcessInfo *processInfo = (ProcessInfo*)processInfoSlab.allocate();
-	processInfo->process = process;
-
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	int obj = Object_Create(channel, (unsigned)processInfo);
-	processInfo->obj = obj;
+	int processObject = Object_Create(channel, (unsigned)process);
 
-	// Duplicate handles into the newly-created process
-	process->dupObjectRefTo(STDIN_NO, Sched::current()->process(), stdinObject);
-	process->dupObjectRefTo(STDOUT_NO, Sched::current()->process(), stdoutObject);
-	process->dupObjectRefTo(STDERR_NO, Sched::current()->process(), stdoutObject);
-	process->dupObjectRefTo(KERNEL_NO, Sched::current()->process(), kernelObject);
-	process->dupObjectRefTo(PROCESS_NO, Sched::current()->process(), obj);
-	process->dupObjectRefTo(NAMESERVER_NO, Sched::current()->process(), nameserverObject);
+	UserProcess::start(process, cmdline, stdinObject, stdoutObject, stderrObject, kernelObject, processObject, nameserverObject);
 
-	// Create a task within the process, and copy the startup info into it
-	Task *task = process->newTask();
-
-	struct StartupInfo *startupInfo = (struct StartupInfo *)task->stackAllocate(sizeof(struct StartupInfo));
-	memcpy(startupInfo->cmdline, cmdline, KERNEL_CMDLINE_LEN);
-
-	// Start the task--it will load the executable on its own thread, to avoid
-	// blocking this task.
-	task->start(startUser, startupInfo);
-	return processInfo;
+	return processObject;
 }
 
 // Main task for process manager
@@ -133,7 +78,7 @@ void Server::start()
 				case KernelSpawnProcess:
 				{
 					// Spawn a new process.
-					ProcessInfo *processInfo = startUserProcess(
+					int obj = startUserProcess(
 						message.kernel.msg.u.spawn.cmdline,
 						message.kernel.msg.u.spawn.stdinObject,
 						message.kernel.msg.u.spawn.stdoutObject,
@@ -145,7 +90,6 @@ void Server::start()
 					Object_Release(message.kernel.msg.u.spawn.stderrObject);
 					Object_Release(message.kernel.msg.u.spawn.nameserverObject);
 
-					int obj = processInfo->obj;
 					Message_Replyh(msg, 0, &obj, sizeof(obj), 0, 1);
 					Object_Release(obj);
 					break;
@@ -184,8 +128,7 @@ void Server::start()
 			}
 		} else {
 			// Grab the process to which this message was directed
-			ProcessInfo *processInfo = (ProcessInfo*)targetData;
-			Process *process = processInfo->process;
+			Process *process = (Process*)targetData;
 
 			if(msg == 0) {
 				switch(message.process.event.type) {
