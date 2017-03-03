@@ -17,12 +17,7 @@ public:
 	void post(MessageEvent *event);
 	Message *receive(struct MessageHeader *recvMsg, unsigned *targetData);
 
-	enum State {
-		StateRunning, //!< Running
-		StateDead     //!< Dead
-	};
-
-	State state() { return mState; }
+	bool active() { return mActive; }
 	void kill();
 
 	void onLastRef();
@@ -36,7 +31,7 @@ private:
 
 	List<Task> mReceivers; //!< List of receivers waiting on this object
 	List<MessageBase> mMessages; //!< List of pending messages sent to this object
-	State mState; //!< Channel state
+	bool mActive; //!< Channel active
 
 	static Slab<Channel> sSlab;
 };

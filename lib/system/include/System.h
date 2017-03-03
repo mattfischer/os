@@ -14,8 +14,7 @@ void WaitProcess(int process);
 void Yield();
 
 int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value);
-void Interrupt_Unsubscribe(int sub);
-void Interrupt_Acknowledge(int sub);
+void Interrupt_Unmask(int irq);
 
 #ifdef __cplusplus
 }

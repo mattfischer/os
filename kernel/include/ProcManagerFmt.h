@@ -9,8 +9,7 @@ enum ProcManagerMsgType {
 	ProcManagerSbrk,
 	ProcManagerSpawnProcess,
 	ProcManagerSubInt,
-	ProcManagerUnsubInt,
-	ProcManagerAckInt,
+	ProcManagerUnmaskInt,
 	ProcManagerKill,
 	ProcManagerWait,
 	ProcManagerReadLog
@@ -42,12 +41,8 @@ struct ProcManagerMsgSubInt {
 	unsigned value;
 };
 
-struct ProcManagerMsgUnsubInt {
-	int sub;
-};
-
-struct ProcManagerMsgAckInt {
-	int sub;
+struct ProcManagerMsgUnmaskInt {
+	int irq;
 };
 
 struct ProcManagerReadLog {
@@ -63,8 +58,7 @@ union ProcManagerMsg {
 			struct ProcManagerMsgSbrk sbrk;
 			struct ProcManagerMsgSpawnProcess spawn;
 			struct ProcManagerMsgSubInt subInt;
-			struct ProcManagerMsgUnsubInt unsubInt;
-			struct ProcManagerMsgAckInt ackInt;
+			struct ProcManagerMsgUnmaskInt unmaskInt;
 			struct ProcManagerReadLog readLog;
 		} u;
 	} msg;

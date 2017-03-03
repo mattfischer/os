@@ -30,6 +30,8 @@ public:
 	 */
 	unsigned data() { return mData; }
 
+	bool active() { return mChannel->active(); }
+
 	virtual void onLastRef();
 
 	//! Allocator

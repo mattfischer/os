@@ -2,11 +2,18 @@
 
 #include "Page.hpp"
 #include "List.hpp"
+#include "Object.hpp"
 
 #define N_INTERRUPTS 32
 
-static List<Interrupt::Subscription> subscriptions[N_INTERRUPTS];
-static int outstanding[N_INTERRUPTS];
+struct Subscription
+{
+	Object *object;
+	unsigned type;
+	unsigned value;
+};
+
+static Subscription subscriptions[N_INTERRUPTS];
 
 #define PIC_BASE (unsigned*)PADDR_TO_VADDR((PAddr)0x14000000)
 #define PIC_IRQ_STATUS    (PIC_BASE + 0)
@@ -14,51 +21,51 @@ static int outstanding[N_INTERRUPTS];
 #define PIC_IRQ_ENABLESET (PIC_BASE + 2)
 #define PIC_IRQ_ENABLECLR (PIC_BASE + 3)
 
-static void mask(unsigned irq)
-{
-	*PIC_IRQ_ENABLECLR = 1 << irq;
-}
-
-static void unmask(unsigned irq)
-{
-	*PIC_IRQ_ENABLESET = 1 << irq;
-}
-
 Interrupt::Subscription::Subscription(int irq)
 {
 	mAcknowledged = false;
 	mIrq = irq;
 }
 
-void Interrupt::subscribe(Subscription *subscription)
+void Interrupt::init()
 {
-	int irq = subscription->irq();
-
-	subscriptions[irq].addTail(subscription);
-	unmask(irq);
-}
-
-void Interrupt::unsubscribe(Subscription *subscription)
-{
-	int irq = subscription->irq();
-
-	subscriptions[irq].remove(subscription);
-	if(subscriptions[irq].empty()) {
-		mask(irq);
+	for(int i=0; i<N_INTERRUPTS; i++) {
+		subscribe(i, 0, 0, 0);
 	}
 }
 
-void Interrupt::acknowledge(Subscription *subscription)
+bool Interrupt::subscribe(int irq, Object *object, unsigned type, unsigned value)
 {
-	int irq = subscription->irq();
-
-	if(!subscription->acknowledged()) {
-		subscription->setAcknowledged(true);
-		outstanding[irq]--;
-		if(outstanding[irq] == 0) {
-			unmask(irq);
+	if(subscriptions[irq].object) {
+		if(subscriptions[irq].object->active()) {
+			return false;
+		} else {
+			subscriptions[irq].object->unref();
 		}
 	}
+
+	if(object) {
+		object->ref();
+	}
+	subscriptions[irq].object = object;
+	subscriptions[irq].type = type;
+	subscriptions[irq].value = value;
+
+	if(object && object->active()) {
+		unmask(irq);
+	}
+
+	return true;
+}
+
+void Interrupt::mask(int irq)
+{
+	*PIC_IRQ_ENABLECLR = 1 << irq;
+}
+
+void Interrupt::unmask(int irq)
+{
+	*PIC_IRQ_ENABLESET = 1 << irq;
 }
 
 void Interrupt::dispatch()
@@ -67,14 +74,14 @@ void Interrupt::dispatch()
 
 	for(int i=0; i<N_INTERRUPTS; i++) {
 		if(status & 0x1) {
-			outstanding[i] = 0;
-			Subscription *subscription;
-			for(subscription = subscriptions[i].head(); subscription != 0; subscription = subscriptions[i].next(subscription)) {
-				subscription->setAcknowledged(false);
-				subscription->dispatch();
-				outstanding[i]++;
+			if(subscriptions[i].object) {
+				if(subscriptions[i].object->active()) {
+					mask(i);
+					subscriptions[i].object->post(subscriptions[i].type, subscriptions[i].value);
+				} else {
+					subscribe(i, 0, 0, 0);
+				}
 			}
-			mask(i);
 		}
 		status >>= 1;
 	}

@@ -12,7 +12,7 @@ Slab<Channel> Channel::sSlab;
  */
 Channel::Channel()
 {
-	mState = StateRunning;
+	mActive = true;
 }
 
 /*!
@@ -152,7 +152,7 @@ void Channel::kill()
 		}
 	}
 
-	mState = StateDead;
+	mActive = false;
 }
 
 void Channel::onLastRef()

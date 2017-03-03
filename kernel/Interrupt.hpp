@@ -27,9 +27,14 @@ public:
 		int mIrq;
 	};
 
-	static void subscribe(Subscription *subscription);
+	static void init();
+
+	static bool subscribe(int irq, Object *object, unsigned type, unsigned value);
 	static void unsubscribe(Subscription *subscription);
 	static void acknowledge(Subscription *subscription);
+
+	static void mask(int irq);
+	static void unmask(int irq);
 
 	static void dispatch();
 };

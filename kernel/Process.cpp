@@ -258,24 +258,6 @@ void Process::unrefChannel(int chan)
 	mChannels[chan] = 0;
 }
 
-int Process::refSubscription(Interrupt::Subscription *subscription)
-{
-	// Find an empty slot
-	for(int i=0; i<16; i++) {
-		if(mSubscriptions[i] == 0) {
-			mSubscriptions[i] = subscription;
-			return i;
-		}
-	}
-
-	return -1;
-}
-
-void Process::unrefSubscription(int sub)
-{
-	mSubscriptions[sub] = 0;
-}
-
 void Process::addWaiter(int msg)
 {
 	for(int i=0; i<16; i++) {
@@ -328,13 +310,6 @@ void Process::kill()
 	for(int i=0; i<16; i++) {
 		if(mChannels[i] != 0) {
 			unrefChannel(i);
-		}
-	}
-
-	for(int i=0; i<16; i++) {
-		if(mSubscriptions[i] != 0) {
-			Interrupt::unsubscribe(mSubscriptions[i]);
-			delete mSubscriptions[i];
 		}
 	}
 }

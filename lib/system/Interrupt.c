@@ -25,23 +25,13 @@ int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 	return ret;
 }
 
-void Interrupt_Unsubscribe(int sub)
+void Interrupt_Unmask(int irq)
 {
 	union ProcManagerMsg msg;
 	int ret;
 
-	msg.msg.type = ProcManagerUnsubInt;
-	msg.msg.u.unsubInt.sub = sub;
+	msg.msg.type = ProcManagerUnmaskInt;
+	msg.msg.u.unmaskInt.irq = irq;
 
 	Object_Send(PROCMAN_NO, &msg, sizeof(msg), &ret, sizeof(ret));
-}
-
-void Interrupt_Acknowledge(int sub)
-{
-	union ProcManagerMsg msg;
-
-	msg.msg.type = ProcManagerAckInt;
-	msg.msg.u.ackInt.sub = sub;
-
-	Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
 }

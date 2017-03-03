@@ -52,6 +52,7 @@ void Entry()
 	// Initialize the page list and kernel data structures
 	Page::init();
 	Kernel::init();
+	Interrupt::init();
 
 	// Set up the process manager, and start userspace.  This call never returns.
 	ProcessManager::start();

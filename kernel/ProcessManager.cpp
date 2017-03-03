@@ -33,37 +33,6 @@ struct StartupInfo {
 	char cmdline[PROC_MANAGER_CMDLINE_LEN];
 };
 
-class EventSubscription : public Interrupt::Subscription
-{
-public:
-	EventSubscription(int irq, Object *object, unsigned type, unsigned value)
-	: Interrupt::Subscription(irq)
-	{
-		mObject = object;
-		mType = type;
-		mValue = value;
-	}
-
-	virtual void dispatch()
-	{
-		mObject->post(mType, mValue);
-	}
-
-	//! Allocator
-	void *operator new(size_t size) { return sSlab.allocate(); }
-	void operator delete(void *p) { ((EventSubscription*)p)->free(); }
-	virtual void free() { sSlab.free(this); }
-
-private:
-	Object *mObject;
-	unsigned mType;
-	unsigned mValue;
-
-	static Slab<EventSubscription> sSlab;
-};
-
-Slab<EventSubscription> EventSubscription::sSlab;
-
 //!< Object id for the process manager itself
 static int channel;
 
@@ -206,29 +175,15 @@ void ProcessManager::start()
 
 			case ProcManagerSubInt:
 			{
-				EventSubscription *subscription = new EventSubscription(message.msg.u.subInt.irq, Sched::current()->process()->object(message.msg.u.subInt.object), message.msg.u.subInt.type, message.msg.u.subInt.value);
-				Interrupt::subscribe(subscription);
+				bool success = Interrupt::subscribe(message.msg.u.subInt.irq, Sched::current()->process()->object(message.msg.u.subInt.object), message.msg.u.subInt.type, message.msg.u.subInt.value);
 				Object_Release(message.msg.u.subInt.object);
-
-				int sub = process->refSubscription(subscription);
-				Message_Reply(msg, 0, &sub, sizeof(sub));
+				Message_Reply(msg, success ? 1 : 0, 0, 0);
 				break;
 			}
 
-			case ProcManagerUnsubInt:
+			case ProcManagerUnmaskInt:
 			{
-				Interrupt::Subscription *subscription = process->subscription(message.msg.u.unsubInt.sub);
-				Interrupt::unsubscribe(subscription);
-
-				process->unrefSubscription(message.msg.u.unsubInt.sub);
-				Message_Reply(msg, 0, 0, 0);
-				break;
-			}
-
-			case ProcManagerAckInt:
-			{
-				Interrupt::Subscription *subscription = process->subscription(message.msg.u.ackInt.sub);
-				Interrupt::acknowledge(subscription);
+				Interrupt::unmask(message.msg.u.unmaskInt.irq);
 				Message_Reply(msg, 0, 0, 0);
 				break;
 			}

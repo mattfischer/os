@@ -32,7 +32,7 @@ int Object::send(const struct MessageHeader *sendMsg, struct MessageHeader *repl
 {
 	int ret;
 
-	if(mChannel->state() == Channel::StateRunning) {
+	if(active()) {
 		// Construct a message object, and send it on this object's channel
 		Message *message = new Message(Sched::current(), data(), *sendMsg, *replyMsg);
 		ret = mChannel->send(message);
@@ -55,7 +55,7 @@ int Object::post(unsigned type, unsigned value)
 {
 	int ret;
 
-	if(mChannel->state() == Channel::StateRunning) {
+	if(active()) {
 		// Construct an event message, and add it to the queue
 		MessageEvent *event = new MessageEvent(Sched::current(), data(), type, value);
 		mChannel->post(event);

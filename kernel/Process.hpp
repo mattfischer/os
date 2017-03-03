@@ -56,10 +56,6 @@ public:
 	int refChannel(Channel *channel);
 	void unrefChannel(int chan);
 
-	Interrupt::Subscription *subscription(int sub) { return mSubscriptions[sub]; }
-	int refSubscription(Interrupt::Subscription *subscription);
-	void unrefSubscription(int sub);
-
 	void addWaiter(int msg);
 	int waiter(int waiter) { return mWaiters[waiter]; }
 
@@ -80,7 +76,6 @@ private:
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
 	Channel *mChannels[16];
-	Interrupt::Subscription *mSubscriptions[16]; //!< Interrupt subscriptions
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
 	State mState;
 

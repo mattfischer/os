@@ -68,7 +68,6 @@ enum {
 
 int main(int argc, char *argv[])
 {
-	int sub;
 	std::list<Waiter> waiters;
 	int channel = Channel_Create();
 	int server = Object_Create(channel, TypeRoot);
@@ -78,7 +77,7 @@ int main(int argc, char *argv[])
 	sscanf(argv[2], "0x%x", &uartbase);
 	MapPhys((void*)uartbase, (int)uartbase, 4096);
 	*UARTIMSC = 0x10;
-	sub = Interrupt_Subscribe(1, server, IRQEvent, 0);
+	Interrupt_Subscribe(1, server, IRQEvent, 0);
 
 	while(1) {
 		union {
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
 						}
 					}
 
-					Interrupt_Acknowledge(sub);
+					Interrupt_Unmask(1);
 					break;
 				}
 			}
