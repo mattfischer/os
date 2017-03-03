@@ -3,7 +3,7 @@
 #include <Object.h>
 
 #include <kernel/include/MessageFmt.h>
-#include <kernel/include/ProcManagerFmt.h>
+#include <kernel/include/KernelFmt.h>
 #include <kernel/include/Objects.h>
 
 #include <stdlib.h>
@@ -11,27 +11,27 @@
 
 int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 {
-	union ProcManagerMsg msg;
+	union KernelMsg msg;
 	int ret;
 
-	msg.msg.type = ProcManagerSubInt;
+	msg.msg.type = KernelSubInt;
 	msg.msg.u.subInt.irq = irq;
 	msg.msg.u.subInt.object = object;
 	msg.msg.u.subInt.type = type;
 	msg.msg.u.subInt.value = value;
 
-	int objectsOffset = offsetof(union ProcManagerMsg, msg.u.subInt.object);
-	Object_Sendhs(PROCMAN_NO, &msg, sizeof(msg), objectsOffset, 1, &ret, sizeof(ret));
+	int objectsOffset = offsetof(union KernelMsg, msg.u.subInt.object);
+	Object_Sendhs(KERNEL_NO, &msg, sizeof(msg), objectsOffset, 1, &ret, sizeof(ret));
 	return ret;
 }
 
 void Interrupt_Unmask(int irq)
 {
-	union ProcManagerMsg msg;
+	union KernelMsg msg;
 	int ret;
 
-	msg.msg.type = ProcManagerUnmaskInt;
+	msg.msg.type = KernelUnmaskInt;
 	msg.msg.u.unmaskInt.irq = irq;
 
-	Object_Send(PROCMAN_NO, &msg, sizeof(msg), &ret, sizeof(ret));
+	Object_Send(KERNEL_NO, &msg, sizeof(msg), &ret, sizeof(ret));
 }

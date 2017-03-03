@@ -1,5 +1,5 @@
 #include "Kernel.hpp"
-#include "ProcessManager.hpp"
+#include "Server.hpp"
 #include "Interrupt.hpp"
 #include "Page.hpp"
 #include "Sched.hpp"
@@ -7,9 +7,11 @@
 #include "Process.hpp"
 #include "Object.hpp"
 
-#include "include/ProcManagerFmt.h"
+#include "include/KernelFmt.h"
+#include "include/ProcessFmt.h"
 #include "include/MessageFmt.h"
 #include "include/Syscalls.h"
+#include "include/Objects.h"
 
 /*!
  * \file
@@ -54,8 +56,8 @@ void Entry()
 	Kernel::init();
 	Interrupt::init();
 
-	// Set up the process manager, and start userspace.  This call never returns.
-	ProcessManager::start();
+	// Set up the userspace server, and start userspace.  This call never returns.
+	Server::start();
 }
 
 /*!
@@ -80,9 +82,9 @@ void IRQEntry()
 void AbortEntry()
 {
 	// Just kill the process
-	ProcManagerMsg message;
-	message.msg.type = ProcManagerKill;
-	Object_Send(3, &message, sizeof(message), 0, 0);
+	ProcessMsg message;
+	message.msg.type = ProcessKill;
+	Object_Send(PROCESS_NO, &message, sizeof(message), 0, 0);
 
 	// Poof!
 }

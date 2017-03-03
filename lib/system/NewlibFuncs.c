@@ -2,7 +2,8 @@
 #include <IO.h>
 #include <Name.h>
 
-#include <kernel/include/ProcManagerFmt.h>
+#include <kernel/include/ProcessFmt.h>
+#include <kernel/include/KernelFmt.h>
 #include <kernel/include/Objects.h>
 
 #include <sys/stat.h>
@@ -15,11 +16,11 @@ int _open(const char *name, int flags, int mode)
 
 void *_sbrk(int inc)
 {
-	union ProcManagerMsg msg;
+	union ProcessMsg msg;
 
-	msg.msg.type = ProcManagerSbrk;
+	msg.msg.type = ProcessSbrk;
 	msg.msg.u.sbrk.increment = inc;
-	return (void*)Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
+	return (void*)Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 }
 
 int _write(int fd, char *buffer, int len)
@@ -53,10 +54,10 @@ int _lseek(int file, int ptr, int dir) {
 
 void _exit(int code)
 {
-	union ProcManagerMsg msg;
+	union ProcessMsg msg;
 
-	msg.msg.type = ProcManagerKill;
-	Object_Send(PROCMAN_NO, &msg, sizeof(msg), NULL, 0);
+	msg.msg.type = ProcessKill;
+	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 	while(1) {}
 }
 

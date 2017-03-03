@@ -15,7 +15,7 @@ def build(ctx):
 				'Kernel.cpp',
 				'Process.cpp',
 				'MemArea.cpp',
-				'ProcessManager.cpp',
+				'Server.cpp',
 				'AsmFuncs.s',
 				'EntryAsm.s',
 				'Interrupt.cpp',

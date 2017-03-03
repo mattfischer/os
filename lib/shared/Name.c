@@ -3,11 +3,10 @@
 #include <Name.h>
 
 #include <kernel/include/NameFmt.h>
+#include <kernel/include/Objects.h>
 
 #include <string.h>
 #include <stddef.h>
-
-#define NAMESERVER_NO 4
 
 void Name_Set(const char *name, int obj)
 {
