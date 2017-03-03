@@ -3,6 +3,7 @@
 
 #include "Page.hpp"
 #include "List.hpp"
+#include "ListAux.hpp"
 #include "Slab.hpp"
 #include "Ref.hpp"
 
