@@ -2,7 +2,6 @@
 #define SYSCALLS_H
 
 enum Syscall {
-	SyscallYield,
 	SyscallObjectCreate,
 	SyscallObjectRelease,
 	SyscallObjectSend,

@@ -72,10 +72,6 @@ void Kernel::init()
 int Kernel::syscall(enum Syscall code, unsigned int arg0, unsigned int arg1, unsigned int arg2, unsigned int arg3)
 {
 	switch(code) {
-		case SyscallYield:
-			Sched::runNext();
-			return 0;
-
 		case SyscallObjectCreate:
 			return Object_Create((unsigned int)arg0, (unsigned)arg1);
 

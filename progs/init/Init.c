@@ -35,8 +35,4 @@ int main(int argc, char *argv[])
 	childArgv[1] = NULL;
 	child = SpawnProcess(childArgv, console, console, console);
 	Object_Release(child);
-
-	while(1) {
-		Yield();
-	}
 }

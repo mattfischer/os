@@ -7,6 +7,5 @@ def build(ctx):
 				'Object.c',
 				'Spawn.c',
 				'Start.c',
-				'SwiAsm.s',
-				'Yield.c']
+				'SwiAsm.s']
 	ctx.crossobjects(target='system', source=source, use='shared', export_includes='include', includes='include')

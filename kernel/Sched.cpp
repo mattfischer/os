@@ -7,6 +7,7 @@
 #include "Task.hpp"
 #include "Process.hpp"
 #include "AddressSpace.hpp"
+#include "Interrupt.hpp"
 
 #include <string.h>
 
@@ -65,10 +66,18 @@ void Sched::runNext()
 		add(sCurrent);
 	}
 
-	// Grab new task and switch to it
-	Task *next = sRunList.removeHead();
+	while(true) {
+		// Grab new task and switch to it
+		Task *next = sRunList.removeHead();
 
-	switchTo(next);
+		if(next) {
+			switchTo(next);
+			break;
+		} else {
+			WaitForInterrupt();
+			Interrupt::dispatch();
+		}
+	}
 }
 
 void Sched::setCurrent(Task *task)
