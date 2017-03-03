@@ -312,4 +312,10 @@ void Process::kill()
 			unrefChannel(i);
 		}
 	}
+
+	for(int i=0; i<16; i++) {
+		if(mWaiters[i] != 0) {
+			Message_Reply(mWaiters[i], 0, 0, 0);
+		}
+	}
 }

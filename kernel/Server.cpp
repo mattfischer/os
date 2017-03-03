@@ -147,12 +147,6 @@ void Server::run()
 
 				case ProcessKill:
 				{
-					for(int i=0; i<16; i++) {
-						int m = process->waiter(i);
-						if(m != 0) {
-							Message_Reply(m, 0, 0, 0);
-						}
-					}
 					process->kill();
 					Message_Reply(msg, 0, 0, 0);
 					break;
