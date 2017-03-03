@@ -21,12 +21,6 @@ static Subscription subscriptions[N_INTERRUPTS];
 #define PIC_IRQ_ENABLESET (PIC_BASE + 2)
 #define PIC_IRQ_ENABLECLR (PIC_BASE + 3)
 
-Interrupt::Subscription::Subscription(int irq)
-{
-	mAcknowledged = false;
-	mIrq = irq;
-}
-
 void Interrupt::init()
 {
 	for(int i=0; i<N_INTERRUPTS; i++) {
