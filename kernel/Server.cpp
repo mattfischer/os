@@ -110,7 +110,7 @@ void Server::run()
 			}
 		} else {
 			// Grab the process to which this message was directed
-			Process *process = (Process*)targetData;
+			Process *process = reinterpret_cast<Process*>(targetData);
 
 			if(msg == 0) {
 				switch(message.process.event.type) {

@@ -29,18 +29,18 @@ extern char __InitFsEnd[];
 static void *lookup(const char *name, int *size)
 {
 	// Search through the initfs searching for a matching file
-	struct InitFsFileHeader *header = (struct InitFsFileHeader*)__InitFsStart;
-	while((void*)header < (void*)__InitFsEnd) {
+	struct InitFsFileHeader *header = reinterpret_cast<struct InitFsFileHeader*>(__InitFsStart);
+	while(reinterpret_cast<void*>(header) < reinterpret_cast<void*>(__InitFsEnd)) {
 		if(!strcmp(header->name, name)) {
 			// Filename matches
 			if(size) {
 				*size = header->size;
 			}
-			return (char*)header + sizeof(struct InitFsFileHeader);
+			return reinterpret_cast<char*>(header) + sizeof(struct InitFsFileHeader);
 		}
 
 		// Skip to the next file record
-		header = (struct InitFsFileHeader*)((char*)header + sizeof(struct InitFsFileHeader) + header->size);
+		header = reinterpret_cast<struct InitFsFileHeader*>(reinterpret_cast<char*>(header) + sizeof(struct InitFsFileHeader) + header->size);
 	}
 
 	return 0;
@@ -123,7 +123,7 @@ void InitFs::server()
 			switch(msg.name.event.type) {
 				case SysEventObjectClosed:
 				{
-					Info *info = (Info*)targetData;
+					Info *info = reinterpret_cast<Info*>(targetData);
 					if(info) {
 						infoSlab.free(info);
 					}
@@ -179,7 +179,7 @@ void InitFs::server()
 					if(strcmp(name, PREFIX) == 0) {
 						Info *info = infoSlab.allocate();
 						info->type = InfoTypeDir;
-						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
+						info->u.dir.header = reinterpret_cast<struct InitFsFileHeader*>(__InitFsStart);
 						obj = Object_Create(mChannel, (unsigned)info);
 					}
 
@@ -191,14 +191,14 @@ void InitFs::server()
 				}
 			}
 		} else {
-			Info *info = (Info*)targetData;
+			Info *info = reinterpret_cast<Info*>(targetData);
 
 			// Message was sent to an open file handle
 			switch(msg.io.msg.type) {
 				case IOMsgTypeRead:
 				{
 					int size = std::min(msg.io.msg.u.rw.size, info->u.file.size - info->u.file.pointer);
-					Message_Reply(m, size, (char*)info->u.file.data + info->u.file.pointer, size);
+					Message_Reply(m, size, reinterpret_cast<char*>(info->u.file.data) + info->u.file.pointer, size);
 					break;
 				}
 
@@ -216,7 +216,7 @@ void InitFs::server()
 					if((void*)info->u.dir.header < (void*)__InitFsEnd){
 						status = 0;
 						strcpy(ret.name, info->u.dir.header->name);
-						info->u.dir.header = (struct InitFsFileHeader*)((char*)info->u.dir.header + sizeof(struct InitFsFileHeader) + info->u.dir.header->size);
+						info->u.dir.header = reinterpret_cast<struct InitFsFileHeader*>(reinterpret_cast<char*>(info->u.dir.header) + sizeof(struct InitFsFileHeader) + info->u.dir.header->size);
 					}
 					Message_Reply(m, status, &ret, sizeof(ret));
 					break;

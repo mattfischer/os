@@ -127,11 +127,11 @@ Message *Channel::receive(struct MessageHeader *recvMsg, unsigned *targetData)
 		// Received message was a normal message.  Mark the sender as reply-blocked,
 		// and return the message to the caller
 		message->sender()->setState(Task::StateReplyBlock);
-		return (Message*)message;
+		return static_cast<Message*>(message);
 	} else {
 		// Received message was an event.  No reply is required, so delete the message
 		// from the queue and return.
-		delete (MessageEvent*)message;
+		delete static_cast<MessageEvent*>(message);
 		return 0;
 	}
 }
@@ -145,7 +145,7 @@ void Channel::kill()
 	for(MessageBase *message = mMessages.head(); message != 0; message = next) {
 		next = mMessages.next(message);
 		if(message->type() == Message::TypeMessage) {
-			Message *m = (Message*)message;
+			Message *m = static_cast<Message*>(message);
 			m->cancel();
 		} else {
 			delete message;
