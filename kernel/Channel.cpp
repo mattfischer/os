@@ -95,10 +95,7 @@ Message *Channel::receive(struct MessageHeader *recvMsg, unsigned *targetData)
 	// in this object or any of its children
 	MessageBase *message = 0;
 	while(!message) {
-		if(!mMessages.empty()) {
-			// Found an object with a non-empty message queue.  Remove the message.
-			message = mMessages.removeHead();
-		}
+		message = mMessages.removeHead();
 
 		// If we found a message, then break and process it
 		if(message) {
