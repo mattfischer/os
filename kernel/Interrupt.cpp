@@ -47,6 +47,8 @@ bool Interrupt::subscribe(int irq, Object *object, unsigned type, unsigned value
 
 	if(object && object->active()) {
 		unmask(irq);
+	} else {
+		mask(irq);
 	}
 
 	return true;
