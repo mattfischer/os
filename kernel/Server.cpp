@@ -21,48 +21,30 @@
 
 #include <algorithm>
 
-struct ProcessInfo {
-	Process *process;
-	int obj;
-};
+Server::Server()
+{
+	// Create and register the process manager object
+	mChannel = Channel_Create();
+	mKernelObject = Object_Create(mChannel, 0);
+}
 
-Slab<ProcessInfo> processInfoSlab;
-
-//!< Object id for the process manager itself
-static int channel;
-
-static int kernelObject;
-
-int startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
+int Server::startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
 {
 	// Create a new process
 	Process *process = new Process();
 
 	// Construct the process object, to which userspace will send messages
 	// in order to access process services
-	int processObject = Object_Create(channel, (unsigned)process);
+	int processObject = Object_Create(mChannel, (unsigned)process);
 
-	UserProcess::start(process, cmdline, stdinObject, stdoutObject, stderrObject, kernelObject, processObject, nameserverObject);
+	UserProcess::start(process, cmdline, stdinObject, stdoutObject, stderrObject, mKernelObject, processObject, nameserverObject);
 
 	return processObject;
 }
 
 // Main task for process manager
-void Server::start()
+void Server::run()
 {
-	// Create and register the process manager object
-	channel = Channel_Create();
-	kernelObject = Object_Create(channel, 0);
-
-	// Start the InitFs file server, to serve up files from the
-	// built-in filesystem that is compiled into the kernel
-	InitFs::start();
-
-	// Kernel initialization is now complete.  Start the first userspace process.
-	startUserProcess("/boot/name\0/boot/init\0\0", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID, InitFs::nameServer());
-
-	// Now that userspace is up and running, the only remaining role of this task
-	// is to service messages that it sends to us.
 	while(1) {
 		// Wait on the process manager object for incoming messages
 		union Message {
@@ -71,7 +53,7 @@ void Server::start()
 		};
 		union Message message;
 		unsigned targetData;
-		int msg = Channel_Receive(channel, &message, sizeof(message), &targetData);
+		int msg = Channel_Receive(mChannel, &message, sizeof(message), &targetData);
 
 		if(targetData == 0) {
 			switch(message.kernel.msg.type) {

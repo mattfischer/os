@@ -23,9 +23,6 @@
 extern char __InitFsStart[];
 extern char __InitFsEnd[];
 
-int fileServer;
-int fileChannel;
-
 // Path at which to register the InitFS
 #define PREFIX "/boot"
 
@@ -75,9 +72,42 @@ struct Info {
 
 static Slab<Info> infoSlab;
 
+/*!
+ * \brief Constructor
+ */
+InitFs::InitFs()
+{
+	mChannel = Channel_Create();
+	mObject = Object_Create(mChannel, 0);
+}
+
+/*!
+ * \brief Start the InitFS server
+ */
+void InitFs::start()
+{
+	Task *task = Kernel::process()->newTask();
+	task->start(serverStatic, this);
+}
+
+/*!
+ * \brief Retrieve the name server object
+ * \return Name server
+ */
+int InitFs::object()
+{
+	return mObject;
+}
+
+void InitFs::serverStatic(void *param)
+{
+	InitFs *initfs = reinterpret_cast<InitFs*>(param);
+	initfs->server();
+}
+
 // InitFS file server.  This also implements a basic proto-name server,
 // which is used until the real userspace name server is started.
-static void server(void *param)
+void InitFs::server()
 {
 	Log::printf("initf: Starting server\n");
 
@@ -87,7 +117,7 @@ static void server(void *param)
 			union IOMsg io;
 		} msg;
 		unsigned targetData;
-		int m = Channel_Receive(fileChannel, &msg, sizeof(msg), &targetData);
+		int m = Channel_Receive(mChannel, &msg, sizeof(msg), &targetData);
 
 		if(m == 0) {
 			switch(msg.name.event.type) {
@@ -127,7 +157,7 @@ static void server(void *param)
 							info->u.file.data = data;
 							info->u.file.size = size;
 							info->u.file.pointer = 0;
-							obj = Object_Create(fileChannel, (unsigned)info);
+							obj = Object_Create(mChannel, (unsigned)info);
 						}
 					}
 
@@ -150,7 +180,7 @@ static void server(void *param)
 						Info *info = infoSlab.allocate();
 						info->type = InfoTypeDir;
 						info->u.dir.header = (struct InitFsFileHeader*)__InitFsStart;
-						obj = Object_Create(fileChannel, (unsigned)info);
+						obj = Object_Create(mChannel, (unsigned)info);
 					}
 
 					Message_Replyh(m, 0, &obj, sizeof(obj), 0, 1);
@@ -194,25 +224,4 @@ static void server(void *param)
 			}
 		}
 	}
-}
-
-/*!
- * \brief Start the InitFS server
- */
-void InitFs::start()
-{
-	fileChannel = Channel_Create();
-	fileServer = Object_Create(fileChannel, 0);
-
-	Task *task = Kernel::process()->newTask();
-	task->start(server, 0);
-}
-
-/*!
- * \brief Retrieve the name server object
- * \return Name server
- */
-int InitFs::nameServer()
-{
-	return fileServer;
 }

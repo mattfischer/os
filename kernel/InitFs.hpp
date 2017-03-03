@@ -8,8 +8,17 @@ class Object;
  */
 class InitFs {
 public:
-	static void start();
-	static int nameServer();
+	InitFs();
+
+	int object();
+	void start();
+
+private:
+	void server();
+	static void serverStatic(void *param);
+
+	int mObject;
+	int mChannel;
 };
 
 #endif

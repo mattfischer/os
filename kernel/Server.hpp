@@ -8,7 +8,14 @@ class Object;
  */
 class Server {
 public:
-	static void start();
+	Server();
+
+	int startUserProcess(const char *cmdline, int stdinObject, int stdoutObject, int stderrObject, int nameserverObject);
+	void run();
+
+private:
+	int mChannel;
+	int mKernelObject;
 };
 
 #endif

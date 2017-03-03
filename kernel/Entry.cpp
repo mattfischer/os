@@ -6,6 +6,7 @@
 #include "Task.hpp"
 #include "Process.hpp"
 #include "Object.hpp"
+#include "InitFs.hpp"
 
 #include "include/KernelFmt.h"
 #include "include/ProcessFmt.h"
@@ -56,8 +57,18 @@ void Entry()
 	Kernel::init();
 	Interrupt::init();
 
-	// Set up the userspace server, and start userspace.  This call never returns.
-	Server::start();
+	// Start the InitFs file server, to serve up files from the
+	// built-in filesystem that is compiled into the kernel
+	InitFs initfs;
+	initfs.start();
+
+	// Kernel initialization is now complete.  Set up the userspace server, and the first userspace process
+	Server server;
+	int obj = server.startUserProcess("/boot/name\0/boot/init\0\0", OBJECT_INVALID, OBJECT_INVALID, OBJECT_INVALID, initfs.object());
+	Object_Release(obj);
+
+	// Start userspace.  This call never returns.
+	server.run();
 }
 
 /*!
