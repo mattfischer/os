@@ -28,30 +28,22 @@ void Interrupt::init()
 	}
 }
 
-bool Interrupt::subscribe(int irq, Object *object, unsigned type, unsigned value)
+void Interrupt::subscribe(int irq, Object *object, unsigned type, unsigned value)
 {
 	if(subscriptions[irq].object) {
-		if(subscriptions[irq].object->active()) {
-			return false;
-		} else {
-			subscriptions[irq].object->unref();
-		}
+		subscriptions[irq].object->unref();
 	}
 
-	if(object) {
-		object->ref();
-	}
 	subscriptions[irq].object = object;
 	subscriptions[irq].type = type;
 	subscriptions[irq].value = value;
 
-	if(object && object->active()) {
+	if(object) {
+		object->ref();
 		unmask(irq);
 	} else {
 		mask(irq);
 	}
-
-	return true;
 }
 
 void Interrupt::mask(int irq)
@@ -71,10 +63,9 @@ void Interrupt::dispatch()
 	for(int i=0; i<N_INTERRUPTS; i++) {
 		if(status & 0x1) {
 			if(subscriptions[i].object) {
-				if(subscriptions[i].object->active()) {
-					mask(i);
-					subscriptions[i].object->post(subscriptions[i].type, subscriptions[i].value);
-				} else {
+				mask(i);
+				int result = subscriptions[i].object->post(subscriptions[i].type, subscriptions[i].value);
+				if(result == SysErrorObjectDead) {
 					subscribe(i, 0, 0, 0);
 				}
 			}

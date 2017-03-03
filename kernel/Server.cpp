@@ -79,14 +79,14 @@ void Server::run()
 
 				case KernelSubInt:
 				{
-					bool success = Interrupt::subscribe(
+					Interrupt::subscribe(
 						message.kernel.msg.u.subInt.irq,
 						Sched::current()->process()->object(message.kernel.msg.u.subInt.object),
 						message.kernel.msg.u.subInt.type,
 						message.kernel.msg.u.subInt.value
 					);
 					Object_Release(message.kernel.msg.u.subInt.object);
-					Message_Reply(msg, success ? 1 : 0, 0, 0);
+					Message_Reply(msg, 0, 0, 0);
 					break;
 				}
 

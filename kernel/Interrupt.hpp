@@ -8,7 +8,7 @@ class Interrupt
 public:
 	static void init();
 
-	static bool subscribe(int irq, Object *object, unsigned type, unsigned value);
+	static void subscribe(int irq, Object *object, unsigned type, unsigned value);
 
 	static void mask(int irq);
 	static void unmask(int irq);
