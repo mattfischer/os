@@ -35,8 +35,7 @@ extern char vectorEnd[];
  */
 void Kernel::init()
 {
-	// Mark as in use all pages used by the kernel itself, as well as the initial
-	// page table, which is located directly after it in memory.
+	// Mark as in use all pages used by the kernel itself
 	Page *pages = Page::fromNumber(0);
 	for(int i=0; i<=Page::fromVAddr(&__KernelEnd)->number(); i++) {
 		pages[i].setFlags(Page::FlagsInUse);
@@ -52,7 +51,7 @@ void Kernel::init()
 	Page *vectorPage = Page::alloc();
 	char *vector = (char*)vectorPage->vaddr();
 
-	// Map the page to the high vectory area, and copy the vector entries into it
+	// Map the page to the high vector area, and copy the vector entries into it
 	pageTable->mapPage((void*)0xffff0000, vectorPage->paddr(), PageTable::PermissionRWPriv);
 	::memcpy(vector, vectorStart, (unsigned)vectorEnd - (unsigned)vectorStart);
 
