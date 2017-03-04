@@ -135,13 +135,22 @@ void Server::run()
 					break;
 				}
 
-				case ProcessSbrk:
+				case ProcessMap:
 				{
-					// Expand heap request.
-					int ret = (int)process->heapTop();
-					process->growHeap(message.process.msg.u.sbrk.increment);
+					MemArea *area = new MemAreaPages(message.process.msg.u.map.size);
+					process->addressSpace()->map(area, (void*)message.process.msg.u.map.vaddr, 0, area->size());
 
-					Message_Reply(msg, ret, 0, 0);
+					Message_Reply(msg, 0, 0, 0);
+					break;
+				}
+
+				case ProcessExpandMap:
+				{
+					MemArea *area = process->addressSpace()->lookupMap((void*)message.process.msg.u.map.vaddr);
+					area->expand(message.process.msg.u.map.size);
+					process->addressSpace()->expandMap(area, message.process.msg.u.map.size);
+
+					Message_Reply(msg, 0, 0, 0);
 					break;
 				}
 

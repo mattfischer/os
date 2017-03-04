@@ -3,11 +3,11 @@
 
 #include "List.hpp"
 #include "Slab.hpp"
+#include "MemArea.hpp"
 
 #include <stddef.h>
 
 class PageTable;
-class MemArea;
 
 /*!
  * \brief A mapped area in an address space
@@ -16,7 +16,7 @@ struct Mapping : public ListEntry {
 	void *vaddr; //!< Virtual address
 	unsigned int offset; //!< Offset into memory area
 	unsigned int size; //!< Size of mapping
-	MemArea *area; //!< Memory area backing this mapping
+	Ref<MemArea> area; //!< Memory area backing this mapping
 };
 
 /*!
@@ -36,6 +36,9 @@ public:
 	struct PageTable *pageTable() { return mPageTable; }
 
 	void map(MemArea *area, void *vaddr, unsigned int offset, unsigned int size);
+	void expandMap(MemArea *area, unsigned int size);
+	MemArea *lookupMap(void *vaddr);
+
 	static void memcpy(AddressSpace *destSpace, void *dest, AddressSpace *srcSpace, void *src, int size);
 
 	//! Allocator

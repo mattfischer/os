@@ -12,8 +12,6 @@
 //!< Slab allocator for processes
 Slab<Process> Process::sSlab;
 
-#define HEAP_START (char*)0x10000000
-
 /*!
  * \brief Constructor
  * \param addressSpace Address space to use for process, or 0 to allocate a new one
@@ -25,9 +23,6 @@ Process::Process(AddressSpace *addressSpace)
 	}
 
 	mAddressSpace = addressSpace;
-	mHeap = 0;
-	mHeapTop = HEAP_START;
-	mHeapAreaTop = HEAP_START;
 	mState = StateRunning;
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
@@ -37,41 +32,6 @@ Process::Process(AddressSpace *addressSpace)
 
 Process::~Process()
 {
-}
-
-void Process::growHeap(int increment)
-{
-	if(mHeap == 0) {
-		// No heap allocated yet.  Create a new memory segment and map it
-		// into the process.
-		int size = PAGE_SIZE_ROUND_UP(increment);
-
-		mHeap = new MemAreaPages(size);
-		mAddressSpace->map(mHeap, HEAP_START, 0, size);
-		mHeapTop = (char*)HEAP_START + increment;
-		mHeapAreaTop = (char*)HEAP_START + size;
-	} else {
-		if(mHeapTop + increment < mHeapAreaTop) {
-			// Request can be serviced without expanding the heap area.  Just
-			// record the new heap top and return.
-			mHeapTop += increment;
-		} else {
-			// We must expand the heap area in order to service the request.
-			int size = PAGE_SIZE_ROUND_UP(increment);
-			int extraPages = size >> PAGE_SHIFT;
-
-			// Allocate new pages, link them into the heap area, and map them into the process
-			for(int i=0; i<extraPages; i++) {
-				Page *page = Page::alloc();
-				mHeap->pages().addTail(page);
-				mAddressSpace->pageTable()->mapPage(mHeapAreaTop, page->paddr(), PageTable::PermissionRW);
-				mHeapAreaTop += PAGE_SIZE;
-			}
-
-			// Return old heap top, and increment.
-			mHeapTop += increment;
-		}
-	}
 }
 
 /*!
@@ -291,10 +251,6 @@ void Process::kill()
 	}
 
 	delete mAddressSpace;
-
-	if(mHeap != 0) {
-		delete mHeap;
-	}
 
 	for(int i=0; i<16; i++) {
 		unrefObject(i);

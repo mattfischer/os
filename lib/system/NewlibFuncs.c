@@ -14,13 +14,28 @@ int _open(const char *name, int flags, int mode)
 	return Name_Open(name);
 }
 
+#define HEAP_START (char*)0x10000000
+
 void *_sbrk(int inc)
 {
+	static int heapSize = 0;
 	union ProcessMsg msg;
 
-	msg.msg.type = ProcessSbrk;
-	msg.msg.u.sbrk.increment = inc;
-	return (void*)Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
+	if(heapSize == 0) {
+		msg.msg.type = ProcessMap;
+		msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
+		msg.msg.u.map.size = inc;
+	} else {
+		msg.msg.type = ProcessExpandMap;
+		msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
+		msg.msg.u.map.size = heapSize + inc;
+	}
+	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
+
+	void *ret = HEAP_START + heapSize;
+	heapSize += inc;
+
+	return ret;
 }
 
 int _write(int fd, char *buffer, int len)

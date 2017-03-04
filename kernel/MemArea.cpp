@@ -14,7 +14,34 @@ Slab<MemAreaPhys> MemAreaPhys::sSlab;
  */
 MemArea::MemArea(int size)
 {
-	mSize = size;
+	mSize = PAGE_SIZE_ROUND_UP(size);
+}
+
+/*!
+ * \brief Expand a memory area
+ * \param newSize New size
+ */
+void MemArea::expand(int newSize)
+{
+	int newSizeRounded = PAGE_SIZE_ROUND_UP(newSize);
+
+	doExpand(newSizeRounded);
+
+	mSize = newSize;
+}
+
+/*!
+ * \brief Perform an expand operation
+ * \param newSize New size
+ */
+void MemArea::doExpand(int newSize)
+{
+	// Placeholder for subclasses
+}
+
+void MemArea::onLastRef()
+{
+	free();
 }
 
 /*!
@@ -22,7 +49,7 @@ MemArea::MemArea(int size)
  * \param size Size of area
  */
 MemAreaPages::MemAreaPages(int size)
- : MemArea(PAGE_SIZE_ROUND_UP(size))
+ : MemArea(size)
 {
 	// Allocate the appropriate number of pages
 	mPages = Page::allocMulti(MemArea::size() >> PAGE_SHIFT);
@@ -49,6 +76,20 @@ void MemAreaPages::map(PageTable *table, void *vaddr, unsigned int offset, unsig
 		// Map each page into the table
 		table->mapPage((void*)v, page->paddr(), PageTable::PermissionRW);
 		v += PAGE_SIZE;
+	}
+}
+
+void MemAreaPages::doExpand(int newSize)
+{
+	if(newSize <= size()) {
+		return;
+	}
+
+	unsigned int newPages = (newSize - size()) >> PAGE_SHIFT;
+
+	for(int i=0; i<newPages; i++) {
+		Page *page = Page::alloc();
+		mPages.addTail(page);
 	}
 }
 

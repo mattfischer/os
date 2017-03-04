@@ -58,15 +58,62 @@ void AddressSpace::map(MemArea *area, void *vaddr, unsigned int offset, unsigned
 	area->map(mPageTable, vaddr, mapping->offset, mapping->size);
 
 	// Now add the mapping into the list of mappings, in sorted order
+	bool found = false;
 	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != 0; mappingCursor = mMappings.next(mappingCursor)) {
 		if(mappingCursor->vaddr > mapping->vaddr) {
 			mMappings.addAfter(mapping, mappingCursor);
+			found = true;
 			break;
 		}
 	}
 
+	if(!found) {
+		mMappings.addTail(mapping);
+	}
+
 	// Since mappings have changed, TLB entries must be flushed
 	FlushTLB();
+}
+
+/*!
+ * \brief Expand an existing mapping
+ * \param area Area to expand
+ * \param size New size to map
+ */
+void AddressSpace::expandMap(MemArea *area, unsigned int size)
+{
+	struct Mapping *mapping = 0;
+	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != 0; mappingCursor = mMappings.next(mappingCursor)) {
+		if(mappingCursor->area.ptr() == area) {
+			mapping = mappingCursor;
+			break;
+		}
+	}
+
+	if(!mapping) {
+		return;
+	}
+
+	mapping->size = PAGE_SIZE_ROUND_UP(size);
+	area->map(mPageTable, mapping->vaddr, mapping->offset, mapping->size);
+
+	// Since mappings have changed, TLB entries must be flushed
+	FlushTLB();
+}
+
+/*!
+ * \brief Look up a mapping by its base address
+ * \param vaddr Base address of mapping
+ */
+MemArea *AddressSpace::lookupMap(void *vaddr)
+{
+	for(struct Mapping *mappingCursor = mMappings.head(); mappingCursor != 0; mappingCursor = mMappings.next(mappingCursor)) {
+		if(mappingCursor->vaddr == vaddr) {
+			return mappingCursor->area.ptr();
+		}
+	}
+
+	return 0;
 }
 
 // Round virtual address up to page boundary

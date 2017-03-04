@@ -4,6 +4,7 @@
 #include "List.hpp"
 #include "Slab.hpp"
 #include "Page.hpp"
+#include "Ref.hpp"
 
 #include <stddef.h>
 
@@ -12,7 +13,7 @@ class PageTable;
 /*!
  * \brief Represents a region of physical memory.  Abstract base class.
  */
-class MemArea {
+class MemArea : public RefObject {
 public:
 	MemArea(int size);
 
@@ -21,6 +22,7 @@ public:
 	 * \return Size
 	 */
 	int size() { return mSize; }
+	void expand(int newSize);
 
 	/*!
 	 * \brief Map this area into a page table
@@ -30,6 +32,11 @@ public:
 	 * \param size Size of mapping
 	 */
 	virtual void map(PageTable *table, void *vaddr, unsigned int offset, unsigned int size) = 0;
+
+protected:
+	virtual void doExpand(int size);
+	virtual void free() = 0;
+	virtual void onLastRef();
 
 private:
 	int mSize; //!< Size of area
@@ -55,6 +62,10 @@ public:
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((MemAreaPages*)p); }
 
+protected:
+	virtual void doExpand(int newSize);
+	virtual void free() { delete this; }
+
 private:
 	List<Page> mPages; //!< Page list
 
@@ -73,6 +84,9 @@ public:
 	//! Allocator
 	void *operator new(size_t size) { return sSlab.allocate(); }
 	void operator delete(void *p) { sSlab.free((MemAreaPhys*)p); }
+
+protected:
+	virtual void free() { delete this; }
 
 private:
 	PAddr mPAddr; //!< Starting physical address of area

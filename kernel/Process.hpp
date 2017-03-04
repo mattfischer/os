@@ -32,13 +32,6 @@ public:
 	 */
 	AddressSpace *addressSpace() { return mAddressSpace; }
 
-	/*!
-	 * \brief Address of the top of the heap
-	 * \return Heap top
-	 */
-	char *heapTop() { return mHeapTop; }
-	void growHeap(int increment);
-
 	Object *object(int obj);
 
 	int refObject(Object *object);
@@ -69,9 +62,6 @@ public:
 
 private:
 	AddressSpace *mAddressSpace; //!< Address space of process
-	MemAreaPages *mHeap; //!< Memory area for heap
-	char *mHeapTop; //!< Top of heap
-	char *mHeapAreaTop; //!< Top of heap area
 	Object *mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes

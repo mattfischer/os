@@ -6,7 +6,8 @@
 
 enum ProcessMsgType {
 	ProcessMapPhys,
-	ProcessSbrk,
+	ProcessMap,
+	ProcessExpandMap,
 	ProcessKill,
 	ProcessWait
 };
@@ -17,8 +18,9 @@ struct ProcessMsgMapPhys {
 	unsigned int size;
 };
 
-struct ProcessMsgSbrk {
-	unsigned int increment;
+struct ProcessMsgMap {
+	unsigned int vaddr;
+	unsigned int size;
 };
 
 union ProcessMsg {
@@ -26,7 +28,7 @@ union ProcessMsg {
 		enum ProcessMsgType type;
 		union {
 			struct ProcessMsgMapPhys mapPhys;
-			struct ProcessMsgSbrk sbrk;
+			struct ProcessMsgMap map;
 		} u;
 	} msg;
 	struct Event event;
