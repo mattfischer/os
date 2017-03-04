@@ -23,13 +23,11 @@ void *_sbrk(int inc)
 
 	if(heapSize == 0) {
 		msg.msg.type = ProcessMap;
-		msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
-		msg.msg.u.map.size = inc;
 	} else {
 		msg.msg.type = ProcessExpandMap;
-		msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
-		msg.msg.u.map.size = heapSize + inc;
 	}
+	msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
+	msg.msg.u.map.size = heapSize + inc;
 	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 
 	void *ret = HEAP_START + heapSize;
