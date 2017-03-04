@@ -23,7 +23,6 @@ Process::Process(AddressSpace *addressSpace)
 	}
 
 	mAddressSpace = addressSpace;
-	mState = StateRunning;
 	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
 	memset(mWaiters, 0, sizeof(int) * 16);
@@ -239,8 +238,6 @@ Task *Process::newTask(Page *stack)
 
 void Process::kill()
 {
-	mState = StateDead;
-
 	Task *next;
 	for(Task *task = mTasks.head(); task != 0; task = next)
 	{

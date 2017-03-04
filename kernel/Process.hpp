@@ -16,15 +16,8 @@ class AddressSpace;
  */
 class Process {
 public:
-	enum State {
-		StateRunning, //!< Running
-		StateDead     //!< Dead
-	};
-
 	Process(AddressSpace *addressSpace = 0);
 	~Process();
-
-	State state() { return mState; }
 
 	/*!
 	 * \brief Address space used by this process
@@ -67,7 +60,6 @@ private:
 	int mWaiters[16]; //!< Waiting processes
 	Channel *mChannels[16];
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
-	State mState;
 
 	static Slab<Process> sSlab;
 };
