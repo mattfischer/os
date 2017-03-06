@@ -23,7 +23,6 @@ Process::Process(AddressSpace *addressSpace)
 	}
 
 	mAddressSpace = addressSpace;
-	memset(mObjects, 0, sizeof(Object*) * 16);
 	memset(mMessages, 0, sizeof(Message*) * 16);
 	memset(mWaiters, 0, sizeof(int) * 16);
 	memset(mChannels, 0, sizeof(Channel*) * 16);
@@ -43,7 +42,7 @@ Object *Process::object(int obj)
 	if(obj == OBJECT_INVALID) {
 		return 0;
 	} else {
-		return mObjects[obj];
+		return mObjects[obj].ptr();
 	}
 }
 
@@ -60,8 +59,7 @@ int Process::refObject(Object *object)
 
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
-		if(mObjects[i] == 0) {
-			object->ref();
+		if(!mObjects[i]) {
 			mObjects[i] = object;
 			return i;
 		}
@@ -79,11 +77,10 @@ int Process::refObject(Object *object)
 int Process::refObjectTo(int obj, Object *object)
 {
 	// Check if slot is empty
-	if(mObjects[obj] != 0 || object == 0) {
+	if(mObjects[obj] || object == 0) {
 		return OBJECT_INVALID;
 	}
 
-	object->ref();
 	mObjects[obj] = object;
 
 	return obj;
@@ -100,7 +97,6 @@ void Process::unrefObject(int obj)
 	}
 
 	if(mObjects[obj]) {
-		mObjects[obj]->unref();
 		mObjects[obj] = 0;
 	}
 }
@@ -184,7 +180,7 @@ void Process::unrefMessage(int msg)
  */
 Channel *Process::channel(int chan)
 {
-	return mChannels[chan];
+	return mChannels[chan].ptr();
 }
 
 /*!
@@ -196,8 +192,7 @@ int Process::refChannel(Channel *channel)
 {
 	// Find an empty slot
 	for(int i=0; i<16; i++) {
-		if(mChannels[i] == 0) {
-			channel->ref();
+		if(!mChannels[i]) {
 			mChannels[i] = channel;
 			return i;
 		}
@@ -213,7 +208,6 @@ int Process::refChannel(Channel *channel)
 void Process::unrefChannel(int chan)
 {
 	mChannels[chan]->kill();
-	mChannels[chan]->unref();
 	mChannels[chan] = 0;
 }
 

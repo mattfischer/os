@@ -55,10 +55,10 @@ public:
 
 private:
 	AddressSpace *mAddressSpace; //!< Address space of process
-	Object *mObjects[16]; //!< Object list
+	Ref<Object> mObjects[16]; //!< Object list
 	Message *mMessages[16]; //!< Outstanding messages
 	int mWaiters[16]; //!< Waiting processes
-	Channel *mChannels[16];
+	Ref<Channel> mChannels[16];
 	ListAux<Task, &Task::mProcessListEntry> mTasks;
 
 	static Slab<Process> sSlab;

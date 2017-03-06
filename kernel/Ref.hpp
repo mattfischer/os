@@ -65,10 +65,26 @@ public:
 		if(mObject) {
 			mObject->ref();
 		}
+
+		return *this;
+	}
+
+	Ref<T> &operator=(T *other) {
+		if(mObject) {
+			mObject->unref();
+		}
+		mObject = other;
+		if(mObject) {
+			mObject->ref();
+		}
+
+		return *this;
 	}
 
 	~Ref() {
-		mObject->unref();
+		if(mObject) {
+			mObject->unref();
+		}
 		mObject = 0;
 	}
 
