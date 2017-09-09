@@ -11,27 +11,27 @@
 
 int Interrupt_Subscribe(unsigned irq, int object, unsigned type, unsigned value)
 {
-	union KernelMsg msg;
+	struct KernelMsg msg;
 	int ret;
 
-	msg.msg.type = KernelSubInt;
-	msg.msg.u.subInt.irq = irq;
-	msg.msg.u.subInt.object = object;
-	msg.msg.u.subInt.type = type;
-	msg.msg.u.subInt.value = value;
+	msg.type = KernelSubInt;
+	msg.subInt.irq = irq;
+	msg.subInt.object = object;
+	msg.subInt.type = type;
+	msg.subInt.value = value;
 
-	int objectsOffset = offsetof(union KernelMsg, msg.u.subInt.object);
+	int objectsOffset = offsetof(struct KernelMsg, subInt.object);
 	Object_Sendhs(KERNEL_NO, &msg, sizeof(msg), objectsOffset, 1, &ret, sizeof(ret));
 	return ret;
 }
 
 void Interrupt_Unmask(int irq)
 {
-	union KernelMsg msg;
+	struct KernelMsg msg;
 	int ret;
 
-	msg.msg.type = KernelUnmaskInt;
-	msg.msg.u.unmaskInt.irq = irq;
+	msg.type = KernelUnmaskInt;
+	msg.unmaskInt.irq = irq;
 
 	Object_Send(KERNEL_NO, &msg, sizeof(msg), &ret, sizeof(ret));
 }

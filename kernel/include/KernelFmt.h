@@ -36,17 +36,19 @@ struct KernelMsgReadLog {
 	int size;
 };
 
-union KernelMsg {
-	struct {
-		enum KernelMsgType type;
-		union {
-			struct KernelMsgSpawnProcess spawn;
-			struct KernelMsgSubInt subInt;
-			struct KernelMsgUnmaskInt unmaskInt;
-			struct KernelMsgReadLog readLog;
-		} u;
-	} msg;
-	struct Event event;
+struct KernelMsg {
+	union {
+		struct {
+			enum KernelMsgType type;
+			union {
+				struct KernelMsgSpawnProcess spawn;
+				struct KernelMsgSubInt subInt;
+				struct KernelMsgUnmaskInt unmaskInt;
+				struct KernelMsgReadLog readLog;
+			};
+		};
+		struct Event event;
+	};
 };
 
 #endif

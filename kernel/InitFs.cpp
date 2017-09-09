@@ -67,7 +67,7 @@ struct Info {
 	union {
 		FileInfo file;
 		DirInfo dir;
-	} u;
+	};
 };
 
 static Slab<Info> infoSlab;
@@ -113,8 +113,8 @@ void InitFs::server()
 
 	while(1) {
 		union {
-			union NameMsg name;
-			union IOMsg io;
+			struct NameMsg name;
+			struct IOMsg io;
 		} msg;
 		unsigned targetData;
 		int m = Channel_Receive(mChannel, &msg, sizeof(msg), &targetData);
@@ -135,13 +135,13 @@ void InitFs::server()
 
 		if(targetData == 0) {
 			// Call made to the main file server object
-			switch(msg.name.msg.type) {
+			switch(msg.name.type) {
 				case NameMsgTypeOpen:
 				{
 					int size;
 					void *data;
 					int obj = OBJECT_INVALID;
-					char *name = msg.name.msg.u.open.name;
+					char *name = msg.name.open.name;
 
 					if(strncmp(name, PREFIX, strlen(PREFIX)) == 0) {
 						Log::printf("initfs: Open file %s\n", name);
@@ -154,9 +154,9 @@ void InitFs::server()
 							// file and return it
 							Info *info = infoSlab.allocate();
 							info->type = InfoTypeFile;
-							info->u.file.data = data;
-							info->u.file.size = size;
-							info->u.file.pointer = 0;
+							info->file.data = data;
+							info->file.size = size;
+							info->file.pointer = 0;
 							obj = Object_Create(mChannel, (unsigned)info);
 						}
 					}
@@ -174,12 +174,12 @@ void InitFs::server()
 					int size;
 					void *data;
 					int obj = OBJECT_INVALID;
-					char *name = msg.name.msg.u.open.name;
+					char *name = msg.name.open.name;
 
 					if(strcmp(name, PREFIX) == 0) {
 						Info *info = infoSlab.allocate();
 						info->type = InfoTypeDir;
-						info->u.dir.header = reinterpret_cast<struct InitFsFileHeader*>(__InitFsStart);
+						info->dir.header = reinterpret_cast<struct InitFsFileHeader*>(__InitFsStart);
 						obj = Object_Create(mChannel, (unsigned)info);
 					}
 
@@ -194,17 +194,17 @@ void InitFs::server()
 			Info *info = reinterpret_cast<Info*>(targetData);
 
 			// Message was sent to an open file handle
-			switch(msg.io.msg.type) {
+			switch(msg.io.type) {
 				case IOMsgTypeRead:
 				{
-					int size = std::min(msg.io.msg.u.rw.size, info->u.file.size - info->u.file.pointer);
-					Message_Reply(m, size, reinterpret_cast<char*>(info->u.file.data) + info->u.file.pointer, size);
+					int size = std::min(msg.io.rw.size, info->file.size - info->file.pointer);
+					Message_Reply(m, size, reinterpret_cast<char*>(info->file.data) + info->file.pointer, size);
 					break;
 				}
 
 				case IOMsgTypeSeek:
 				{
-					info->u.file.pointer = msg.io.msg.u.seek.pointer;
+					info->file.pointer = msg.io.seek.pointer;
 					Message_Reply(m, 0, 0, 0);
 					break;
 				}
@@ -213,10 +213,10 @@ void InitFs::server()
 				{
 					IOMsgReadDirRet ret;
 					int status = 1;
-					if((void*)info->u.dir.header < (void*)__InitFsEnd){
+					if((void*)info->dir.header < (void*)__InitFsEnd){
 						status = 0;
-						strcpy(ret.name, info->u.dir.header->name);
-						info->u.dir.header = reinterpret_cast<struct InitFsFileHeader*>(reinterpret_cast<char*>(info->u.dir.header) + sizeof(struct InitFsFileHeader) + info->u.dir.header->size);
+						strcpy(ret.name, info->dir.header->name);
+						info->dir.header = reinterpret_cast<struct InitFsFileHeader*>(reinterpret_cast<char*>(info->dir.header) + sizeof(struct InitFsFileHeader) + info->dir.header->size);
 					}
 					Message_Reply(m, status, &ret, sizeof(ret));
 					break;

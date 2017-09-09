@@ -19,15 +19,15 @@ int _open(const char *name, int flags, int mode)
 void *_sbrk(int inc)
 {
 	static int heapSize = 0;
-	union ProcessMsg msg;
+	struct ProcessMsg msg;
 
 	if(heapSize == 0) {
-		msg.msg.type = ProcessMap;
+		msg.type = ProcessMap;
 	} else {
-		msg.msg.type = ProcessExpandMap;
+		msg.type = ProcessExpandMap;
 	}
-	msg.msg.u.map.vaddr = (unsigned int)HEAP_START;
-	msg.msg.u.map.size = heapSize + inc;
+	msg.map.vaddr = (unsigned int)HEAP_START;
+	msg.map.size = heapSize + inc;
 	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 
 	void *ret = HEAP_START + heapSize;
@@ -67,9 +67,9 @@ int _lseek(int file, int ptr, int dir) {
 
 void _exit(int code)
 {
-	union ProcessMsg msg;
+	struct ProcessMsg msg;
 
-	msg.msg.type = ProcessKill;
+	msg.type = ProcessKill;
 	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 	while(1) {}
 }

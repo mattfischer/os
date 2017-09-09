@@ -17,34 +17,34 @@ int SpawnProcess(const char *argv[], int stdinObject, int stdoutObject, int stde
 
 int SpawnProcessx(const char *argv[], int stdinObject, int stdoutObject, int stderrObject, int nameserverObject)
 {
-	union KernelMsg msg;
+	struct KernelMsg msg;
 	int child;
 	int i;
 	char *c;
 
-	msg.msg.type = KernelSpawnProcess;
+	msg.type = KernelSpawnProcess;
 
 	// Construct the command line out of the passed-in argv
-	c = msg.msg.u.spawn.cmdline;
+	c = msg.spawn.cmdline;
 	for(i=0; argv[i] != NULL; i++) {
 		strcpy(c, argv[i]);
 		c += strlen(argv[i]) + 1;
 	}
 	*c = '\0';
 
-	msg.msg.u.spawn.stdinObject = stdinObject;
-	msg.msg.u.spawn.stdoutObject = stdoutObject;
-	msg.msg.u.spawn.stderrObject = stderrObject;
-	msg.msg.u.spawn.nameserverObject = nameserverObject;
+	msg.spawn.stdinObject = stdinObject;
+	msg.spawn.stdoutObject = stdoutObject;
+	msg.spawn.stderrObject = stderrObject;
+	msg.spawn.nameserverObject = nameserverObject;
 
-	int objectsOffset = offsetof(union KernelMsg, msg.u.spawn.stdinObject);
+	int objectsOffset = offsetof(struct KernelMsg, spawn.stdinObject);
 	Object_Sendhs(KERNEL_NO, &msg, sizeof(msg), objectsOffset, 4, &child, sizeof(child));
 	return child;
 }
 
 void WaitProcess(int process)
 {
-	union ProcessMsg msg;
-	msg.msg.type = ProcessWait;
+	struct ProcessMsg msg;
+	msg.type = ProcessWait;
 	Object_Send(process, &msg, sizeof(msg), NULL, 0);
 }

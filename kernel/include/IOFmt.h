@@ -22,15 +22,17 @@ struct IOMsgReadDirRet {
 	char name[32];
 };
 
-union IOMsg {
-	struct {
-		enum IOMsgType type;
-		union {
-			struct IOMsgReadWriteHdr rw;
-			struct IOMsgSeek seek;
-		} u;
-	} msg;
-	struct Event event;
+struct IOMsg {
+	union {
+		struct {
+			enum IOMsgType type;
+			union {
+				struct IOMsgReadWriteHdr rw;
+				struct IOMsgSeek seek;
+			};
+		};
+		struct Event event;
+	};
 };
 
 #endif

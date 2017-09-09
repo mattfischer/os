@@ -9,11 +9,11 @@
 
 void MapPhys(void *vaddr, unsigned int paddr, unsigned int size)
 {
-	union ProcessMsg msg;
+	struct ProcessMsg msg;
 
-	msg.msg.type = ProcessMapPhys;
-	msg.msg.u.mapPhys.vaddr = (unsigned int)vaddr;
-	msg.msg.u.mapPhys.paddr = paddr;
-	msg.msg.u.mapPhys.size = size;
+	msg.type = ProcessMapPhys;
+	msg.mapPhys.vaddr = (unsigned int)vaddr;
+	msg.mapPhys.paddr = paddr;
+	msg.mapPhys.size = size;
 	Object_Send(PROCESS_NO, &msg, sizeof(msg), NULL, 0);
 }

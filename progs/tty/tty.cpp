@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
 
 	while(1) {
 		union {
-			union IOMsg io;
-			union NameMsg name;
+			struct IOMsg io;
+			struct NameMsg name;
 		} msg;
 		unsigned targetData;
 		int m;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
 		switch(targetData) {
 		case TypeRoot:
-			switch(msg.name.msg.type) {
+			switch(msg.name.type) {
 				case NameMsgTypeOpen:
 				{
 					int obj = Object_Create(channel, TypeConnection);
@@ -53,16 +53,16 @@ int main(int argc, char *argv[])
 			break;
 
 		case TypeConnection:
-			switch(msg.io.msg.type) {
+			switch(msg.io.type) {
 				case IOMsgTypeWrite:
 				{
 					char buffer[256];
 					int sent;
 					int headerSize;
 
-					headerSize = offsetof(union IOMsg, msg.u.rw) + sizeof(msg.io.msg.u.rw);
+					headerSize = offsetof(struct IOMsg, rw) + sizeof(msg.io.rw);
 					sent = 0;
-					while(sent < msg.io.msg.u.rw.size) {
+					while(sent < msg.io.rw.size) {
 						int size;
 
 						size = Message_Read(m, buffer, headerSize + sent, sizeof(buffer));

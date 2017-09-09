@@ -94,7 +94,7 @@ void AbortEntry()
 {
 	// Just kill the process
 	ProcessMsg message;
-	message.msg.type = ProcessKill;
+	message.type = ProcessKill;
 	Object_Send(PROCESS_NO, &message, sizeof(message), 0, 0);
 
 	// Poof!

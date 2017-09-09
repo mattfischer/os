@@ -166,9 +166,9 @@ struct OpenDir *createOpenDir(const char *name)
 	vector<int> objs;
 	for(int i=0; i<servers.size(); i++) {
 		int obj;
-		union NameMsg msg;
-		msg.msg.type = NameMsgTypeOpenDir;
-		strcpy(msg.msg.u.openDir.name, name);
+		struct NameMsg msg;
+		msg.type = NameMsgTypeOpenDir;
+		strcpy(msg.openDir.name, name);
 		Object_Send(servers[i], &msg, sizeof(msg), &obj, sizeof(obj));
 		if(obj != OBJECT_INVALID) {
 			objs.push_back(obj);
@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 	Object_Release(child);
 
 	while(1) {
-		union NameMsg msg;
+		struct NameMsg msg;
 		int m;
 		unsigned targetData;
 
@@ -227,10 +227,10 @@ int main(int argc, char *argv[])
 		}
 
 		if(targetData == 0) {
-			switch(msg.msg.type) {
+			switch(msg.type) {
 				case NameMsgTypeSet:
 				{
-					set(msg.msg.u.set.name, msg.msg.u.set.obj);
+					set(msg.set.name, msg.set.obj);
 					Message_Reply(m, 0, NULL, 0);
 					break;
 				}
@@ -238,9 +238,9 @@ int main(int argc, char *argv[])
 				case NameMsgTypeOpen:
 				{
 					int ret = OBJECT_INVALID;
-					vector<int> objs = lookup(msg.msg.u.open.name);
+					vector<int> objs = lookup(msg.open.name);
 					for(int i=objs.size() - 1; i>=0; i--) {
-						Object_Send(objs[i], &msg, sizeof(union NameMsg), &ret, sizeof(ret));
+						Object_Send(objs[i], &msg, sizeof(struct NameMsg), &ret, sizeof(ret));
 						if(ret != OBJECT_INVALID) {
 							break;
 						}
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 
 				case NameMsgTypeOpenDir:
 				{
-					struct OpenDir *openDir = createOpenDir(msg.msg.u.openDir.name);
+					struct OpenDir *openDir = createOpenDir(msg.openDir.name);
 					int ret = OBJECT_INVALID;
 					if(openDir) {
 						ret = Object_Create(channel, (unsigned)openDir);
@@ -264,9 +264,9 @@ int main(int argc, char *argv[])
 
 				case NameMsgTypeWait:
 				{
-					vector<int> objs = lookup(msg.msg.u.wait.name);
+					vector<int> objs = lookup(msg.wait.name);
 					if(objs.size() == 0) {
-						addWaiter(msg.msg.u.wait.name, m);
+						addWaiter(msg.wait.name, m);
 					} else {
 						Message_Reply(m, 0, NULL, 0);
 					}
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
 			}
 		} else {
 			struct OpenDir *openDir = (struct OpenDir*)targetData;
-			switch(msg.msg.type) {
+			switch(msg.type) {
 				case IOMsgTypeReadDir:
 				{
 					struct IOMsgReadDirRet ret;

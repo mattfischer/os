@@ -23,15 +23,17 @@ struct ProcessMsgMap {
 	unsigned int size;
 };
 
-union ProcessMsg {
-	struct {
-		enum ProcessMsgType type;
-		union {
-			struct ProcessMsgMapPhys mapPhys;
-			struct ProcessMsgMap map;
-		} u;
-	} msg;
-	struct Event event;
+struct ProcessMsg {
+	union {
+		struct {
+			enum ProcessMsgType type;
+			union {
+				struct ProcessMsgMapPhys mapPhys;
+				struct ProcessMsgMap map;
+			};
+		};
+		struct Event event;
+	};
 };
 
 #endif

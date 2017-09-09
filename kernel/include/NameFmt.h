@@ -32,18 +32,20 @@ struct NameMsgWait {
 	char name[32];
 };
 
-union NameMsg {
-	struct {
-		enum NameMsgType type;
-		union {
-			struct NameMsgSetHdr set;
-			struct NameMsgLookupHdr lookup;
-			struct NameMsgOpen open;
-			struct NameMsgOpenDir openDir;
-			struct NameMsgWait wait;
-		} u;
-	} msg;
-	struct Event event;
+struct NameMsg {
+	union {
+		struct {
+			enum NameMsgType type;
+			union {
+				struct NameMsgSetHdr set;
+				struct NameMsgLookupHdr lookup;
+				struct NameMsgOpen open;
+				struct NameMsgOpenDir openDir;
+				struct NameMsgWait wait;
+			};
+		};
+		struct Event event;
+	};
 };
 
 #endif

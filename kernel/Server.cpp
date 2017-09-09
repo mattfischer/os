@@ -56,21 +56,21 @@ void Server::run()
 		int msg = Channel_Receive(mChannel, &message, sizeof(message), &targetData);
 
 		if(targetData == 0) {
-			switch(message.kernel.msg.type) {
+			switch(message.kernel.type) {
 				case KernelSpawnProcess:
 				{
 					// Spawn a new process.
 					int obj = startUserProcess(
-						message.kernel.msg.u.spawn.cmdline,
-						message.kernel.msg.u.spawn.stdinObject,
-						message.kernel.msg.u.spawn.stdoutObject,
-						message.kernel.msg.u.spawn.stderrObject,
-						message.kernel.msg.u.spawn.nameserverObject
+						message.kernel.spawn.cmdline,
+						message.kernel.spawn.stdinObject,
+						message.kernel.spawn.stdoutObject,
+						message.kernel.spawn.stderrObject,
+						message.kernel.spawn.nameserverObject
 					);
-					Object_Release(message.kernel.msg.u.spawn.stdinObject);
-					Object_Release(message.kernel.msg.u.spawn.stdoutObject);
-					Object_Release(message.kernel.msg.u.spawn.stderrObject);
-					Object_Release(message.kernel.msg.u.spawn.nameserverObject);
+					Object_Release(message.kernel.spawn.stdinObject);
+					Object_Release(message.kernel.spawn.stdoutObject);
+					Object_Release(message.kernel.spawn.stderrObject);
+					Object_Release(message.kernel.spawn.nameserverObject);
 
 					Message_Replyh(msg, 0, &obj, sizeof(obj), 0, 1);
 					Object_Release(obj);
@@ -80,19 +80,19 @@ void Server::run()
 				case KernelSubInt:
 				{
 					Interrupt::subscribe(
-						message.kernel.msg.u.subInt.irq,
-						Sched::current()->process()->object(message.kernel.msg.u.subInt.object),
-						message.kernel.msg.u.subInt.type,
-						message.kernel.msg.u.subInt.value
+						message.kernel.subInt.irq,
+						Sched::current()->process()->object(message.kernel.subInt.object),
+						message.kernel.subInt.type,
+						message.kernel.subInt.value
 					);
-					Object_Release(message.kernel.msg.u.subInt.object);
+					Object_Release(message.kernel.subInt.object);
 					Message_Reply(msg, 0, 0, 0);
 					break;
 				}
 
 				case KernelUnmaskInt:
 				{
-					Interrupt::unmask(message.kernel.msg.u.unmaskInt.irq);
+					Interrupt::unmask(message.kernel.unmaskInt.irq);
 					Message_Reply(msg, 0, 0, 0);
 					break;
 				}
@@ -102,8 +102,8 @@ void Server::run()
 					const char *data;
 					int size;
 
-					size = Log::read(message.kernel.msg.u.readLog.offset, &data);
-					size = std::min(size, message.kernel.msg.u.readLog.size);
+					size = Log::read(message.kernel.readLog.offset, &data);
+					size = std::min(size, message.kernel.readLog.size);
 					Message_Reply(msg, size, data, size);
 					break;
 				}
@@ -123,13 +123,13 @@ void Server::run()
 				continue;
 			}
 
-			switch(message.process.msg.type) {
+			switch(message.process.type) {
 				case ProcessMapPhys:
 				{
 					// Map physical memory request.  Create a physical memory area and map it into
 					// the sending process.
-					MemArea *area = new MemAreaPhys(message.process.msg.u.mapPhys.size, message.process.msg.u.mapPhys.paddr);
-					process->addressSpace()->map(area, (void*)message.process.msg.u.mapPhys.vaddr, 0, area->size());
+					MemArea *area = new MemAreaPhys(message.process.mapPhys.size, message.process.mapPhys.paddr);
+					process->addressSpace()->map(area, (void*)message.process.mapPhys.vaddr, 0, area->size());
 
 					Message_Reply(msg, 0, 0, 0);
 					break;
@@ -137,8 +137,8 @@ void Server::run()
 
 				case ProcessMap:
 				{
-					MemArea *area = new MemAreaPages(message.process.msg.u.map.size);
-					process->addressSpace()->map(area, (void*)message.process.msg.u.map.vaddr, 0, area->size());
+					MemArea *area = new MemAreaPages(message.process.map.size);
+					process->addressSpace()->map(area, (void*)message.process.map.vaddr, 0, area->size());
 
 					Message_Reply(msg, 0, 0, 0);
 					break;
@@ -146,9 +146,9 @@ void Server::run()
 
 				case ProcessExpandMap:
 				{
-					MemArea *area = process->addressSpace()->lookupMap((void*)message.process.msg.u.map.vaddr);
-					area->expand(message.process.msg.u.map.size);
-					process->addressSpace()->expandMap(area, message.process.msg.u.map.size);
+					MemArea *area = process->addressSpace()->lookupMap((void*)message.process.map.vaddr);
+					area->expand(message.process.map.size);
+					process->addressSpace()->expandMap(area, message.process.map.size);
 
 					Message_Reply(msg, 0, 0, 0);
 					break;

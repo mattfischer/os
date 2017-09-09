@@ -10,24 +10,24 @@
 
 void Name_Set(const char *name, int obj)
 {
-	union NameMsg msg;
+	struct NameMsg msg;
 
-	msg.msg.type = NameMsgTypeSet;
-	strcpy(msg.msg.u.set.name, name);
-	msg.msg.u.set.obj = obj;
+	msg.type = NameMsgTypeSet;
+	strcpy(msg.set.name, name);
+	msg.set.obj = obj;
 
-	int objectsOffset = offsetof(union NameMsg, msg.u.set.obj);
+	int objectsOffset = offsetof(struct NameMsg, set.obj);
 	Object_Sendhs(NAMESERVER_NO, &msg, sizeof(msg), objectsOffset, 1, NULL, 0);
 }
 
 int Name_Lookup(const char *name)
 {
 	struct MessageHeader send;
-	union NameMsg msgSend;
+	struct NameMsg msgSend;
 	int object;
 
-	msgSend.msg.type = NameMsgTypeLookup;
-	strcpy(msgSend.msg.u.lookup.name, name);
+	msgSend.type = NameMsgTypeLookup;
+	strcpy(msgSend.lookup.name, name);
 
 	Object_Send(NAMESERVER_NO, &msgSend, sizeof(msgSend), &object, sizeof(object));
 
@@ -36,12 +36,12 @@ int Name_Lookup(const char *name)
 
 int Name_Open(const char *name)
 {
-	union NameMsg msg;
+	struct NameMsg msg;
 	int obj;
 	int ret;
 
-	msg.msg.type = NameMsgTypeOpen;
-	strcpy(msg.msg.u.open.name, name);
+	msg.type = NameMsgTypeOpen;
+	strcpy(msg.open.name, name);
 
 	ret = Object_Send(NAMESERVER_NO, &msg, sizeof(msg), &obj, sizeof(obj));
 
@@ -50,12 +50,12 @@ int Name_Open(const char *name)
 
 int Name_OpenDir(const char *name)
 {
-	union NameMsg msg;
+	struct NameMsg msg;
 	int obj;
 	int ret;
 
-	msg.msg.type = NameMsgTypeOpenDir;
-	strcpy(msg.msg.u.open.name, name);
+	msg.type = NameMsgTypeOpenDir;
+	strcpy(msg.open.name, name);
 
 	ret = Object_Send(NAMESERVER_NO, &msg, sizeof(msg), &obj, sizeof(obj));
 
@@ -64,12 +64,12 @@ int Name_OpenDir(const char *name)
 
 void Name_Wait(const char *name)
 {
-	union NameMsg msg;
+	struct NameMsg msg;
 	int obj;
 	int ret;
 
-	msg.msg.type = NameMsgTypeWait;
-	strcpy(msg.msg.u.wait.name, name);
+	msg.type = NameMsgTypeWait;
+	strcpy(msg.wait.name, name);
 
 	ret = -1;
 	while(ret == -1) {
